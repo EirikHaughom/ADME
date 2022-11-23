@@ -2,225 +2,362 @@
 The intent with this solution is to automatically ingest binary data created on an external datastore into Microsoft Energy Data Services. While the example uses an Azure Data Lake, any compatible storage solutions coult theoretically be used.
 
 # Prerequisites
-These prerequisites is needed to deploy the solution above.
-1. Azure Data Lake or Azure Storage Account*
-2. Azure KeyVault
-3. Azure Synapse Workspace
+These prerequisites is needed to deploy the solution above. Expand each prerequisite in the list below to see example code.
+<details>
+<summary>Azure CLI</summary>
 
-*Or other storage solution supported as a Linked Service in Synapse.
+Download from [aka.ms/azurecli](https://aka.ms/azurecli).  
+Login to the Azure CLI using the command below, and your user with subscription owner rights:
+```Powershell
+az login
+```
+Verify that the right subscription is selected:
+```Powershell
+az account show
+```
+If the correct subscription is not selected, run the following command:
+```Powershell
+az account set --subscription %subscription_id%
+```
+</details>
 
-# Deploy
-## Grant permissions
-The Azure Synapse Workspace needs direct access to the prerequisites noted above, make sure you configure the permissions on those accordingly. I've used the Managed Identity of the Synapse Workspace.
+<details>
+<summary>Azure Resource Providers</summary>
 
-* Grant Synapse Workspace *Storage Contributor* rights on the Storage Account*
-* Grant Synapse Workspace access to KeyVault
-    * If using Azure RBAC/IAM: *Key Vault Reader*
-    * If using Access Policies: *Secret Permissions (Get, List)*
+```Powershell
+az provider register --namespace Microsoft.DataFactory
+az provider register --namespace Microsoft.DataLakeStore
+az provider register --namespace Microsoft.OpenEnergyPlatform
+az provider register --namespace Microsoft.Sql
+az provider register --namespace Microsoft.Storage
+az provider register --namespace Microsoft.Synapse
+```
+</details>
 
-*If using a shared Storage Account, the rights can be set at a lower level (i.e. individual container)
+<details>
+<summary>Azure Resource Group</summary>
 
-## Storage Setup
+```Powershell
+az group create `
+    --name <resource-group> `
+    --location <location>
+```
+<details open>
+<summary>Example</summary>
+
+```Powershell
+az group create `
+    --name medssynapse-rg `
+    --location westeurope
+```
+</details>
+</details>
+
+<details>
+<summary>Azure Data Lake Storage or Azure Storage Account</summary>
+
+```Powershell
+az storage account create `
+    --name <storage-account> `
+    --resource-group <resource-group> `
+    --sku Standard_LRS `
+    --hns true
+```
+<details open>
+<summary>Example</summary>
+
+```Powershell
+az storage account create `
+    --name eirikmedsadls `
+    --resource-group medssynapse-rg `
+    --sku Standard_LRS `
+    --hns true
+```
+</details>
+
+Then create a container to use as the source.
+```Powershell
+az storage container create `
+    --account-name <storage-account> `
+    --name <container> `
+    --auth-mode login
+```
+<details open>
+<summary>Example</summary>
+
+```Powershell
+az storage container create `
+    --account-name eirikmedsadls `
+    --name medssource `
+    --auth-mode login
+```
+</details>
+</details>
+
+<details>
+<summary>Azure Synapse Workspace</summary>
+
+```Powershell
+az synapse workspace create `
+    --name <workspace-name> `
+    --file-system <filesystem> `
+    --resource-group <resource-group> `
+    --storage-account <storage-account>`
+    --sql-admin-login-user <username> `
+    --sql-admin-login-password <password> 
+```
+<details open>
+<summary>Example</summary>
+
+```Powershell
+az synapse workspace create `
+    --name eirikmedssynapse `
+    --file-system synapsefs `
+    --resource-group medssynapse-rg `
+    --storage-account eirikmedsadls `
+    --sql-admin-login-user mysqladmin `
+    --sql-admin-login-password mysqlpassword1! 
+```
+</details>
+
+Open the Synapse Workspace for public access.
+
+```Powershell
+az synapse workspace firewall-rule create `
+    --name <rule-name> `
+    --resource-group <resource-group> `
+    --workspace-name <workspace-name> `
+    --start-ip-address <start-ip> `
+    --end-ip-address <end-ip>
+```
+<details open>
+<summary>Example</summary>
+
+```Powershell
+az synapse workspace firewall-rule create `
+    --name allowAll `
+    --resource-group medssynapse-rg `
+    --workspace-name eirikmedssynapse `
+    --start-ip-address 0.0.0.0 `
+    --end-ip-address 255.255.255.255
+```
+</details>
+</details>
+
+<details>
+<summary>Microsoft Energy Data Services</summary>
+
+As this is a gated Public Preview product, please see the instructions at [learn.microsoft.com](https://learn.microsoft.com/en-us/azure/energy-data-services/quickstart-create-microsoft-energy-data-services-instance).
+</details><br />
+
+# Deploy pipeline
+## Permissions
+In this example pipeline we will be using the Synapse Workspace Managed Identity to ingest data into Microsoft Energy Data Services. An alternative would be to use a separate Application Registration and use Tokens to authorize the access.
+
+### Grant Synapse Workspace access to write data to Microsoft Energy Data Services.
+1. Obtain an Access Token for a user with access to write to the Microsoft Energy Data Services Entitlements service. For more information see [learn.microsoft.com](https://learn.microsoft.com/en-us/azure/energy-data-services/how-to-manage-users).
+2. Get the Synapse Workspace Managed Identity ObjectID. If multiple IDs are returned, please verify in the which ID is the correct Managed Instance ID.
+    ```Powershell
+    $users = az synapse role assignment list --workspace-name eirikmedssynapse | convertfrom-json
+    $users | where-object {$_.principalType -eq "ServicePrincipal"} | select principalId
+    ```
+3. Run the below REST API call through Postman or other API tool to add the Synapse Workspace Managed Identity ObjectID to the users.datalake.editors group.
+    ```Powershell
+    curl --location --request POST 'https://<instance>.energy.azure.com/api/entitlements/v2/groups/users.datalake.editors@<data-partition-id>.dataservices.energy/members' `
+        --header 'data-partition-id: <data-partition-id>' `
+        --header 'Authorization: Bearer <access_token>' `
+        --header 'Content-Type: application/json' `
+        --data-raw '{
+                        "email": "<Synapse_Managed-Instance_Object_ID>",
+                        "role": "MEMBER"
+                    }'
+    ```
+    <details>
+    <summary>Example</summary>
+
+    ```Powershell
+    curl --location --request POST 'https://eirikmeds.energy.azure.com/api/entitlements/v2/groups/users.datalake.editors@eirikmeds-opendes.dataservices.energy/members' \
+        --header 'data-partition-id: eirikmeds-opendes' \
+        --header 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1Ni...' \
+        --header 'Content-Type: application/json' \
+        --data-raw '{
+                        "email": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+                        "role": "MEMBER"
+                    }'
+    ```
+    </details>
+
+4. Make sure you get a <mark style="background-color:green">HTTP/1.1 200 OK</mark> response.
+    <details>
+    <summary>Sample Response</summary>
+
+    ```JSON
+    HTTP/1.1 200 OK
+    Date: Wed, 23 Nov 2022 12:11:41 GMT
+    Content-Type: application/json
+    Transfer-Encoding: chunked
+    Connection: close
+    set-cookie: JSESSIONID=; Path=/api/entitlements/v2; Secure; HttpOnly
+    x-frame-options: DENY
+    strict-transport-security: max-age=31536000; includeSubDomains
+    cache-control: no-cache, no-store, must-revalidate
+    access-control-allow-origin: *
+    access-control-allow-credentials: true
+    access-control-allow-methods: GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH
+    x-content-type-options: nosniff
+    content-security-policy: default-src 'self'
+    expires: 0
+    x-xss-protection: 1; mode=block
+    access-control-max-age: 3600
+    access-control-allow-headers: access-control-allow-origin, origin, content-type, accept, authorization, data-partition-id, correlation-id, appkey
+    x-envoy-upstream-service-time: 262
+    server: istio-envoy
+
+    {
+    "email": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+    "role": "MEMBER"
+    }
+    ```
+    </details>
+
+## Linked Services and Datasets
+Now we will create the Synapse Linked Services and the Datasets to be used in the Synapse Pipeline.
+
 ### Create Source Linked Service
-Here we will create the Source Linked Service.
-
-1. Go to your [Synapse Workspace](https://web.azuresynapse.net/en/management/datalinkedservices)
-2. Select Manage
-3. Select Linked Services under External connections
-4. Click New to create a new Linked Service
-5. Choose the storage technology and enter the details
-![Screenshot of Storage Technology when adding new Linked Service](img/LinkedService-Datastore.png)
-6. Enter a Name, Authentication type and either browse or manually enter the ADLS
-![Screenshot of Configuration when adding new Linked Service](img/LinkedService-Config.png)
-7. Run the Test Connection to verify the connection
-8. Click Create
+This is the linked service for the source container where we will fetch data from.
+We've already created this Azure Data Lake Storage, as well as the container (medssource) as listed in the prerequisites.
 
 ### Create Source Dataset
-Next we'll create the Source Dataset.
+1. Download the [dataset-source.json](src/dataset-source.json) to your local disk.
+2. Modify the <mark style="background-color:green">linked-service-name</mark> value to your Linked Service name.  
+You may find the linked services in your Synapse workspace by running the following command:
+    ```Powershell
+    $linkedservice = az synapse linked-service list --workspace-name eirikmedssynapse | ConvertFrom-Json
+    $linkedservice | select name
+    ```
+3. Run the following command and refer to the downloaded JSON file.
+    ```Powershell
+    az synapse dataset create `
+        --name <dataset-name> `
+        --workspace-name <workspace-name> `
+        --file @<path-to>/dataset-source.json
+    ```
 
-1. Go to Data
-2. Click the + and add a new Integration Dataset
-3. Select the same storage technology as created in the previous chapter
-![Screenshot of Storage Technology when adding a new Dataset](img/Dataset-Datastore.png)
-4. Select the data format, we'll be using DelimitedText
-![Screenshot of Data Format selection when adding a new Dataset](img/Dataset-DataFormat.png)
-5. Configure the Linked service to use the Linked Service we created in the previous chapter
-6. Click Browse and select the relevant *container* on your Linked Service
-7. Click Create
+    <details>
+    <summary>Example</summary>
 
-### Configure Source Dataset
-As we want to automatically ingest any files added to the ADLS, we need to have a dynamic parameter as the File Name. We will set up the file name to resolve to a parameter on the dataset, which in turn resolves to a variable in the Synapse Pipeline.
+    ```Powershell
+    az synapse dataset create `
+        --name dataset_source_meds `
+        --workspace-name eirikmedssynapse `
+        --file @C:/Temp/dataset-source.json
+    ```
+    </details>
 
-1. Head to Parameters on the newly created Dataset
-2. Add a new Parameter called FileName, with the Default value as follows:
-```
-@variables('SourceFileName')
-```
-![Screenshot of Dataset Parameters](img/Dataset-Parameters.png)
-3. Go back to Connection and select the File name field, click *Add dynamic content*
-![Screenshot of Dataset Connection](img/Dataset-Filename.png)
-4. Click the FileName parameter or enter it manually
-```
-@dataset().FileName
-```
-5. Click OK
+4. Verify that the dataset was created successfully.
 
-Full JSON:
-```
-{
-    "name": "MEDSSourceDataset",
-    "properties": {
-        "linkedServiceName": {
-            "referenceName": "eiriksynapse-WorkspaceDefaultStorage",
-            "type": "LinkedServiceReference"
-        },
-        "parameters": {
-            "FileName": {
-                "type": "string",
-                "defaultValue": "@variables('SourceFileName')"
-            }
-        },
-        "annotations": [],
-        "type": "DelimitedText",
-        "typeProperties": {
-            "location": {
-                "type": "AzureBlobFSLocation",
-                "fileName": {
-                    "value": "@dataset().FileName",
-                    "type": "Expression"
-                },
-                "fileSystem": "medssource"
-            },
-            "columnDelimiter": ",",
-            "escapeChar": "\\",
-            "quoteChar": "\""
-        },
-        "schema": []
-    }
-}
-```
+### Create Target Linked Service
+1. Download the [linkedservice-target.json](src/linkedservice-target.json) to your local machine.
+2. Run the following command and refer to the downloaded JSON file.
+    ```Powershell
+        az synapse linked-service create `
+            --name <linked-service-name> `
+            --workspace-name <workspace-name> `
+            --file @<path-to>/linkedservice-target.json
+    ```
+    <details>
+    <summary>Example</summary>
 
-### Create Destination Linked Service
-As the Microsoft Energy Data Services File API always returns unique staging areas for any binary file ingestions, we need to have a dynamic Linked Service created which uses variables from the Pipeline, namely the SignedURL.
+    ```Powershell
+    az synapse linked-service create `
+        --name meds-staging-area `
+        --workspace-name eirikmedssynapse `
+        --file @C:/Temp/linkedservice-target.json
+    ```
+    </details>
+3. Verify that the linked service was created successfully.
 
-1. Create a new Linked Service
-2. Make sure to select SAS URI as Authentication type
-3. Enter the following Linked Service parameter as SAS URL
-```
-@(linkedService().SasUri)
-```
-4. Leave SAS token empty, as this will be dynamically updated through the SAS URL from the pipeline.
-5. Add a Parameter called SasUri with the following Default value
-```
-@variables('SignedURL')
-```
-6. Click Create
+### Create Target Dataset
+1. Download the [dataset-target.json](src/dataset-target.json) to your local machine.
+2. Replace the <mark style="background-color:green">target-linked-service-name</mark> value with the value of your target linkedservice created in the previous step.
+3. Run the following command to create the dataset.
+    ```Powershell
+    az synapse dataset create `
+        --name <target-dataset-name> `
+        --workspace-name <workspace-name> `
+        --file @<path-to>/dataset-target.json
+    ```
+    <details>
+    <summary>Example</summary>
 
-Full JSON:
-```
-{
-    "name": "MEDSStagingArea",
-    "type": "Microsoft.Synapse/workspaces/linkedservices",
-    "properties": {
-        "parameters": {
-            "SasUri": {
-                "type": "string",
-                "defaultValue": "@variables('SignedURL')"
-            }
-        },
-        "annotations": [],
-        "type": "AzureBlobStorage",
-        "typeProperties": {
-            "sasUri": "@{linkedService().SasUri}"
-        },
-        "connectVia": {
-            "referenceName": "AutoResolveIntegrationRuntime",
-            "type": "IntegrationRuntimeReference"
-        }
-    }
-}
-```
+    ```Powershell
+    az synapse dataset create `
+        --name dataset_target_meds `
+        --workspace-name eirikmedssynapse `
+        --file @C:/Temp/dataset-target.json
+    ```
+    </details>
+4. Verify that the dataset was created successfully.
 
-### Create Destination Dataset
-Microsoft Energy Data Services also always creates new temporary staging locations for ingestion jobs, so we need a dynamic dataset that will get the Container, Folder and File Name from the Pipeline.
+### Create pipeline
+Now we will deploy the actual pipeline which will migrate the files from the source container into the Microsoft Energy Data Services staging area.
 
-1. Create a new Integration dataset using Blob as storage technology and DelimitedText as Data Format.
-2. Select the Linked Service for the dynamic Microsoft Energy Data Services staging area created above.
-3. Leave File path blank for now
-4. Click OK
+1. Download the [pipeline.json](src/pipeline.json) to your local machine.
+2. Replace all of the values <> in the pipeline.json file.
+3. Run the following command to create the pipeline.
+    ```Powershell
+    az synapse pipeline create `
+        --name <pipeline-name> `
+        --workspace-name <workspace-name> `
+        --file @<path-to>/pipeline.json
+    ```
 
+    <details>
+    <summary>Example</summary>
 
-### Configure Destination Dataset
-Now we will create the needed parameters on the dataset to be able to resolve to the pipeline variables, and assign those parameters to the File path.
+    ```Powershell
+    az synapse pipeline create `
+        --name meds-adls-pipeline `
+        --workspace-name eirikmedssynapse `
+        --file @C:/Temp/pipeline.json
+    ```
+    </details>
+4. Verify that the pipeline was created successfully.
 
-1. Enter the Destination dataset and add the following Parameters
- - FileName
-```
-@variables('FileName')
-```
-- Folder
-```
-@variables('Folder')
-```
-- Container
-```
-@variables('Container')
-```
-2. Go back to Connection and dynamically refer to those Parameters
-![Screenshot of Target Dataset Connection](img/TargetDataset-Connection.png)
+### Create trigger
+Now we will create the trigger which automatically triggers the pipeline we just created.
 
-Full JSON:
-```
-{
-    "name": "MEDSSinkDataset",
-    "properties": {
-        "linkedServiceName": {
-            "referenceName": "MEDSStagingArea",
-            "type": "LinkedServiceReference",
-            "parameters": {
-                "SasUri": "@variables('SignedURL')"
-            }
-        },
-        "parameters": {
-            "FileName": {
-                "type": "string",
-                "defaultValue": "@variables('FileName')"
-            },
-            "Folder": {
-                "type": "string",
-                "defaultValue": "@variables('Folder')"
-            },
-            "Container": {
-                "type": "string",
-                "defaultValue": "@variables('Container')"
-            }
-        },
-        "annotations": [],
-        "type": "DelimitedText",
-        "typeProperties": {
-            "location": {
-                "type": "AzureBlobStorageLocation",
-                "fileName": {
-                    "value": "@dataset().FileName",
-                    "type": "Expression"
-                },
-                "folderPath": {
-                    "value": "@dataset().Folder",
-                    "type": "Expression"
-                },
-                "container": {
-                    "value": "@dataset().Container",
-                    "type": "Expression"
-                }
-            },
-            "columnDelimiter": ",",
-            "escapeChar": "\\",
-            "quoteChar": "\""
-        },
-        "schema": []
-    },
-    "type": "Microsoft.Synapse/workspaces/datasets"
-}
-```
+1. Download [trigger.json](src/trigger.json).
+2. Update all the values as needed <>. 
+3. Run the following command to deploy the trigger.
+    ```Powershell
+    az synapse trigger create `
+        --name <trigger-name> `
+        --workspace-name <workspace-name> `
+        --file @<path-to>/pipeline.json
+    ```
 
-## Create Pipeline
+    <details>
+    <summary>Example</summary>
+
+    ```Powershell
+    az synapse trigger create `
+        --name adls-source-trigger `
+        --workspace-name eirikmedssynapse `
+        --file @C:/Temp/pipeline.json
+    ```
+    </details>
+4. Validate that the trigger was created successfully.
+
+## Test and validate pipeline
+You should now have a working Synapse pipeline that will trigger every time a file is uploaded to the source container on the source linked service.
+
+To test the pipeline we will upload a test-file to the container and verify that the trigger works and that the pipeline is successful. 
+
+In this example I'll be ingesting a Well Trajectory file from the open-source Volve dataset, available [here](https://community.opengroup.org/osdu/platform/data-flow/data-loading/open-test-data/-/tree/master/rc--3.0.0/1-data/3-provided/Volve/work-products/trajectories).
+<br /><br />
+# Contribution
+Please raise issues or pull requests to contribute to this repository.
+<br /><br />
+# Disclaimer
+This is considered an individual community contribution and is not affiliated with my employment at Microsoft.

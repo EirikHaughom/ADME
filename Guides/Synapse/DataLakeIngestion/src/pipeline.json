@@ -1,0 +1,322 @@
+{
+    "properties": {
+        "activities": [
+            {
+                "name": "Copy data to MEDS Staging Area",
+                "description": "Copies data from the source dataset into the new file-staging-area dataset on MEDS.",
+                "type": "Copy",
+                "dependsOn": [
+                    {
+                        "activity": "Filename",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "source": {
+                        "type": "DelimitedTextSource",
+                        "storeSettings": {
+                            "type": "AzureBlobFSReadSettings",
+                            "recursive": true,
+                            "enablePartitionDiscovery": false
+                        },
+                        "formatSettings": {
+                            "type": "DelimitedTextReadSettings"
+                        }
+                    },
+                    "sink": {
+                        "type": "DelimitedTextSink",
+                        "storeSettings": {
+                            "type": "AzureBlobStorageWriteSettings"
+                        },
+                        "formatSettings": {
+                            "type": "DelimitedTextWriteSettings",
+                            "quoteAllText": true,
+                            "fileExtension": ".csv"
+                        }
+                    },
+                    "enableStaging": false,
+                    "translator": {
+                        "type": "TabularTranslator",
+                        "typeConversion": true,
+                        "typeConversionSettings": {
+                            "allowDataTruncation": true,
+                            "treatBooleanAsNumber": false
+                        }
+                    }
+                },
+                "inputs": [
+                    {
+                        "referenceName": "dataset_source_meds",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "FileName": {
+                                "value": "@pipeline().parameters.triggeringFile",
+                                "type": "Expression"
+                            },
+                            "FolderName": {
+                                "value": "@pipeline().parameters.triggeringFolder",
+                                "type": "Expression"
+                            }
+                        }
+                    }
+                ],
+                "outputs": [
+                    {
+                        "referenceName": "dataset_target_meds",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "FileName": "@variables('FileName')",
+                            "Folder": "@variables('Folder')",
+                            "Container": "@variables('Container')"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Post File Metadata",
+                "type": "WebActivity",
+                "dependsOn": [
+                    {
+                        "activity": "Copy data to MEDS Staging Area",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": true
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "url": {
+                        "value": "@concat('https://',pipeline().parameters.HOSTNAME,'/api/file/v2/files/metadata')",
+                        "type": "Expression"
+                    },
+                    "connectVia": {
+                        "referenceName": "AutoResolveIntegrationRuntime",
+                        "type": "IntegrationRuntimeReference"
+                    },
+                    "method": "POST",
+                    "headers": {
+                        "data-partition-id": {
+                            "value": "@pipeline().parameters.DATA_PARTITION_ID",
+                            "type": "Expression"
+                        }
+                    },
+                    "body": {
+                        "value": "@concat('{\n    \"data\": {\n        \"DatasetProperties\": {\n            \"FileSourceInfo\": {\n                \"FileSource\": \"',variables('FileSource'),'\",\n                \"Name\": \"SubscriptionTemplate.csv\"\n            }\n        },\n        \"Name\": \"SubscriptionTemplate\",\n        \"Endian\": \"BIG\",\n        \"ExtensionProperties\": {\n            \"Classification\": \"Raw File\",\n            \"Description\": \"An text further describing this file example.\",\n            \"FileContentsDetails\": {\n                \"FileType\": \"csv\"\n            }\n        }\n    },\n    \"kind\": \"platform2368-opendes:wks:dataset--File.Generic:1.0.0\",\n    \"acl\": {\n        \"viewers\": [\n            \"data.default.viewers@',pipeline().parameters.DATA_PARTITION_ID,'.dataservices.energy\"\n        ],\n        \"owners\": [\n            \"data.default.owners@',pipeline().parameters.DATA_PARTITION_ID,'.dataservices.energy\"\n        ]\n    },\n    \"legal\": {\n        \"legaltags\": [\n            \"',pipeline().parameters.LEGAL_TAG,'\"\n        ],\n        \"otherRelevantDataCountries\": [\n            \"US\"\n        ],\n        \"status\": \"compliant\"\n    }\n}')",
+                        "type": "Expression"
+                    },
+                    "authentication": {
+                        "type": "MSI",
+                        "resource": {
+                            "value": "@pipeline().parameters.synapse_managed_identity",
+                            "type": "Expression"
+                        }
+                    }
+                }
+            },
+            {
+                "name": "Get Upload URL",
+                "description": "Get's a signed upload URL from the MEDS File API",
+                "type": "WebActivity",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": true
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "url": {
+                        "value": "@concat('https://',pipeline().parameters.HOSTNAME,'/api/file/v2/files/uploadURL')",
+                        "type": "Expression"
+                    },
+                    "connectVia": {
+                        "referenceName": "AutoResolveIntegrationRuntime",
+                        "type": "IntegrationRuntimeReference"
+                    },
+                    "method": "GET",
+                    "headers": {
+                        "data-partition-id": {
+                            "value": "@pipeline().parameters.DATA_PARTITION_ID",
+                            "type": "Expression"
+                        }
+                    },
+                    "authentication": {
+                        "type": "MSI",
+                        "resource": {
+                            "value": "@pipeline().parameters.synapse_managed_identity",
+                            "type": "Expression"
+                        }
+                    }
+                }
+            },
+            {
+                "name": "FileSource",
+                "type": "SetVariable",
+                "dependsOn": [
+                    {
+                        "activity": "SignedURL",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "variableName": "FileSource",
+                    "value": {
+                        "value": "@activity('Get Upload URL').output.Location.FileSource",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "Container",
+                "type": "SetVariable",
+                "dependsOn": [
+                    {
+                        "activity": "FileSource",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "variableName": "Container",
+                    "value": {
+                        "value": "@split(activity('Get Upload URL').output.Location.SignedURL,'/')[3]",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "Folder",
+                "type": "SetVariable",
+                "dependsOn": [
+                    {
+                        "activity": "Container",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "variableName": "Folder",
+                    "value": {
+                        "value": "@concat(split(activity('Get Upload URL').output.Location.FileSource,'/')[1],'/',split(activity('Get Upload URL').output.Location.FileSource,'/')[2])",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "Filename",
+                "type": "SetVariable",
+                "dependsOn": [
+                    {
+                        "activity": "Folder",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "variableName": "FileName",
+                    "value": {
+                        "value": "@split(activity('Get Upload URL').output.Location.FileSource,'/')[3]",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "SignedURL",
+                "type": "SetVariable",
+                "dependsOn": [
+                    {
+                        "activity": "Get Upload URL",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "variableName": "SignedURL",
+                    "value": {
+                        "value": "@activity('Get Upload URL').output.Location.SignedURL",
+                        "type": "Expression"
+                    }
+                }
+            }
+        ],
+        "parameters": {
+            "HOSTNAME": {
+                "type": "string",
+                "defaultValue": ""
+            },
+            "DATA_PARTITION_ID": {
+                "type": "string",
+                "defaultValue": ""
+            },
+            "LEGAL_TAG": {
+                "type": "string",
+                "defaultValue": ""
+            },
+            "synapse_managed_identity": {
+                "type": "string",
+                "defaultValue": ""
+            },
+            "triggeringFile": {
+                "type": "string",
+                "defaultValue": ""
+            },
+            "triggeringFolder": {
+                "type": "string",
+                "defaultValue": ""
+            }
+        },
+        "variables": {
+            "FileSource": {
+                "type": "String"
+            },
+            "Container": {
+                "type": "String"
+            },
+            "FileName": {
+                "type": "String"
+            },
+            "Folder": {
+                "type": "String"
+            },
+            "SignedURL": {
+                "type": "String"
+            },
+            "SourceFileName": {
+                "type": "String"
+            },
+            "SourceFolderName": {
+                "type": "String"
+            }
+        }
+    }
+}

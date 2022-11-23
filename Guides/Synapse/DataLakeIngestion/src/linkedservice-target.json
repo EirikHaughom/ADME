@@ -1,0 +1,19 @@
+{
+    "properties": {
+        "parameters": {
+            "SasUri": {
+                "type": "string",
+                "defaultValue": ""
+            }
+        },
+        "annotations": [],
+        "type": "AzureBlobStorage",
+        "typeProperties": {
+            "sasUri": "@{linkedService().SasUri}"
+        },
+        "connectVia": {
+            "referenceName": "AutoResolveIntegrationRuntime",
+            "type": "IntegrationRuntimeReference"
+        }
+    }
+}

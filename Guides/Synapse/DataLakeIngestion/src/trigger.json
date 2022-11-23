@@ -1,0 +1,33 @@
+{
+    "properties": {
+        "description": "This will trigger every time a folder is uploaded to the source container on the source linked service.",
+        "annotations": [],
+        "runtimeState": "Started",
+        "pipelines": [
+            {
+                "pipelineReference": {
+                    "referenceName": "<pipeline-name>",
+                    "type": "PipelineReference"
+                },
+                "parameters": {
+                    "HOSTNAME": "<instance-name>.energy.azure.com",
+                    "DATA_PARTITION_ID": "<data-partition-name>",
+                    "LEGAL_TAG": "<legal-tag-name>",
+                    "synapse_managed_identity": "<synapse-managed-identity>",
+                    "triggeringFile": "@triggerBody().fileName",
+                    "triggeringFolder": "@triggerBody().folderPath"
+                }
+            }
+        ],
+        "type": "BlobEventsTrigger",
+        "typeProperties": {
+            "blobPathBeginsWith": "/<container-name>/blobs/",
+            "blobPathEndsWith": ".csv",
+            "ignoreEmptyBlobs": true,
+            "scope": "/subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.Storage/storageAccounts/<storage-account-name>",
+            "events": [
+                "Microsoft.Storage.BlobCreated"
+            ]
+        }
+    }
+}

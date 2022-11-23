@@ -1,0 +1,43 @@
+{
+    "properties": {
+        "linkedServiceName": {
+            "referenceName": "<target-linked-service-name>",
+            "type": "LinkedServiceReference",
+            "parameters": {
+                "SasUri": "@variables('SignedURL')"
+            }
+        },
+        "parameters": {
+            "FileName": {
+                "type": "string",
+                "defaultValue": ""
+            },
+            "Folder": {
+                "type": "string",
+                "defaultValue": ""
+            },
+            "Container": {
+                "type": "string",
+                "defaultValue": ""
+            }
+        },
+        "type": "DelimitedText",
+        "typeProperties": {
+            "location": {
+                "type": "AzureBlobStorageLocation",
+                "fileName": {
+                    "value": "@dataset().FileName",
+                    "type": "Expression"
+                },
+                "folderPath": {
+                    "value": "@dataset().Folder",
+                    "type": "Expression"
+                },
+                "container": {
+                    "value": "@dataset().Container",
+                    "type": "Expression"
+                }
+            }
+        }
+    }
+}

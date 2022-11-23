@@ -1,0 +1,30 @@
+{
+    "properties": {
+        "linkedServiceName": {
+            "referenceName": "<linked-service-name>",
+            "type": "LinkedServiceReference"
+        },
+        "parameters": {
+            "FileName": {
+                "type": "string"
+            },
+            "FolderName": {
+                "type": "string"
+            }
+        },
+        "type": "DelimitedText",
+        "typeProperties": {
+            "location": {
+                "type": "AzureBlobFSLocation",
+                "fileName": {
+                    "value": "@dataset().FileName",
+                    "type": "Expression"
+                },
+                "folderPath": {
+                    "value": "@dataset().FolderName",
+                    "type": "Expression"
+                }
+            }
+        }
+    }
+}
