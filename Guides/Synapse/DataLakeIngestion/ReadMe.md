@@ -1,3 +1,5 @@
+# <mark style="background-color:red">Work in Progress</mark>
+
 # Description
 The intent with this solution is to automatically ingest binary data created on an external datastore into Microsoft Energy Data Services. While the example uses an Azure Data Lake, any compatible storage solutions coult theoretically be used.
 
