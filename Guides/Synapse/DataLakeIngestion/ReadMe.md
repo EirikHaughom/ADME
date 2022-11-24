@@ -302,14 +302,14 @@ You may find the linked services in your Synapse workspace by running the follow
 ### Create pipeline
 Now we will deploy the actual pipeline which will migrate the files from the source container into the Microsoft Energy Data Services staging area.
 
-1. Download the [pipeline.json](src/pipeline.json) to your local machine.
-2. Replace all of the values <> in the pipeline.json file.
+1. Download the [pipeline-mi.json](src/pipeline-mi.json) to your local machine.
+2. Replace all of the values <> in the pipeline-mi.json file.
 3. Run the following command to create the pipeline.
     ```Powershell
     az synapse pipeline create `
         --name <pipeline-name> `
         --workspace-name <workspace-name> `
-        --file @<path-to>/pipeline.json
+        --file @<path-to>/pipeline-mi.json
     ```
 
     <details>
@@ -319,7 +319,7 @@ Now we will deploy the actual pipeline which will migrate the files from the sou
     az synapse pipeline create `
         --name meds-adls-pipeline `
         --workspace-name eirikmedssynapse `
-        --file @C:/Temp/pipeline.json
+        --file @C:/Temp/pipeline-mi.json
     ```
     </details>
 4. Verify that the pipeline was created successfully.
@@ -334,7 +334,7 @@ Now we will create the trigger which automatically triggers the pipeline we just
     az synapse trigger create `
         --name <trigger-name> `
         --workspace-name <workspace-name> `
-        --file @<path-to>/pipeline.json
+        --file @<path-to>/trigger.json
     ```
 
     <details>
@@ -344,7 +344,7 @@ Now we will create the trigger which automatically triggers the pipeline we just
     az synapse trigger create `
         --name adls-source-trigger `
         --workspace-name eirikmedssynapse `
-        --file @C:/Temp/pipeline.json
+        --file @C:/Temp/trigger.json
     ```
     </details>
 4. Validate that the trigger was created successfully.
@@ -356,8 +356,34 @@ To test the pipeline we will upload a test-file to the container and verify that
 
 In this example I'll be ingesting a Well Trajectory file from the open-source Volve dataset, available [here](https://community.opengroup.org/osdu/platform/data-flow/data-loading/open-test-data/-/tree/master/rc--3.0.0/1-data/3-provided/Volve/work-products/trajectories).
 <br /><br />
-# Contribution
-Please raise issues or pull requests to contribute to this repository.
-<br /><br />
-# Disclaimer
-This is considered an individual community contribution and is not affiliated with my employment at Microsoft.
+
+Once you've downloaded that you can choose how to upload it to the ADLS Container. I'll be using the Azure CLI with the following command.
+
+```Powershell
+az storage blob upload `
+    --account-name <storage-account-name> `
+    --container-name <container-name> `
+    --name <target-file-name> `
+    --file <path-to-source-file>
+    --auth-mode login
+```
+
+<details>
+<summary>Example</summary>
+
+```Powershell
+az storage blob upload `
+    --account-name eirikmedsadls `
+    --container-name medssource `
+    --file C:\Temp\Volve\volve\trajectories\NPD-3145.csv
+    --auth-mode login
+```
+</details>
+
+### Check that trigger has been triggered
+In the Synapse Studio (web portal), go to *Monitor* and then to *Trigger runs*.
+Verify that the trigger has successfully run immediately after uploading the file to the container.
+
+![Monitor trigger runs](img/validate-trigger-runs.png)
+
+### Check that pipeline has run successfully

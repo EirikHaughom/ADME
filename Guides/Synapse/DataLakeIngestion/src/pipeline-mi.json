@@ -162,7 +162,7 @@
                     "authentication": {
                         "type": "MSI",
                         "resource": {
-                            "value": "@pipeline().parameters.synapse_managed_identity",
+                            "value": "@pipeline().parameters.CLIENT_ID",
                             "type": "Expression"
                         }
                     }
@@ -279,10 +279,6 @@
                 "defaultValue": ""
             },
             "LEGAL_TAG": {
-                "type": "string",
-                "defaultValue": ""
-            },
-            "synapse_managed_identity": {
                 "type": "string",
                 "defaultValue": ""
             },
