@@ -1,7 +1,6 @@
 # Description
 This is the guide to deploy the Synapse Pipeline using a Managed Identity. If you want to use Access Token instead, please see [deploy-token.md](deploy-token.md).
 
-
 # Deploy
 ## Permissions
 In this example pipeline we will be using the Synapse Workspace Managed Identity to ingest data into Microsoft Energy Data Services. An alternative would be to use a separate Application Registration and use Tokens to authorize the access.

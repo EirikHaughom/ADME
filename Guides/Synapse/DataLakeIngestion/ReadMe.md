@@ -155,7 +155,7 @@ There are two main ways to authenticate your API calls towards Microsoft Energy 
 
 > **_NOTE:_**  Click the header link of your chosen authentication method to proceed with the pipeline deployment.
 
-## [Alt 1. Managed Identity](deploy-mi.md) (WORK IN PROGRESS)
+## [Alt 1. Managed Identity](deploy-mi.md)
 This will use the managed identity of your Synapse Workspace in conjunction with the scope of the Microsoft Energy Data Services Application Registration. This will be the easiest way to authenticate, as no secrets needs to be stored for the runtime to work. However, security policies may be in place preventing this authentication mechanism.
 
 ### Pros
