@@ -92,6 +92,7 @@ az role assignment create --assignee $synapsemi --role 'Storage Blob Data Reader
 
 <details>
 <summary>Example</summary>
+
 ```Powershell
 $synapsemi = (az synapse workspace show --name eirikmedssynapse --resource-group medssynapse-rg | ConvertFrom-Json).identity.principalId
 az role assignment create --assignee $synapsemi --role 'Storage Blob Data Reader' --scope /subscriptions/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/resourceGroups/rg-test-synapse/providers/Microsoft.Storage/storageAccounts/eirikmedsadls
