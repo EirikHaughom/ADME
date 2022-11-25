@@ -22,7 +22,7 @@ $synapsemi = (az synapse workspace show --name eirikmedssynapse --resource-group
 ```
 </details>
 
-3. Run the below REST API call through Postman or other API tool to add the Synapse Workspace Managed Identity ObjectID to the users.datalake.editors group.
+3. Run the below REST API call through Postman or other API tool to add the Synapse Workspace Managed Identity ObjectID to the users.datalake.editors group. 
     ```Powershell
     curl --location --request POST 'https://<instance>.energy.azure.com/api/entitlements/v2/groups/users.datalake.editors@<data-partition-id>.dataservices.energy/members' `
         --header 'data-partition-id: <data-partition-id>' `
@@ -37,10 +37,10 @@ $synapsemi = (az synapse workspace show --name eirikmedssynapse --resource-group
     <summary>Example</summary>
 
     ```Powershell
-    curl --location --request POST 'https://eirikmeds.energy.azure.com/api/entitlements/v2/groups/users.datalake.editors@eirikmeds-opendes.dataservices.energy/members' \
-        --header 'data-partition-id: eirikmeds-opendes' \
-        --header 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1Ni...' \
-        --header 'Content-Type: application/json' \
+    curl --location --request POST 'https://eirikmeds.energy.azure.com/api/entitlements/v2/groups/users.datalake.editors@eirikmeds-opendes.dataservices.energy/members' `
+        --header 'data-partition-id: eirikmeds-opendes' `
+        --header 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1Ni...' `
+        --header 'Content-Type: application/json' `
         --data-raw '{
                         "email": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
                         "role": "MEMBER"
