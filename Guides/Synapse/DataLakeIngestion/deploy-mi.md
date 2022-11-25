@@ -29,7 +29,7 @@ $synapsemi = (az synapse workspace show --name eirikmedssynapse --resource-group
         --header 'Authorization: Bearer <access_token>' `
         --header 'Content-Type: application/json' `
         --data-raw '{
-                        "email": "<Synapse_Managed-Instance_Application_ID>",
+                        "email": "<Synapse-AppID>",
                         "role": "MEMBER"
                     }'
     ```
