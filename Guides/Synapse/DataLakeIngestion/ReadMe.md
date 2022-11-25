@@ -319,7 +319,7 @@ Now we will deploy the actual pipeline which will migrate the files from the sou
 
     ```Powershell
     az synapse pipeline create `
-        --name meds-adls-pipeline `
+        --name meds-adls-pipeline-mi `
         --workspace-name eirikmedssynapse `
         --file @C:/Temp/pipeline-mi.json
     ```

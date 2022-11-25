@@ -278,6 +278,10 @@
                 "type": "string",
                 "defaultValue": ""
             },
+            "CLIENT_ID": {
+                "type": "string",
+                "defaultValue": ""
+            },
             "LEGAL_TAG": {
                 "type": "string",
                 "defaultValue": ""
