@@ -6,13 +6,23 @@ This is the guide to deploy the Synapse Pipeline using a Managed Identity. If yo
 ## Permissions
 In this example pipeline we will be using the Synapse Workspace Managed Identity to ingest data into Microsoft Energy Data Services. An alternative would be to use a separate Application Registration and use Tokens to authorize the access.
 
-### Grant Synapse Workspace access to write data to Microsoft Energy Data Services.
+### Grant Synapse Workspace access to write data to Microsoft Energy Data Services
 1. Obtain an Access Token for a user with access to write to the Microsoft Energy Data Services Entitlements service. For more information see [learn.microsoft.com](https://learn.microsoft.com/en-us/azure/energy-data-services/how-to-manage-users).
 2. Get the Synapse Workspace Managed Identity ObjectID, and then lookup the Application ID which will be used in the next API call.
-    ```Powershell
-    $synapsemi = (az synapse workspace show --name eirikmedssynapse --resource-group medssynapse-rg | ConvertFrom-Json).identity.principalId
-    (az ad sp show --id $synapsemi | ConvertFrom-Json).appId
-    ```
+
+```Powershell
+$synapsemi = (az synapse workspace show --name <synapse-workspace> --resource-group <resource-group> | ConvertFrom-Json).identity.principalId
+(az ad sp show --id $synapsemi | ConvertFrom-Json).appId
+```
+
+<details>
+<summary>Example</summary>
+```Powershell
+$synapsemi = (az synapse workspace show --name eirikmedssynapse --resource-group medssynapse-rg | ConvertFrom-Json).identity.principalId
+(az ad sp show --id $synapsemi | ConvertFrom-Json).appId
+```
+</details>
+
 3. Run the below REST API call through Postman or other API tool to add the Synapse Workspace Managed Identity ObjectID to the users.datalake.editors group.
     ```Powershell
     curl --location --request POST 'https://<instance>.energy.azure.com/api/entitlements/v2/groups/users.datalake.editors@<data-partition-id>.dataservices.energy/members' `
@@ -71,6 +81,22 @@ In this example pipeline we will be using the Synapse Workspace Managed Identity
     }
     ```
     </details>
+
+### Grant Synapse Workspace access to read data from source ADLS
+
+We will give the Synapse Workspace Managed identity access as Storage Blob Data Reader to the Storage Account we've specified. 
+```Powershell
+$synapsemi = (az synapse workspace show --name <synapse-workspace> --resource-group <resource-group> | ConvertFrom-Json).identity.principalId
+az role assignment create --assignee $synapsemi --role 'Storage Blob Data Reader' --scope /subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.Storage/storageAccounts/<storage-account>
+```
+
+<details>
+<summary>Example</summary>
+```Powershell
+$synapsemi = (az synapse workspace show --name eirikmedssynapse --resource-group medssynapse-rg | ConvertFrom-Json).identity.principalId
+az role assignment create --assignee $synapsemi --role 'Storage Blob Data Reader' --scope /subscriptions/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/resourceGroups/rg-test-synapse/providers/Microsoft.Storage/storageAccounts/eirikmedsadls
+```
+</details>
 
 ## Linked Services and Datasets
 Now we will create the Synapse Linked Services and the Datasets to be used in the Synapse Pipeline.
