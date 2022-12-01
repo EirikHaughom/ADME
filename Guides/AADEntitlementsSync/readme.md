@@ -176,7 +176,7 @@ osdu entitlements groups add -g meds-users -d "User group synced from Azure AD b
         --resource-group $resourceGroup `
         --template-file $bicepFile `
         --parameters logicAppName=$logicAppName `
-        --parameters logicAppFile=$logicAppJson
+        --parameters logicAppFile=@$logicAppJson
     ```
 
 
