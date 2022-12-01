@@ -143,11 +143,12 @@ osdu entitlements groups add -g meds-users -d "User group synced from Azure AD b
 3. Run the following command to deploy the Logic App
     ```Powershell
     # Define the variables below
+    $logicAppName = "meds-entitlements-sync1000"
     $bicepFile = "C:\temp\logicapp.bicep"
     $logicAppJson = "C:\temp\logicapp.json"
     $resourceGroup = "rg-test"
+    $azureAdGroupId = $newgroup.id # Unless you used the method above to create the Azure AD Group, replace with the ObjectID of said group
     $subscriptionId = (az account show | convertfrom-json).id
-    $azureAdGroupId = $newgroup.id # Enter the ObjectID of the Azure AD source group
 
     # Microsoft Energy Data Services variables
     $instanceName = "platform2368.energy.azure.com"
@@ -158,23 +159,26 @@ osdu entitlements groups add -g meds-users -d "User group synced from Azure AD b
     Invoke-WebRequest -Uri https://raw.githubusercontent.com/EirikHaughom/MicrosoftEnergyDataServices/main/Guides/AADEntitlementsSync/src/logicapp.json -OutFile $logicAppJson
 
     # Downloads the logicapp.bicep file to the path specified in $bicepFile
+    Invoke-WebRequest -Uri https://raw.githubusercontent.com/EirikHaughom/MicrosoftEnergyDataServices/main/Guides/AADEntitlementsSync/src/logicapp.bicep -OutFile $bicepFile
 
     # Updates logicapp.json with the right values
-    (Get-Content -path $logicAppJson -Raw) -replace '<dataPartitionId>',$dataPartitionId
-    (Get-Content -path $logicAppJson -Raw) -replace '<instanceName>',$instanceName
-    (Get-Content -path $logicAppJson -Raw) -replace '<clientId>',$clientId
-    (Get-Content -path $logicAppJson -Raw) -replace '<entitlementsGroup>',$entitlementsGroup
-    (Get-Content -path $logicAppJson -Raw) -replace '<AzureAdGroupId>',$azureAdGroupId
-    (Get-Content -path $logicAppJson -Raw) -replace '<resourceGroup>',$resourceGroup
-    (Get-Content -path $logicAppJson -Raw) -replace '<subscriptionId>',$subscriptionId
+    (Get-Content -path $logicAppJson -Raw) `
+        -replace '<dataPartitionId>',$dataPartitionId `
+        -replace '<instanceName>',$instanceName `
+        -replace '<clientId>',$clientId `
+        -replace '<entitlementsGroup>',$entitlementsGroup `
+        -replace '<AzureAdGroupId>',$azureAdGroupId `
+        -replace '<resourceGroup>',$resourceGroup `
+        -replace '<subscriptionId>',$subscriptionId
 
     # Run deployment
     az deployment group create `
-        --resource-group <resource-group> `
-        --template-file "C:\temp\logicapp.bicep" `
-        --parameters logicappName="meds-entitlements-sync" `
-        --parameters logicAppFile="C:\temp\logicapp.json"
+        --resource-group $resourceGroup `
+        --template-file $bicepFile `
+        --parameters logicAppName= $logicAppName `
+        --parameters logicAppFile= $logicAppJson
     ```
+
 
 # Test and verify
 
