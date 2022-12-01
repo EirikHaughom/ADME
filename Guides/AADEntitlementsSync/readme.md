@@ -93,6 +93,15 @@ az account set --subscription <subscription-id>
     ```
 </details>
 
+<details>
+<summary>Azure CLI Logic App Extension</summary>
+
+1. Install the module
+    ```Powershell
+    az extension add --name logic
+    ```
+</details>
+
 
 # Deploy
 
@@ -100,13 +109,15 @@ az account set --subscription <subscription-id>
 ```powershell
 osdu entitlements groups add -g meds-users -d "User group synced from Azure AD by Logic App"
 ```
-2. Create an M365 Azure AD group that will be the used as the source, we'll be using the Graph API for this step, but feel free to use Azure Portal or similar. The Access Token used needs to have *Directory.ReadWrite.All* and *Group.ReadWrite.All* in the scope, with audience towards graph.microsoft.com.
+2. Create an M365 Azure AD group that will be the used as the source, we'll be using the Graph API for this step, but feel free to use Azure Portal or similar.
 
     Note the Object ID output.
 
     ```powershell
+    # Define Graph API access token with Directory.ReadWrite.All and Group.ReadWrite.All
     $accessToken = "eyJ0eXAiOiJKV1QiL..."
 
+    # Create request header
     $headers = @{
     "Authorization" = "Bearer $accessToken"
     }
@@ -129,12 +140,40 @@ osdu entitlements groups add -g meds-users -d "User group synced from Azure AD b
 
     echo $newGroup.id
     ```
-3. Create logic app with Managed Identity
+3. Run the following command to deploy the Logic App
     ```Powershell
-    az logic workflow create `
-        --resource-group "test_resource_group" `
-        --name "test_workflow" `
-        --definition "workflow.json"
+    # Define the variables below
+    $bicepFile = "C:\temp\logicapp.bicep"
+    $logicAppJson = "C:\temp\logicapp.json"
+    $resourceGroup = "rg-test"
+    $subscriptionId = (az account show | convertfrom-json).id
+    $azureAdGroupId = $newgroup.id # Enter the ObjectID of the Azure AD source group
+
+    # Microsoft Energy Data Services variables
+    $instanceName = "platform2368.energy.azure.com"
+    $clientId = "354425f4-145b-4d95-b150-81d0fc1a9e5f"
+    $dataPartitionId = "platform2368-opendes"
+
+    # Downloads the logicapp.json file to the path specified in $logicAppJson
+    Invoke-WebRequest -Uri https://raw.githubusercontent.com/EirikHaughom/MicrosoftEnergyDataServices/main/Guides/AADEntitlementsSync/src/logicapp.json -OutFile $logicAppJson
+
+    # Downloads the logicapp.bicep file to the path specified in $bicepFile
+
+    # Updates logicapp.json with the right values
+    (Get-Content -path $logicAppJson -Raw) -replace '<dataPartitionId>',$dataPartitionId
+    (Get-Content -path $logicAppJson -Raw) -replace '<instanceName>',$instanceName
+    (Get-Content -path $logicAppJson -Raw) -replace '<clientId>',$clientId
+    (Get-Content -path $logicAppJson -Raw) -replace '<entitlementsGroup>',$entitlementsGroup
+    (Get-Content -path $logicAppJson -Raw) -replace '<AzureAdGroupId>',$azureAdGroupId
+    (Get-Content -path $logicAppJson -Raw) -replace '<resourceGroup>',$resourceGroup
+    (Get-Content -path $logicAppJson -Raw) -replace '<subscriptionId>',$subscriptionId
+
+    # Run deployment
+    az deployment group create `
+        --resource-group <resource-group> `
+        --template-file "C:\temp\logicapp.bicep" `
+        --parameters logicappName="meds-entitlements-sync" `
+        --parameters logicAppFile="C:\temp\logicapp.json"
     ```
 
 # Test and verify

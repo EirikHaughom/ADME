@@ -124,19 +124,19 @@
                 "type": "Object"
             },
             "client_id": {
-                "defaultValue": "<app-registration-client-id>",
+                "defaultValue": "<clientId>",
                 "type": "String"
             },
             "datapartition_id": {
-                "defaultValue": "<datapartition-id>",
+                "defaultValue": "<dataPartitionId>",
                 "type": "String"
             },
             "hostname": {
-                "defaultValue": "<instance-name>.energy.azure.com",
+                "defaultValue": "<instanceName>",
                 "type": "String"
             },
             "synced_entitlements_group": {
-                "defaultValue": "<target-entitlements-group>",
+                "defaultValue": "<entitlementsGroup>",
                 "type": "String"
             }
         },
@@ -156,7 +156,7 @@
                     "path": "/trigger/v1.0/groups/delta",
                     "queries": {
                         "$select": "members",
-                        "groupId": "0093444d-50f4-46f6-af74-c4dd91f5b784"
+                        "groupId": "<AzureAdGroupId>"
                     }
                 },
                 "recurrence": {
@@ -169,5 +169,19 @@
         }
     },
     "parameters": {
+        "$connections": {
+            "value": {
+                "office365groups": {
+                    "connectionId": "/subscriptions/<subscriptionId>/resourceGroups/<resourceGroup>/providers/Microsoft.Web/connections/office365groups-3",
+                    "connectionName": "office365groups-3",
+                    "connectionProperties": {
+                        "authentication": {
+                            "type": "ManagedServiceIdentity"
+                        }
+                    },
+                    "id": "/subscriptions/<subscriptionId>/providers/Microsoft.Web/locations/westeurope/managedApis/office365groups"
+                }
+            }
+        }
     }
 }
