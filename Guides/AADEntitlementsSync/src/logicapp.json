@@ -172,8 +172,8 @@
         "$connections": {
             "value": {
                 "office365groups": {
-                    "connectionId": "/subscriptions/<subscriptionId>/resourceGroups/<resourceGroup>/providers/Microsoft.Web/connections/office365groups-3",
-                    "connectionName": "office365groups-3",
+                    "connectionId": "/subscriptions/<subscriptionId>/resourceGroups/<resourceGroup>/providers/Microsoft.Web/connections/office365groups-1000",
+                    "connectionName": "office365groups-1000",
                     "connectionProperties": {
                         "authentication": {
                             "type": "ManagedServiceIdentity"
