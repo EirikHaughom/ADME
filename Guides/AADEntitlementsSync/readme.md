@@ -166,14 +166,6 @@ osdu entitlements groups add -g meds-users -d "User group synced from Azure AD b
         --parameters entitlementsGroup=$entitlementsGroup
     ```
 
-    param logicAppName string
-param clientId string
-param dataPartitionId string
-param hostName string
-param azureAdGroup string
-param entitlementsGroup string
-
-
 # Test and verify
 
 

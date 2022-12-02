@@ -14,11 +14,14 @@ param location string = resourceGroup().location
 resource o365connection 'Microsoft.Web/connections@2016-06-01' = {
   name: o365ConnectionName
   location: location
+  kind: 'V1'
   properties: {
     displayName: o365ConnectionName
     api: { 
       id: subscriptionResourceId('Microsoft.Web/locations/managedApis', location, 'office365groups')
     }
+    parameterValueType: 'Alternative'
+    alternativeParameterValues: {}
   }
 }
 
@@ -35,6 +38,10 @@ resource logicApp 'Microsoft.Logic/workflows@2019-05-01' = {
         '$schema': 'https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#'
         contentVersion: '1.0.0.0'
         parameters: {
+          '$connections': {
+            defaultValue: {}
+            type: 'Object'
+          }
           client_id: {
             defaultValue: clientId
             type: 'String'
@@ -71,7 +78,7 @@ resource logicApp 'Microsoft.Logic/workflows@2019-05-01' = {
             inputs: {
               host: {
                 connection: {
-                  name: o365connection.id
+                  name: '@parameters(\'$connections\')[\'office365groups\'][\'connectionId\']'
                 }
               }
               method: 'get'
@@ -205,7 +212,7 @@ resource logicApp 'Microsoft.Logic/workflows@2019-05-01' = {
         }
       }
       parameters: {
-        '\$connections': {
+        '$connections': {
           value: {
             office365groups: {
               connectionId: o365connection.id
