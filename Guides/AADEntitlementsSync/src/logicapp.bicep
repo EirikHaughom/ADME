@@ -71,7 +71,7 @@ resource logicApp 'Microsoft.Logic/workflows@2019-05-01' = {
             inputs: {
               host: {
                 connection: {
-                  name: '@parameters(\'\$connections\')[\'office365groups\'][\'connectionId\']'
+                  name: o365connection.id
                 }
               }
               method: 'get'
@@ -205,7 +205,7 @@ resource logicApp 'Microsoft.Logic/workflows@2019-05-01' = {
         }
       }
       parameters: {
-        '$connections': {
+        '\$connections': {
           value: {
             office365groups: {
               connectionId: o365connection.id
