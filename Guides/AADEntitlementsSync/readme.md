@@ -143,7 +143,7 @@ osdu entitlements groups add -g meds-users -d "User group synced from Azure AD b
 3. Run the following command to deploy the Logic App
     ```Powershell
     # Define the variables below
-    $logicAppName = "meds-entitlements-sync1001"
+    $logicAppName = "meds-entitlements-sync1002"
     $bicepFile = "C:\temp\logicapp.bicep"
     $azureAdGroup = $newgroup.id # Unless you used the method above to create the Azure AD Group, replace with the ObjectID of said group
     $entitlementsGroup = "meds-users" # Target group name in MEDS Entitlements API
