@@ -143,13 +143,13 @@ osdu entitlements groups add -g meds-users -d "User group synced from Azure AD b
 3. Run the following command to deploy the Logic App
     ```Powershell
     # Define the variables below
-    $logicAppName = "meds-entitlements-sync1002"
-    $bicepFile = "C:\temp\logicapp.bicep"
+    $logicAppName = ""
+    $bicepFile = "https://raw.githubusercontent.com/EirikHaughom/MicrosoftEnergyDataServices/main/Guides/AADEntitlementsSync/src/logicapp.bicep"
     $azureAdGroup = $newgroup.id # Unless you used the method above to create the Azure AD Group, replace with the ObjectID of said group
     $entitlementsGroup = "meds-users" # Target group name in MEDS Entitlements API
-    $instanceName = "platform2368.energy.azure.com"
-    $clientId = "354425f4-145b-4d95-b150-81d0fc1a9e5f"
-    $dataPartitionId = "platform2368-opendes"
+    $instanceName = ".energy.azure.com"
+    $clientId = ""
+    $dataPartitionId = ""
 
     # Downloads the logicapp.bicep file to the path specified in $bicepFile
     Invoke-WebRequest -Uri https://raw.githubusercontent.com/EirikHaughom/MicrosoftEnergyDataServices/main/Guides/AADEntitlementsSync/src/logicapp.bicep -OutFile $bicepFile
@@ -165,6 +165,7 @@ osdu entitlements groups add -g meds-users -d "User group synced from Azure AD b
         --parameters azureAdGroup=$azureAdGroup `
         --parameters entitlementsGroup=$entitlementsGroup
     ```
+4. Grant 
 
 # Test and verify
 
