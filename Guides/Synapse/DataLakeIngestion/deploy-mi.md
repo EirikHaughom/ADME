@@ -10,7 +10,10 @@ In this example pipeline we will be using the Synapse Workspace Managed Identity
 2. Get the Synapse Workspace Managed Identity ObjectID, and then lookup the Application ID which will be used in the next API call.
 
 ```Powershell
-$synapsemi = (az synapse workspace show --name <synapse-workspace> --resource-group <resource-group> | ConvertFrom-Json).identity.principalId
+$synapsemi = (az synapse workspace show ` 
+    --name <synapse-workspace> `
+    --resource-group <resource-group> | `
+    ConvertFrom-Json).identity.principalId
 (az ad sp show --id $synapsemi | ConvertFrom-Json).appId
 ```
 

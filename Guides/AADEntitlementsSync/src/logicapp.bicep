@@ -1,20 +1,21 @@
 // Parameters
-param location string = resourceGroup().location
 param logicAppName string
 param clientId string
 param dataPartitionId string
 param hostName string
 param azureAdGroup string
 param entitlementsGroup string
+param o365ConnectionName string = '${logicAppName}-o365conn'
+param location string = resourceGroup().location
 
 
 // Office 365 Connection
 
 resource o365connection 'Microsoft.Web/connections@2016-06-01' = {
-  name: 'office365groups-1000'
+  name: o365ConnectionName
   location: location
   properties: {
-    displayName: 'office365groups-1000'
+    displayName: o365ConnectionName
     api: { 
       id: subscriptionResourceId('Microsoft.Web/locations/managedApis', location, 'office365groups')
     }
@@ -34,11 +35,6 @@ resource logicApp 'Microsoft.Logic/workflows@2019-05-01' = {
         '$schema': 'https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#'
         contentVersion: '1.0.0.0'
         parameters: {
-          '$connections': {
-            defaultValue: {
-            }
-            type: 'Object'
-          }
           client_id: {
             defaultValue: clientId
             type: 'String'
