@@ -162,14 +162,15 @@ osdu entitlements groups add -g meds-users -d "User group synced from Azure AD b
     Invoke-WebRequest -Uri https://raw.githubusercontent.com/EirikHaughom/MicrosoftEnergyDataServices/main/Guides/AADEntitlementsSync/src/logicapp.bicep -OutFile $bicepFile
 
     # Updates logicapp.json with the right values
-    (Get-Content -path $logicAppJson -Raw) `
+    (Get-Content -Path $logicAppJson -Raw) `
         -replace '<dataPartitionId>',$dataPartitionId `
         -replace '<instanceName>',$instanceName `
         -replace '<clientId>',$clientId `
         -replace '<entitlementsGroup>',$entitlementsGroup `
         -replace '<AzureAdGroupId>',$azureAdGroupId `
         -replace '<resourceGroup>',$resourceGroup `
-        -replace '<subscriptionId>',$subscriptionId
+        -replace '<subscriptionId>',$subscriptionId `
+        | Set-Content -Path $logicAppJson
 
     # Run deployment
     az deployment group create `
