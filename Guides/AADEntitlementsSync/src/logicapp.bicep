@@ -208,7 +208,7 @@ resource logicApp 'Microsoft.Logic/workflows@2019-05-01' = {
         '$connections': {
           value: {
             office365groups: {
-              connectionId: o365connection
+              connectionId: o365connection.id
               connectionName: 'office365groups'
               connectionProperties: {
                 authentication: {
