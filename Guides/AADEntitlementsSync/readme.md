@@ -165,7 +165,7 @@ osdu entitlements groups add -g meds-users -d "User group synced from Azure AD b
         --parameters azureAdGroup=$azureAdGroup `
         --parameters entitlementsGroup=$entitlementsGroup
     ```
-4. Grant 
+4. Grant Logic App Managed Identity group read access to the Azure AD tenant
 
 # Test and verify
 
