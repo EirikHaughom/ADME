@@ -5,6 +5,8 @@ The solution supports the [Azure AD Dynamic group assignment](https://learn.micr
 
 While this guide is written for Microsoft Energy Data Services, it should work with any OSDU instance.
 
+I would suggest monitoring this Logic App's runs through Azure Monitor and alert on failed runs. It could also be a good idea to create some consistency validation to verify that the members are in sync in both groups, especially since it is a one-way sync and users added directly through Entitlements API will not be added to the Azure AD group.
+
 # Overview
 ![Logic App for Azure AD group sync to Microsoft Energy Data Services](img/logicapp-concept.png)
 
@@ -106,16 +108,19 @@ az account set --subscription <subscription-id>
 # Deploy
 
 1. Create an Entitlements group using the OSDU CLI called meds-users.
-```powershell
-osdu entitlements groups add -g meds-users -d "User group synced from Azure AD by Logic App"
-```
-2. Create an M365 Azure AD group that will be the used as the source, we'll be using the Graph API for this step, but feel free to use Azure Portal or similar.
+    ```powershell
+    $entitlementsGroup = "meds-users" # Define the name of your Entitlements group
+
+    osdu entitlements groups add -g $entitlementsGroup -d "User group synced from Azure AD by Logic App"
+    ```
+2. Create an M365 Azure AD group that will be the used as the source, we'll be using the Graph API for this step, but feel free to use Azure Portal or similar. Access token can be fetched easily by logging into [Graph Explorer](https://developer.microsoft.com/en-us/graph/graph-explorer).
 
     Note the Object ID output.
 
     ```powershell
-    # Define Graph API access token with Directory.ReadWrite.All and Group.ReadWrite.All
-    $accessToken = "eyJ0eXAiOiJKV1QiL..."
+    # Define variables
+    $accessToken = "eyJ0eXAiOiJKV1QiL..." # Graph API access token with Directory.ReadWrite.All and Group.ReadWrite.All
+    $azureAdGroup = "meds-users" # Set the name of the Azure AD source group
 
     # Create request header
     $headers = @{
@@ -123,30 +128,33 @@ osdu entitlements groups add -g meds-users -d "User group synced from Azure AD b
     }
 
     # Create request body with M365 group properties
-    $groupBody = 
-    '{
-        "displayName": "meds-users",
+    $groupBody = @"{
+        "displayName": "$azureAdGroup",
         "mailEnabled": true,
-        "mailNickname": "meds-users",
+        "mailNickname": "$azureAdGroup",
         "description": "User group synced to Microsoft Energy Data Services by Logic App",
         "securityEnabled": true,
         "groupTypes": [
             "Unified"
         ]
-    }'
+    }"@
 
     # Invoke Graph service to create group
-    $newGroup = Invoke-RestMethod -Uri "https://graph.microsoft.com/v1.0/groups" -ContentType "application/json" -Method POST -Headers $headers -Body $groupBody
+    $azureAdGroup = Invoke-RestMethod -Uri "https://graph.microsoft.com/v1.0/groups" -ContentType "application/json" -Method POST -Headers $headers -Body $groupBody
 
-    echo $newGroup.id
+    echo $azureAdGroup.id
     ```
-3. Run the following command to deploy the Logic App
+3. Run the following command to deploy the Logic App. 
     ```Powershell
     # Define the variables below
     $logicAppName = ""
-    $bicepFile = "https://raw.githubusercontent.com/EirikHaughom/MicrosoftEnergyDataServices/main/Guides/AADEntitlementsSync/src/logicapp.bicep"
-    $azureAdGroup = $newgroup.id # Unless you used the method above to create the Azure AD Group, replace with the ObjectID of said group
-    $entitlementsGroup = "meds-users" # Target group name in MEDS Entitlements API
+    $resourceGroup = ""
+    $bicepFilePath = "C:\temp\"
+    $azureAdGroup = $azureAdGroup.id # Unless you used the method above to create the Azure AD Group, replace with the ObjectID of said group
+    
+    $bicepFile = $bicepFilePath + "logicapp.bicep" # Do not change this
+    
+    #$entitlementsGroup = "" # Uncomment if this is not already populated by previous steps
     $instanceName = ".energy.azure.com"
     $clientId = ""
     $dataPartitionId = ""
@@ -165,13 +173,80 @@ osdu entitlements groups add -g meds-users -d "User group synced from Azure AD b
         --parameters azureAdGroup=$azureAdGroup `
         --parameters entitlementsGroup=$entitlementsGroup
     ```
-4. Grant Logic App Managed Identity group read access to the Azure AD tenant
+4. Grant Logic App Managed Identity *Group.Read.All* access to Azure AD through Graph API. Access token can be fetched easily by logging into [Graph Explorer](https://developer.microsoft.com/en-us/graph/graph-explorer).
+    ```Powershell
+    # Set variables
+    $accessToken = "eyJ0eAAiOiJKV1QiL..." # Define Graph API access token with Directory.ReadWrite.All or Group.ReadWrite.All
+    #$logicAppName = "" # Uncomment and fill out if not already assigned from previous steps
+    #$resourceGroup = "" # Uncomment and fill out if not already assigned from previous steps    
+
+    # THERE IS NO NEED TO EDIT BELOW THIS LINE
+
+    # Get Managed Identity ObjectID from Logic App
+    $logicAppManagedIdentity = (( `
+        az logic workflow show `
+            --name $logicAppName `
+            --resource-group $resourceGroup) | `
+            convertfrom-json).identity.principalId
+
+    # Get ObjectID of role Group.Read.All in Graph API
+    $GroupReadAllOID = (( `
+        az ad sp show `
+        --id 00000003-0000-0000-c000-000000000000 | `
+        convertfrom-json).approles | `
+        where {$_.value -eq "Group.Read.All"} `
+        ).id
+
+    # Get ObjectID of the Graph API
+    $GraphOID = $( `
+        az ad sp show `
+        --id 00000003-0000-0000-c000-000000000000 | `
+        convertfrom-json `
+        ).id
+
+    # Create request header
+    $headers = @{
+    "Authorization" = "Bearer $accessToken"
+    }
+
+    # Create request body with M365 group properties
+    $groupBody = @"{
+        "principalId": "$logicAppManagedIdentity",
+        "resourceId": "$GraphOID",
+        "appRoleId": "$GroupReadAllOID",
+    }"@
+
+    # Invoke Graph service to create group
+    Invoke-RestMethod `
+        -Uri "https://graph.microsoft.com/v1.0/servicePrincipals/$GraphOID/appRoleAssignments" `
+        -ContentType "application/json" `
+        -Method POST `
+        -Headers $headers `
+        -Body $groupBody
+    ```
+
+5. That's it! Now you should have a working Logic App monitoring the group specified. Proceed to the next chapter to test and verify the Logic App.
+
 
 # Test and verify
 
+1. Add a member to the Azure AD source group. We'll do it through Azure CLI, but you can use the Azure Portal or similar if you want.
+    ```powershell
+    # Set variables
+    $accessToken = "" # Access token with Group.ReadWrite.All or GroupMember.ReadWrite.All rights.
+    $groupId = $newGroup.id # Change if not already assigned from previous steps
+    $memberUpn = "user@company.com" # UPN of the user to add
 
+    $memberId = (az ad user show --id $memberUpn | ConvertFrom-Json).id
 
-2. Create Logic App w/Managed Identity
-3. Grant Managed Identity group reader access in AD
-4. Grant Managed Identity AppID OWNER access to target Entitlements group
-5. Configure Logic App
+    # Create the request header
+    az ad group member add --group $groupId --member-id $memberId
+    ```
+2. Check the Logic App runs in the [Azure Portal](https://portal.azure.com) (this may take minute to trigger automatically).
+    ![Logic App run screenshot](img/logicapp-run-validation.png)
+
+3. Validate that the user's Object ID is added to the Microsoft Energy Data Services Entitlements service.
+    ```powershell
+    osdu entitlements groups members -g $entitlementsGroup@$dataPartitionId.dataservices.energy
+    ```
+    ![Entitlements validation](img/entitlements-validation.png)
