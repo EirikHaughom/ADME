@@ -95,16 +95,6 @@ az account set --subscription <subscription-id>
     ```
 </details>
 
-<details>
-<summary>Azure CLI Logic App Extension</summary>
-
-1. Install the module
-    ```Powershell
-    az extension add --name logic
-    ```
-</details>
-
-
 # Deploy
 
 1. Create an Entitlements group using the OSDU CLI called meds-users.
