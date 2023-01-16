@@ -118,15 +118,12 @@
                         }
                     },
                     "body": {
-                        "value": "@concat('{\n    \"data\": {\n        \"DatasetProperties\": {\n            \"FileSourceInfo\": {\n                \"FileSource\": \"',variables('FileSource'),'\",\n                \"Name\": \"SubscriptionTemplate.csv\"\n            }\n        },\n        \"Name\": \"SubscriptionTemplate\",\n        \"Endian\": \"BIG\",\n        \"ExtensionProperties\": {\n            \"Classification\": \"Raw File\",\n            \"Description\": \"An text further describing this file example.\",\n            \"FileContentsDetails\": {\n                \"FileType\": \"csv\"\n            }\n        }\n    },\n    \"kind\": \"platform2368-opendes:wks:dataset--File.Generic:1.0.0\",\n    \"acl\": {\n        \"viewers\": [\n            \"data.default.viewers@',pipeline().parameters.DATA_PARTITION_ID,'.dataservices.energy\"\n        ],\n        \"owners\": [\n            \"data.default.owners@',pipeline().parameters.DATA_PARTITION_ID,'.dataservices.energy\"\n        ]\n    },\n    \"legal\": {\n        \"legaltags\": [\n            \"',pipeline().parameters.LEGAL_TAG,'\"\n        ],\n        \"otherRelevantDataCountries\": [\n            \"US\"\n        ],\n        \"status\": \"compliant\"\n    }\n}')",
+                        "value": "@concat('{\n    \"data\": {\n        \"DatasetProperties\": {\n            \"FileSourceInfo\": {\n                \"FileSource\": \"',variables('FileSource'),'\",\n                \"Name\": \"',pipeline().parameters.triggeringFile,'\"\n            }\n        },\n        \"Name\": \"',pipeline().parameters.triggeringFile,'\",\n        \"Endian\": \"BIG\",\n        \"ExtensionProperties\": {\n            \"Classification\": \"Raw File\",\n            \"Description\": \"An text further describing this file example.\",\n            \"FileContentsDetails\": {\n                \"FileType\": \"csv\"\n            }\n        }\n    },\n    \"kind\": \"osdu:wks:dataset--File.Generic:1.0.0\",\n    \"acl\": {\n        \"viewers\": [\n            \"data.default.viewers@',pipeline().parameters.DATA_PARTITION_ID,'.dataservices.energy\"\n        ],\n        \"owners\": [\n            \"data.default.owners@',pipeline().parameters.DATA_PARTITION_ID,'.dataservices.energy\"\n        ]\n    },\n    \"legal\": {\n        \"legaltags\": [\n            \"',pipeline().parameters.LEGAL_TAG,'\"\n        ],\n        \"otherRelevantDataCountries\": [\n            \"US\"\n        ],\n        \"status\": \"compliant\"\n    }\n}')",
                         "type": "Expression"
                     },
                     "authentication": {
                         "type": "MSI",
-                        "resource": {
-                            "value": "@pipeline().parameters.synapse_managed_identity",
-                            "type": "Expression"
-                        }
+                        "resource": "@pipeline().parameters.synapse_managed_identity"
                     }
                 }
             },
@@ -161,10 +158,7 @@
                     },
                     "authentication": {
                         "type": "MSI",
-                        "resource": {
-                            "value": "@pipeline().parameters.CLIENT_ID",
-                            "type": "Expression"
-                        }
+                        "resource": "@pipeline().parameters.synapse_managed_identity"
                     }
                 }
             },
