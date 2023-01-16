@@ -25,7 +25,21 @@ $synapsemi = (az synapse workspace show --name eirikmedssynapse --resource-group
 ```
 </details>
 
-3. Run the below REST API call through Postman or other API tool to add the Synapse Workspace Managed Identity ObjectID to the users.datalake.editors group. 
+3. Run the below REST API call through Postman or other API tool to add the Synapse Workspace Managed Identity ObjectID to the users group (which is required for any access to Microsoft Energy Data Services). 
+    ```Powershell
+    curl --location --request POST 'https://<instance>.energy.azure.com/api/entitlements/v2/groups/users@<data-partition-id>.dataservices.energy/members' `
+        --header 'data-partition-id: <data-partition-id>' `
+        --header 'Authorization: Bearer <access_token>' `
+        --header 'Content-Type: application/json' `
+        --data-raw '{
+                        "email": "<Synapse-AppID>",
+                        "role": "MEMBER"
+                    }'
+    ```
+    <details>
+    <summary>Example</summary>
+
+4. Run the below REST API call through Postman or other API tool to add the Synapse Workspace Managed Identity ObjectID to the users.datalake.editors group. 
     ```Powershell
     curl --location --request POST 'https://<instance>.energy.azure.com/api/entitlements/v2/groups/users.datalake.editors@<data-partition-id>.dataservices.energy/members' `
         --header 'data-partition-id: <data-partition-id>' `
@@ -51,7 +65,7 @@ $synapsemi = (az synapse workspace show --name eirikmedssynapse --resource-group
     ```
     </details>
 
-4. Make sure you get a <mark style="background-color:green">HTTP/1.1 200 OK</mark> response.
+5. Make sure you get a <mark style="background-color:green">HTTP/1.1 200 OK</mark> response.
     <details>
     <summary>Sample Response</summary>
 
