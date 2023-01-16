@@ -198,8 +198,7 @@ You may find the linked services in your Synapse workspace by running the follow
 Now we will deploy the actual pipeline which will migrate the files from the source container into the Microsoft Energy Data Services staging area.
 
 1. Download the [pipeline-mi.json](src/pipeline-mi.json) to your local machine.
-2. Replace all of the values <> in the pipeline-mi.json file.
-3. Run the following command to create the pipeline.
+2. Run the following command to create the pipeline.
     ```Powershell
     az synapse pipeline create `
         --name <pipeline-name> `
@@ -217,7 +216,7 @@ Now we will deploy the actual pipeline which will migrate the files from the sou
         --file @C:/Temp/pipeline-mi.json
     ```
     </details>
-4. Verify that the pipeline was created successfully.
+3. Verify that the pipeline was created successfully.
 
 ### Create trigger
 Now we will create the trigger which automatically triggers the pipeline we just created.
