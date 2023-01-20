@@ -282,11 +282,11 @@
             },
             "triggeringFile": {
                 "type": "string",
-                "defaultValue": ""
+                "defaultValue": "@triggerBody().fileName"
             },
             "triggeringFolder": {
                 "type": "string",
-                "defaultValue": ""
+                "defaultValue": "@triggerBody().folderPath"
             }
         },
         "variables": {
