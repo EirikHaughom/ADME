@@ -16,7 +16,6 @@ Domain Data Management Services are not included.
 - Storage
 - Unit
 - Workflow
-<br />
 
 ## Usage
 1. Copy the link to the [Postman Collection JSON file](json/Azure%20Data%20Manager%20for%20Energy%20(M12).postman_collection.json?raw=1).
@@ -24,7 +23,6 @@ Domain Data Management Services are not included.
 3. Select *Link*
 4. Paste the link copied above.
 5. Repeat the same for the [Postman Environment JSON file](json/Azure%20Data%20Manager%20for%20Energy.postman_environment.json?raw=1)
-<br />
 
 ## Environment variables
 | Variable | Description |
@@ -37,8 +35,6 @@ Domain Data Management Services are not included.
 |client_secret|A valid App Registration secret for the above client_id|
 |tenant_id|Azure AD tenant ID
 |baseUrl|**Do not change**|
-
-<br />
 
 ## Authenticating
 1. Go to the ADME API collection you have imported.
