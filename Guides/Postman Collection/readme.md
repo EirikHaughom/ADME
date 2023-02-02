@@ -4,7 +4,7 @@ This postman collection includes all REST API calls available for Azure Data Man
 
 Domain Data Management Services are not included.
 <br />
-<br />
+
 ## Services Covered
 - Authentication
 - CRS
@@ -17,7 +17,6 @@ Domain Data Management Services are not included.
 - Unit
 - Workflow
 <br />
-<br />
 
 ## Usage
 1. Copy the link to the [Postman Collection JSON file](json/Azure%20Data%20Manager%20for%20Energy%20(M12).postman_collection.json?raw=1).
@@ -25,7 +24,6 @@ Domain Data Management Services are not included.
 3. Select *Link*
 4. Paste the link copied above.
 5. Repeat the same for the [Postman Environment JSON file](json/Azure%20Data%20Manager%20for%20Energy.postman_environment.json?raw=1)
-<br />
 <br />
 
 ## Environment variables
@@ -40,7 +38,6 @@ Domain Data Management Services are not included.
 |tenant_id|Azure AD tenant ID
 |baseUrl|**Do not change**|
 
-<br />
 <br />
 
 ## Authenticating
