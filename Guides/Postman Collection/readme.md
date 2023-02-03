@@ -9,7 +9,8 @@ Domain Data Management Services are not included.
 The services mentioned below are covered, and the API calls are imported from the official [ADME documentation](https://microsoft.github.io/meds-samples/).
 
 - Authentication
-- CRS
+- CRS Catalog
+- CRS Converter
 - Dataset
 - Entitlements
 - File
