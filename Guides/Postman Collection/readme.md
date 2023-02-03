@@ -14,13 +14,15 @@ Domain Data Management Services are not included.
 - Indexer
 - Legal
 - Notification
-- Partition (unsupported for ADME)
+- Partition*
 - Register
 - Schema
 - Search
 - Storage
 - Unit
 - Workflow
+
+<sub>\* The Partition service is locked down on ADME, as data partitions are handled by Azure Resource Manager (ARM) through CLI, PowerShell or Azure Portal.</sub>
 
 ## Usage
 1. Copy the link to the [Postman Collection JSON file](json/Azure%20Data%20Manager%20for%20Energy%20(M12).postman_collection.json?raw=1).
