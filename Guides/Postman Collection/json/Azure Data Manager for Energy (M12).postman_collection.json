@@ -28,6 +28,9 @@
 						}
 					],
 					"request": {
+						"auth": {
+							"type": "noauth"
+						},
 						"method": "POST",
 						"header": [
 							{
@@ -45,7 +48,7 @@
 								},
 								{
 									"key": "scope",
-									"value": "{{client_id}}/.default+openid+profile+offline_access",
+									"value": "{{client_id}}/.default openid profile offline_access",
 									"type": "text"
 								},
 								{
@@ -109,6 +112,9 @@
 						}
 					],
 					"request": {
+						"auth": {
+							"type": "noauth"
+						},
 						"method": "POST",
 						"header": [
 							{
@@ -2088,6 +2094,233 @@
 			]
 		},
 		{
+			"name": "Dataset",
+			"item": [
+				{
+					"name": "getDatasetRegistry",
+					"item": [
+						{
+							"name": "getDatasetRegistry",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"description": "(Required) tenant",
+										"key": "data-partition-id",
+										"value": "{{data_partition}}"
+									},
+									{
+										"key": "Accept",
+										"value": "*/*"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/getDatasetRegistry?id=opendes:dataset--File.Generic:8118591ee2a24eada7152e54b369e99a",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"getDatasetRegistry"
+									],
+									"query": [
+										{
+											"key": "id",
+											"value": "opendes:dataset--File.Generic:8118591ee2a24eada7152e54b369e99a",
+											"description": "(Required) dataset registry id"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getDatasetRegistries",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"description": "(Required) tenant",
+										"key": "data-partition-id",
+										"value": "{{data_partition}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application.json"
+									},
+									{
+										"key": "Accept",
+										"value": "*/*"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"datasetRegistryIds\": [\n    \"opendes:dataset--File.Generic:8118591ee2a24eada7152e54b369e99a\",\n    \"opendes:dataset--File.Generic:8118591ee2a24eada7152e54b369e99a\"\n  ]\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/getDatasetRegistry",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"getDatasetRegistry"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "retrievalInstructions",
+					"item": [
+						{
+							"name": "Generate retrieval instructions (Eg - Signed URLs) for single dataset",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"description": "(Required) tenant",
+										"key": "data-partition-id",
+										"value": "{{data_partition}}"
+									},
+									{
+										"key": "Accept",
+										"value": "*/*"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/retrievalInstructions?datasetRegistryId=opendes:dataset--File.Generic:8118591ee2a24eada7152e54b369e99a",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"retrievalInstructions"
+									],
+									"query": [
+										{
+											"key": "datasetRegistryId",
+											"value": "opendes:dataset--File.Generic:8118591ee2a24eada7152e54b369e99a",
+											"description": "(Required) Dataset registry id"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Generate retrieval instructions (Eg - Signed URLs) for multiple datasets",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"description": "(Required) tenant",
+										"key": "data-partition-id",
+										"value": "{{data_partition}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application.json"
+									},
+									{
+										"key": "Accept",
+										"value": "*/*"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"datasetRegistryIds\": [\n    \"opendes:dataset--File.Generic:8118591ee2a24eada7152e54b369e99a\",\n    \"opendes:dataset--File.Generic:8118591ee2a24eada7152e54b369e99a\"\n  ]\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/retrievalInstructions",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"retrievalInstructions"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "createOrUpdateDatasetRegistries",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"description": "(Required) tenant",
+								"key": "data-partition-id",
+								"value": "{{data_partition}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "*/*"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"datasetRegistries\": [\n    {\n      \"kind\": \"osdu:wks:dataset--File.Generic:1.0.0\",\n      \"data\": {\n        \"ResourceId\": \"srn:osdu:file:dc556e0e3a554105a80cfcb19372a62d:\",\n        \"ResourceTypeID\": \"srn:type:file/json:\",\n        \"ResourceSecurityClassification\": \"srn:reference-data/ResourceSecurityClassification:RESTRICTED:\",\n        \"ResourceSource\": \"Some Company App\",\n        \"ResourceName\": \"trajectories - 1000.json\",\n        \"ResourceDescription\": \"Trajectory For Wellbore xyz\",\n        \"DatasetProperties\": {\n          \"FileSourceInfo\": {\n            \"FileSource\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"PreloadFilePath\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            }\n          }\n        }\n      },\n      \"acl\": {\n        \"owners\": [\n          \"data.default.owners@opendes.testing.com\",\n          \"data.default.owners@opendes.testing.com\"\n        ],\n        \"viewers\": [\n          \"data.default.viewers@opendes.testing.com\",\n          \"data.default.viewers@opendes.testing.com\"\n        ]\n      },\n      \"legal\": {\n        \"legaltags\": [\n          \"opendes-public-usa-dataset\",\n          \"opendes-public-usa-dataset\"\n        ],\n        \"otherRelevantDataCountries\": [\n          \"US\",\n          \"US\"\n        ],\n        \"status\": \"compliant\"\n      },\n      \"namespace\": \"opendes:osdu\",\n      \"id\": \"opendes:dataset--File.Generic:8118591ee2a24eada7152e54b369e99a\",\n      \"meta\": [\n        {\n          \"eiusmod_1\": {},\n          \"ea_3d3\": {},\n          \"eiusmod_e1_\": {}\n        },\n        {\n          \"veniam7\": {},\n          \"commodo_aab\": {},\n          \"irure_7a6\": {}\n        }\n      ],\n      \"ancestry\": {\n        \"parents\": [\n          \"pariatur Ut\",\n          \"sed cupidatat\"\n        ]\n      }\n    },\n    {\n      \"kind\": \"osdu:wks:dataset--File.Generic:1.0.0\",\n      \"data\": {\n        \"ResourceId\": \"srn:osdu:file:dc556e0e3a554105a80cfcb19372a62d:\",\n        \"ResourceTypeID\": \"srn:type:file/json:\",\n        \"ResourceSecurityClassification\": \"srn:reference-data/ResourceSecurityClassification:RESTRICTED:\",\n        \"ResourceSource\": \"Some Company App\",\n        \"ResourceName\": \"trajectories - 1000.json\",\n        \"ResourceDescription\": \"Trajectory For Wellbore xyz\",\n        \"DatasetProperties\": {\n          \"FileSourceInfo\": {\n            \"FileSource\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            },\n            \"PreloadFilePath\": {\n              \"value\": \"<Error: Too many levels of nesting to fake this schema>\"\n            }\n          }\n        }\n      },\n      \"acl\": {\n        \"owners\": [\n          \"data.default.owners@opendes.testing.com\",\n          \"data.default.owners@opendes.testing.com\"\n        ],\n        \"viewers\": [\n          \"data.default.viewers@opendes.testing.com\",\n          \"data.default.viewers@opendes.testing.com\"\n        ]\n      },\n      \"legal\": {\n        \"legaltags\": [\n          \"opendes-public-usa-dataset\",\n          \"opendes-public-usa-dataset\"\n        ],\n        \"otherRelevantDataCountries\": [\n          \"US\",\n          \"US\"\n        ],\n        \"status\": \"compliant\"\n      },\n      \"namespace\": \"opendes:osdu\",\n      \"id\": \"opendes:dataset--File.Generic:8118591ee2a24eada7152e54b369e99a\",\n      \"meta\": [\n        {\n          \"tempor_\": {},\n          \"laborea9\": {}\n        },\n        {\n          \"culpa_7\": {},\n          \"consequat_8d5\": {},\n          \"pariatur_b36\": {}\n        }\n      ],\n      \"ancestry\": {\n        \"parents\": [\n          \"ad dolore qui nostrud veniam\",\n          \"dolore sed\"\n        ]\n      }\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/registerDataset",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"registerDataset"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Generate storage instructions (Eg - Signed URLs) for datasets",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"description": "(Required) tenant",
+								"key": "data-partition-id",
+								"value": "{{data_partition}}"
+							},
+							{
+								"key": "Accept",
+								"value": "*/*"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/storageInstructions?kindSubType=dataset--File.Generic",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"storageInstructions"
+							],
+							"query": [
+								{
+									"key": "kindSubType",
+									"value": "dataset--File.Generic",
+									"description": "(Required) subType of the kind (partition:wks:kindSubType:version)"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "Entitlements",
 			"item": [
 				{
@@ -3437,6 +3670,241 @@
 			]
 		},
 		{
+			"name": "Indexer",
+			"item": [
+				{
+					"name": "Info",
+					"item": [
+						{
+							"name": "info",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"description": "(Required) data partition id",
+										"key": "data-partition-id",
+										"value": "{{data_partition}}"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/indexer/v2/info",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"indexer",
+										"v2",
+										"info"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Health Check",
+					"item": [
+						{
+							"name": "readinessCheck",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"description": "(Required) data partition id",
+										"key": "data-partition-id",
+										"value": "{{data_partition}}"
+									},
+									{
+										"key": "Accept",
+										"value": "*/*"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/indexer/v2/readiness_check",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"indexer",
+										"v2",
+										"readiness_check"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "reindex",
+					"item": [
+						{
+							"name": "reindex",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"description": "(Required) data partition id",
+										"key": "data-partition-id",
+										"value": "{{data_partition}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "*/*"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"kind\": \"quis magna\",\n  \"cursor\": \"tempor adipisicing\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/indexer/v2/reindex?force_clean=false",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"indexer",
+										"v2",
+										"reindex"
+									],
+									"query": [
+										{
+											"key": "force_clean",
+											"value": "false",
+											"description": "force_clean"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "fullReindex",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"description": "(Required) data partition id",
+										"key": "data-partition-id",
+										"value": "{{data_partition}}"
+									},
+									{
+										"key": "Accept",
+										"value": "*/*"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/indexer/v2/reindex?force_clean=false",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"indexer",
+										"v2",
+										"reindex"
+									],
+									"query": [
+										{
+											"key": "force_clean",
+											"value": "false",
+											"description": "force_clean"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "deleteIndex",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"description": "(Required) data partition id",
+								"key": "data-partition-id",
+								"value": "{{data_partition}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/indexer/v2/index?kind=ut commodo sint U",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"indexer",
+								"v2",
+								"index"
+							],
+							"query": [
+								{
+									"key": "kind",
+									"value": "ut commodo sint U",
+									"description": "(Required) kind"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "provisionPartition",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"description": "(Required) data-partition-id",
+								"key": "data-partition-id",
+								"value": "{{data_partition}}"
+							},
+							{
+								"key": "Accept",
+								"value": "*/*"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/indexer/v2/partitions/provision",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"indexer",
+								"v2",
+								"partitions",
+								"provision"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "Legal",
 			"item": [
 				{
@@ -4385,6 +4853,1489 @@
 								"v1",
 								"jobs",
 								"updateLegalTagStatus"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Notification",
+			"item": [
+				{
+					"name": "Info",
+					"item": [
+						{
+							"name": "info",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"description": "(Required) tenant",
+										"key": "data-partition-id",
+										"value": "{{data_partition}}"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/notification/v1/info",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"notification",
+										"v1",
+										"info"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Health Check",
+					"item": [
+						{
+							"name": "warmup",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"description": "(Required) tenant",
+										"key": "data-partition-id",
+										"value": "{{data_partition}}"
+									},
+									{
+										"key": "Accept",
+										"value": "*/*"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/notification/v1/_ah/warmup",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"notification",
+										"v1",
+										"_ah",
+										"warmup"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "error",
+					"item": [
+						{
+							"name": "handleErrorGet",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"description": "(Required) tenant",
+										"key": "data-partition-id",
+										"value": "{{data_partition}}"
+									},
+									{
+										"key": "Accept",
+										"value": "*/*"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/notification/v1/error",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"notification",
+										"v1",
+										"error"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "handleErrorPut",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"description": "(Required) tenant",
+										"key": "data-partition-id",
+										"value": "{{data_partition}}"
+									},
+									{
+										"key": "Accept",
+										"value": "*/*"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/notification/v1/error",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"notification",
+										"v1",
+										"error"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "handleErrorPost",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"description": "(Required) tenant",
+										"key": "data-partition-id",
+										"value": "{{data_partition}}"
+									},
+									{
+										"key": "Accept",
+										"value": "*/*"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/notification/v1/error",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"notification",
+										"v1",
+										"error"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "handleErrorDelete",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"description": "(Required) tenant",
+										"key": "data-partition-id",
+										"value": "{{data_partition}}"
+									},
+									{
+										"key": "Accept",
+										"value": "*/*"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/notification/v1/error",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"notification",
+										"v1",
+										"error"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "handleErrorPatch",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"description": "(Required) tenant",
+										"key": "data-partition-id",
+										"value": "{{data_partition}}"
+									},
+									{
+										"key": "Accept",
+										"value": "*/*"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/notification/v1/error",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"notification",
+										"v1",
+										"error"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "recordChanged",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"description": "(Required) tenant",
+								"key": "data-partition-id",
+								"value": "{{data_partition}}"
+							},
+							{
+								"key": "Accept",
+								"value": "*/*"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/notification/v1/push-handlers/records-changed",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"notification",
+								"v1",
+								"push-handlers",
+								"records-changed"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Partition",
+			"item": [
+				{
+					"name": "Info",
+					"item": [
+						{
+							"name": "Version info",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/info",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"info"
+									]
+								},
+								"description": "For deployment available public `/info` endpoint,  which provides build and git related information."
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "partitions",
+					"item": [
+						{
+							"name": "{partitionId}",
+							"item": [
+								{
+									"name": "Get partition info",
+									"request": {
+										"auth": {
+											"type": "apikey",
+											"apikey": [
+												{
+													"key": "key",
+													"value": "Authorization",
+													"type": "string"
+												},
+												{
+													"key": "value",
+													"value": "{{apiKey}}",
+													"type": "string"
+												},
+												{
+													"key": "in",
+													"value": "header",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/partitions/:partitionId",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"partitions",
+												":partitionId"
+											],
+											"variable": [
+												{
+													"key": "partitionId",
+													"value": "{{data_partition}}",
+													"description": "(Required) partitionId"
+												}
+											]
+										},
+										"description": "Get all properties and their values for a given data partition id"
+									},
+									"response": []
+								},
+								{
+									"name": "Create a new partition",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"properties\": {\n    \"cillum_61\": {\n      \"sensitive\": true,\n      \"value\": {}\n    },\n    \"cillum4\": {\n      \"sensitive\": false,\n      \"value\": {}\n    }\n  }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/partitions/:partitionId",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"partitions",
+												":partitionId"
+											],
+											"variable": [
+												{
+													"key": "partitionId",
+													"value": "",
+													"description": "(Required) partitionId"
+												}
+											]
+										},
+										"description": "Creates a new data partition with all given properties and their values."
+									},
+									"response": []
+								},
+								{
+									"name": "Updates an existing partition",
+									"request": {
+										"method": "PATCH",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"properties\": {\n    \"cillum_61\": {\n      \"sensitive\": true,\n      \"value\": {}\n    },\n    \"cillum4\": {\n      \"sensitive\": false,\n      \"value\": {}\n    }\n  }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/partitions/:partitionId",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"partitions",
+												":partitionId"
+											],
+											"variable": [
+												{
+													"key": "partitionId",
+													"value": "{{data_partition}}",
+													"description": "(Required) partitionId"
+												}
+											]
+										},
+										"description": "Add new properties or update exsiting properties of a given data partition"
+									},
+									"response": []
+								},
+								{
+									"name": "Delete an existing partition",
+									"request": {
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/partitions/:partitionId",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"partitions",
+												":partitionId"
+											],
+											"variable": [
+												{
+													"key": "partitionId",
+													"value": "{{data_partition}}",
+													"description": "(Required) partitionId"
+												}
+											]
+										},
+										"description": "Delete all the properties of a given data partition"
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "List all partitions",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/partitions",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"partitions"
+									]
+								},
+								"description": "Returns all existing data partitions"
+							},
+							"response": []
+						}
+					]
+				}
+			],
+			"description": "Please note that this API is locked down in Microsoft Energy Data Services due to data partitions being handled by the Azure Resource Manager (ARM) through Azure CLI, PowerShell or Azure Portal."
+		},
+		{
+			"name": "Register",
+			"item": [
+				{
+					"name": "Info",
+					"item": [
+						{
+							"name": "info",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"description": "(Required) tenant",
+										"key": "data-partition-id",
+										"value": "{{data_partition}}"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/register/v1/info",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"register",
+										"v1",
+										"info"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Health Check",
+					"item": [
+						{
+							"name": "livenessCheck",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"description": "(Required) tenant",
+										"key": "data-partition-id",
+										"value": "{{data_partition}}"
+									},
+									{
+										"key": "Accept",
+										"value": "*/*"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/register/v1/ah/liveness_check",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"register",
+										"v1",
+										"ah",
+										"liveness_check"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "readinessCheck",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"description": "(Required) tenant",
+										"key": "data-partition-id",
+										"value": "{{data_partition}}"
+									},
+									{
+										"key": "Accept",
+										"value": "*/*"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/register/v1/ah/readiness_check",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"register",
+										"v1",
+										"ah",
+										"readiness_check"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "action",
+					"item": [
+						{
+							"name": "{id}",
+							"item": [
+								{
+									"name": "getAction",
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"description": "(Required) tenant",
+												"key": "data-partition-id",
+												"value": "{{data_partition}}"
+											},
+											{
+												"key": "Accept",
+												"value": "*/*"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/register/v1/action/:id",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"register",
+												"v1",
+												"action",
+												":id"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": "JDNfT3rQehYpac6rvQ3mc3mK1FMddv-",
+													"description": "(Required) id"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "deleteAction",
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"description": "(Required) tenant",
+												"key": "data-partition-id",
+												"value": "{{data_partition}}"
+											},
+											{
+												"key": "Accept",
+												"value": "*/*"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/register/v1/action/:id",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"register",
+												"v1",
+												"action",
+												":id"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": "JDNfT3rQehYpac6rvQ3mc3mK1FMddv-",
+													"description": "(Required) id"
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "createAction",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"description": "(Required) tenant",
+										"key": "data-partition-id",
+										"value": "{{data_partition}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "*/*"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"contactEmail\": \"ex sunt proident\",\n  \"description\": \"Hco1FBq8RyLDx4QW4.Jgia2SjyoQKPrf9QIn.08fwKDP1gukhsxFWxOHUXUbV4q6xmDlAdl5rZK5dnK41lHqOj1H2JyJ9VA3.hiTLQSW6jTgjZOqWmpsf7fcDiD1bTuQjaF.xBdJyRJpx1zsQzvkcpTAt6TdvpEpLLEV5z9qetpX8o7UTqtIc03M2DcfJQmhAjpQZIMWEyIKjjRImikmGEWUuAsVA1qJSf1seaauS2y3HeMlqlyROlUAwEwo\",\n  \"filter\": {\n    \"entityType\": [\n      \"culpa eiusmod\",\n      \"non culpa Lorem pariatur\"\n    ],\n    \"source\": [\n      \"veniam quis ea amet\",\n      \"laboris Lorem culpa\"\n    ],\n    \"version\": [\n      \"est sunt dolore\",\n      \"officia proident elit dolor\"\n    ]\n  },\n  \"id\": \"VltOCJ7m1Yedpnqjh6KPCUy3kQB5XaCJ4OXprWw1Vc6\",\n  \"img\": \"reprehenderit \",\n  \"name\": \"BqIcmviZXkRM1JMSs oqxhxnFr4\",\n  \"url\": \"mollit tempor\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/register/v1/action",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"register",
+										"v1",
+										"action"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "ddms",
+					"item": [
+						{
+							"name": "{id}",
+							"item": [
+								{
+									"name": "getDMS",
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"description": "(Required) tenant",
+												"key": "data-partition-id",
+												"value": "{{data_partition}}"
+											},
+											{
+												"key": "Accept",
+												"value": "*/*"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/register/v1/ddms/:id",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"register",
+												"v1",
+												"ddms",
+												":id"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": "JDNfT3rQehYpac6rvQ3mc3mK1FMddv-",
+													"description": "(Required) id"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "deleteDMS",
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"description": "(Required) tenant",
+												"key": "data-partition-id",
+												"value": "{{data_partition}}"
+											},
+											{
+												"key": "Accept",
+												"value": "*/*"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/register/v1/ddms/:id",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"register",
+												"v1",
+												"ddms",
+												":id"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": "JDNfT3rQehYpac6rvQ3mc3mK1FMddv-",
+													"description": "(Required) id"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "redirectToDms",
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"description": "(Required) tenant",
+												"key": "data-partition-id",
+												"value": "{{data_partition}}"
+											},
+											{
+												"key": "Accept",
+												"value": "*/*"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/register/v1/ddms/:id/:type/:localid",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"register",
+												"v1",
+												"ddms",
+												":id",
+												":type",
+												":localid"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": "JDNfT3rQehYpac6rvQ3mc3mK1FMddv-",
+													"description": "(Required) id"
+												},
+												{
+													"key": "type",
+													"value": "ojxsoZ",
+													"description": "(Required) type"
+												},
+												{
+													"key": "localid",
+													"value": "JDNfT3rQehYpac6rvQ3mc3mK1FMddv-",
+													"description": "(Required) localid"
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "queryDMS",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"description": "(Required) tenant",
+										"key": "data-partition-id",
+										"value": "{{data_partition}}"
+									},
+									{
+										"key": "Accept",
+										"value": "*/*"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/register/v1/ddms?type=xDhsgMHVwlFxMBOOPE0B5HtXsIyxhH",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"register",
+										"v1",
+										"ddms"
+									],
+									"query": [
+										{
+											"key": "type",
+											"value": "xDhsgMHVwlFxMBOOPE0B5HtXsIyxhH",
+											"description": "(Required) type"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "postDMS",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"description": "(Required) tenant",
+										"key": "data-partition-id",
+										"value": "{{data_partition}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "*/*"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"id\": \"cfvegdZwao0uxhVwJQHDCr\",\n  \"name\": \"TW\",\n  \"contactEmail\": \"aliqua nostrud\",\n  \"createdDateTimeEpoch\": {\n    \"date\": -37031726,\n    \"hours\": 22541709,\n    \"minutes\": -95173700,\n    \"month\": 77060430,\n    \"nanos\": -67445465,\n    \"seconds\": -16872361,\n    \"time\": 88167946,\n    \"year\": 78663462\n  },\n  \"description\": \"m2XJ.1j76YqWVJxsQoLxHISxWgYxmhMFCDfQcdbucyZ9tOw8gV2T8lkSkE BfGTTKHkadLjSSuCQulGjNxbsE9ALYxs5ZR2aYPlfi.MqCKIhLFlzhH0IzUpXQvnVlc\",\n  \"interfaces\": [\n    {\n      \"entityType\": \"53GhnIIrhdMMvjy221KWEjsQsEXTQTq7SCss\",\n      \"schema\": {}\n    },\n    {\n      \"entityType\": \"F VOBubIpBcZClQyegNo6oIyamfr4GW1sm\",\n      \"schema\": {}\n    }\n  ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/register/v1/ddms",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"register",
+										"v1",
+										"ddms"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "test",
+					"item": [
+						{
+							"name": "gsa-challenge/{count}",
+							"item": [
+								{
+									"name": "testGsa",
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"description": "(Required) tenant",
+												"key": "data-partition-id",
+												"value": "{{data_partition}}"
+											},
+											{
+												"key": "Accept",
+												"value": "*/*"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/register/v1/test/gsa-challenge/:count?crc=ullamco aliqua ",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"register",
+												"v1",
+												"test",
+												"gsa-challenge",
+												":count"
+											],
+											"query": [
+												{
+													"key": "crc",
+													"value": "ullamco aliqua ",
+													"description": "(Required) crc"
+												}
+											],
+											"variable": [
+												{
+													"key": "count",
+													"value": null
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "testPushGsa",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"description": "(Required) tenant",
+												"key": "data-partition-id",
+												"value": "{{data_partition}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/register/v1/test/gsa-challenge/:count",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"register",
+												"v1",
+												"test",
+												"gsa-challenge",
+												":count"
+											],
+											"variable": [
+												{
+													"key": "count",
+													"value": null
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "challenge/{count}",
+							"item": [
+								{
+									"name": "testCrc",
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"description": "(Required) tenant",
+												"key": "data-partition-id",
+												"value": "{{data_partition}}"
+											},
+											{
+												"key": "Accept",
+												"value": "*/*"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/register/v1/test/challenge/:count?crc=ullamco aliqua &hmac=ullamco aliqua ",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"register",
+												"v1",
+												"test",
+												"challenge",
+												":count"
+											],
+											"query": [
+												{
+													"key": "crc",
+													"value": "ullamco aliqua ",
+													"description": "(Required) crc"
+												},
+												{
+													"key": "hmac",
+													"value": "ullamco aliqua ",
+													"description": "(Required) hmac"
+												}
+											],
+											"variable": [
+												{
+													"key": "count",
+													"value": null
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "testPushHmac",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"description": "(Required) tenant",
+												"key": "data-partition-id",
+												"value": "{{data_partition}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/register/v1/test/challenge/:count?hmac=ullamco aliqua ",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"register",
+												"v1",
+												"test",
+												"challenge",
+												":count"
+											],
+											"query": [
+												{
+													"key": "hmac",
+													"value": "ullamco aliqua ",
+													"description": "(Required) hmac"
+												}
+											],
+											"variable": [
+												{
+													"key": "count",
+													"value": null
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "subscription",
+					"item": [
+						{
+							"name": "{id}",
+							"item": [
+								{
+									"name": "getSubscription",
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"description": "(Required) tenant",
+												"key": "data-partition-id",
+												"value": "{{data_partition}}"
+											},
+											{
+												"key": "Accept",
+												"value": "*/*"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/register/v1/subscription/:id",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"register",
+												"v1",
+												"subscription",
+												":id"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": "ullamco aliqua ",
+													"description": "(Required) id"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "deleteSubscription",
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"description": "(Required) tenant",
+												"key": "data-partition-id",
+												"value": "{{data_partition}}"
+											},
+											{
+												"key": "Accept",
+												"value": "*/*"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/api/register/v1/subscription/:id",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"register",
+												"v1",
+												"subscription",
+												":id"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": "ullamco aliqua ",
+													"description": "(Required) id"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "updateSecret",
+									"request": {
+										"method": "PUT",
+										"header": [
+											{
+												"description": "(Required) tenant",
+												"key": "data-partition-id",
+												"value": "{{data_partition}}"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Accept",
+												"value": "*/*"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/api/register/v1/subscription/:id/secret",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"api",
+												"register",
+												"v1",
+												"subscription",
+												":id",
+												"secret"
+											],
+											"variable": [
+												{
+													"key": "id",
+													"value": "ullamco aliqua ",
+													"description": "(Required) id"
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "querySubscription",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"description": "(Required) tenant",
+										"key": "data-partition-id",
+										"value": "{{data_partition}}"
+									},
+									{
+										"key": "Accept",
+										"value": "*/*"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/register/v1/subscription?notificationId=ullamco aliqua ",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"register",
+										"v1",
+										"subscription"
+									],
+									"query": [
+										{
+											"key": "notificationId",
+											"value": "ullamco aliqua ",
+											"description": "(Required) notificationId"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "createSubscription",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"description": "(Required) tenant",
+										"key": "data-partition-id",
+										"value": "{{data_partition}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "*/*"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"YE8jl7b3YdCghq9\",\n  \"pushEndpoint\": \"qui iru\",\n  \"topic\": \"enim ipsum qui Ut\",\n  \"createdBy\": \"sint Duis cillum dolore dolore\",\n  \"description\": \"TT\",\n  \"id\": \"reprehenderit non exercitation consectetur\",\n  \"notificationId\": \"officia\",\n  \"secret\": {}\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/register/v1/subscription",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"register",
+										"v1",
+										"subscription"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "retrieveAction",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"description": "(Required) tenant",
+								"key": "data-partition-id",
+								"value": "{{data_partition}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "*/*"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/register/v1/action:retrieve",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"register",
+								"v1",
+								"action:retrieve"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "testAction",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"description": "(Required) tenant",
+								"key": "data-partition-id",
+								"value": "{{data_partition}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "*/*"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"testPayload\": {},\n  \"action\": {\n    \"contactEmail\": \"velit do\",\n    \"description\": \"fq3VBoEc2op\",\n    \"filter\": {\n      \"entityType\": [\n        \"incididunt officia labore cillum\",\n        \"et in\"\n      ],\n      \"source\": [\n        \"pariatur ex Duis consectetur\",\n        \"deserunt mollit et\"\n      ],\n      \"version\": [\n        \"minim aliquip incididunt consequat\",\n        \"tempor ea\"\n      ]\n    },\n    \"id\": \"oX9bN\",\n    \"img\": \"in Lorem in dolor Excepteur\",\n    \"name\": \"Wy7A\",\n    \"url\": \"sunt ullamco ut\"\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/register/v1/action:test",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"register",
+								"v1",
+								"action:test"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "listMessages",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"description": "(Required) tenant",
+								"key": "data-partition-id",
+								"value": "{{data_partition}}"
+							},
+							{
+								"key": "Accept",
+								"value": "*/*"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/register/v1/topics",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"register",
+								"v1",
+								"topics"
 							]
 						}
 					},
