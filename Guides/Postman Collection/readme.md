@@ -8,9 +8,14 @@ Domain Data Management Services are not included.
 ## Services Covered
 - Authentication
 - CRS
+- Dataset
 - Entitlements
 - File
+- Indexer
 - Legal
+- Notification
+- Partition (unsupported for ADME)
+- Register
 - Schema
 - Search
 - Storage
