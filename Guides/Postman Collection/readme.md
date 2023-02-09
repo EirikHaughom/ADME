@@ -50,7 +50,9 @@ The services mentioned below are covered, and the API calls are imported from th
 ### User Token
 1. Go to the ADME API collection you have imported.
 2. Generate an `authentication code` by navigating to the following URL:
-```https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/authorize?client_id={client_id}&response_type=code&redirect_uri=http%3a%2f%2flocalhost%3a8080&response_mode=query&scope={client_id}%2f.default&state=12345&sso_reload=true```
+```
+https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/authorize?client_id={client_id}&response_type=code&redirect_uri=http%3a%2f%2flocalhost%3a8080&response_mode=query&scope={client_id}%2f.default&state=12345&sso_reload=true
+```
 2. In the `Authenticate` folder, navigate into User folder and in the `getRefreshToken` API call body, add the authorization code to the `Body`.
 3. Run the `getRefreshToken` call.
 3. Make sure the Refresh Token is returned, and that it is now populated in the refresh_token environment variable.
