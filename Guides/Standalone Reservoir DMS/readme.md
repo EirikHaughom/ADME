@@ -240,39 +240,6 @@ The deployment is divided into two phases.
 
     # Add subnet configuration to the APIM resource
     az resource update --ids $apiId --set properties.virtualNetworkConfiguration.subnetResourceId=$apiSubnetId --set properties.virtualNetworkType=External
-
-    ##############################################################################################################################################################################################################################
-    # Create Private Endpoint
-    $privateEndpoint = az network private-endpoint create --resource-group $resourceGroup `
-    --name $nicName `
-    --vnet-name $vnet.name `
-    --subnet $dbSubnet.name `
-    --private-connection-resource-id $api.id `
-    --group-id Gateway `
-    --connection-name $connName
-    $privateEndpoint = $privateEndpoint | convertfrom-json
-
-    # Create Private DNS Zone
-    az network private-dns zone create --resource-group $resourceGroup `
-    --name  "privatelink.azure-api.net" 
-
-    # Link Private DNS Zone to VNET
-    az network private-dns link vnet create --resource-group $resourceGroup `
-    --zone-name  "privatelink.azure-api.net" `
-    --name $privateLinkName `
-    --virtual-network $vnet.name `
-    --registration-enabled false
-
-    # Create a-record in the Private DNS Zone
-    az network private-dns record-set a create --resource-group $resourceGroup `
-    --name $api.name `
-    --zone-name privatelink.azure-api.net 
-
-    # Add Private IP address to the a-record
-    az network private-dns record-set a add-record --resource-group $resourceGroup `
-    --record-set-name $apiName `
-    --zone-name privatelink.azure-api.net `
-    -a $privateEndpoint.customDnsConfigs.ipAddresses
     ```
     <br>
 
@@ -311,16 +278,22 @@ The deployment is divided into two phases.
     ```
     <br>
 
-## Deploy RDDMS Server and REST API to APIM
+## Deploy RDDMS Server to APIM and add Azure AD authentication
 1. Deploy the RDDMS Server Websocket API to APIM
     ```ps 
+    $serviceUrl = "ws://"+$rddmsServer.ipAddress.ip+":"+$rddmsServerPort
+
     az apim api create --resource-group $resourceGroup `
-    --api-id rddms-server-2 `
-    --display-name rddms-server-2 `
+    --api-id $rddmsServerName `
+    --display-name $rddmsServerName `
     --path "/" `
     --service-name $api.name `
     --api-type websocket `
-    --service-url rddms-server-2.westeurope.azurecontainer.io:9002
+    --service-url $serviceUrl
+
+    # Configure JWT token Azure AD validation
+
+
     ```
 
 
