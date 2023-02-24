@@ -7,8 +7,8 @@ RDDMS consists of 3 main components:
 1. OpenETPServer: Server component which interprets calls from the OpenETPClient.
 2. Database (PostgreSQL): Database which stores the binary reservoir model files.
 3. OpenETPClient: REST API and C++ client which interacts with OpenETPServer.
-
-![Reservoir Model DMS container architecture with API Management](./img/rddms-architecture.png)
+<br><br><br>
+![Reservoir Model DMS component overview](./img/RDDMS-Components.png)
 
 <br>
 
@@ -25,6 +25,8 @@ In the [official documentation](https://community.opengroup.org/osdu/platform/do
 In addition there are security concerns as the username (foo) and password (bar) is hardcoded on the OpenETPServer. Companies are therefore reluctant to expose the RDDMS over internet or even internally outside of an isolated environment, and thus may hamper user testing and experience. To combat this, we will:
 - Use Azure API Management (APIM) as the API gateway, which means we can isolate the server to only reply to requests coming through the API gateway.
 - Use APIM to authenticate requests using Azure AD by using JWT Token validation.
+
+![Reservoir Model DMS container architecture with API Management](./img/rddms-architecture.png)
 <br><br>
 
 ## Phases
