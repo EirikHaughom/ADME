@@ -26,7 +26,7 @@ In addition there are security concerns as the username (foo) and password (bar)
 - Use Azure API Management (APIM) as the API gateway, which means we can isolate the server to only reply to requests coming through the API gateway.
 - Use APIM to authenticate requests using Azure AD by using JWT Token validation.
 
-![Reservoir Model DMS container architecture with API Management](./img/rddms-architecture.png)
+![Reservoir Model DMS container architecture with API Management](./img/rddms-architecture1.0.png)
 <br><br>
 
 ## Parts
