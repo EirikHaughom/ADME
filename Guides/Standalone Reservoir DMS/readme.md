@@ -29,19 +29,28 @@ In addition there are security concerns as the username (foo) and password (bar)
 ![Reservoir Model DMS container architecture with API Management](./img/rddms-architecture.png)
 <br><br>
 
-## Phases
+## Parts
 The deployment is divided into two phases.
 
-**Phase 1**
-- Deploy the RDDMS Server container in a private Virtual Network (VNET) for internal consumption.
+**Part 1** <br>
+Part 1 allows you to run the RDDMS Server and REST API internally in a (isolated) VNET. You may peer the VNET if you want access from your corporate network.
+This part consists of the following steps:
+1.	Provision Virtual Network and Subnet infrastructure.
+2.	Deploy the Azure Database for PostgreSQL.
+3.	Deploy the RDDMS Server to Azure Container Instance.
 
-**Phase 2**
-- Deploy the RDDMS REST API container in the same private VNET as the RDDMS Server.
-- Deploy Azure API Management for public access to both the RDDMS Server.
-- Integrate authentication with Azure AD.
-<br><br>
 
-# Phase 1
+**Part 2** <br>
+Part 2 will deploy the RDDMS REST API and allow you to expose the RDDMS Server over internet, secured by Azure AD.
+1.	Provision an Azure API Management instance.
+2.	Deploy RDDMS REST API.
+3.	Create API connection to RDDMS Server websocket API.
+4.	Create Azure AD group for user validation.
+5.	Apply API inbound policy to restrict access to your Azure AD tenant and the Azure AD group.
+
+<br>
+
+# Part 1
 
 ## Prerequisites
 [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) installed and logged into the target subscription.
@@ -217,7 +226,7 @@ The deployment is divided into two phases.
     ```
 <br>
 
-# Phase 2
+# Part 2
 
 ## Deploying Azure API Management
 1. Create a new Azure API Management (APIM) instance.
