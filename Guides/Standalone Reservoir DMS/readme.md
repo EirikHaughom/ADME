@@ -30,7 +30,7 @@ In addition there are security concerns as the username (foo) and password (bar)
 <br><br>
 
 ## Parts
-The deployment is divided into two phases.
+The deployment is divided into two parts.
 
 **Part 1** <br>
 Part 1 allows you to run the RDDMS Server and REST API internally in a (isolated) VNET. You may peer the VNET if you want access from your corporate network.
