@@ -10,7 +10,7 @@ RDDMS consists of 3 main components:
 
 <br>
 
-> ℹ️ A standalone RDDMS server will have no connection towards your OSDU or MEDS instance, and is solely mean to be used to test the RDDMS capabilities itself, such as data ingestion, consumption etc.
+> ℹ️ A standalone RDDMS server will have no connection towards your OSDU or MEDS instance, and is solely meant to be used to test the RDDMS capabilities itself, such as data ingestion, consumption etc.
 
 <br>
 
@@ -20,7 +20,7 @@ In the [official documentation](https://community.opengroup.org/osdu/platform/do
 - Simplified deployment using a generalized container image
 - Database on PaaS for better resiliency, performance and less management overhead
 
-In addition there are security concerns as the username (foo) and password (bar) is hardcoded on the OpenETPServer. Companies are therefore reluctant to expose the RDDMS over internet or even internally outside an isolated environment, and thus may hamper user testing and experience. To combat this, we will:
+In addition there are security concerns as the username (foo) and password (bar) is hardcoded on the OpenETPServer. Companies are therefore reluctant to expose the RDDMS over internet or even internally outside of an isolated environment, and thus may hamper user testing and experience. To combat this, we will:
 - Use Azure API Management (APIM) as the API gateway, which means we can isolate the server to only reply to requests coming through the API gateway.
 - Use APIM to authenticate requests using Azure AD by using JWT Token validation.
 <br><br>
@@ -33,8 +33,8 @@ The deployment is divided into two phases.
 
 **Phase 2**
 - Deploy the RDDMS REST API container in the same private VNET as the RDDMS Server.
-- Deploy Azure API Management for public access to both the RDDMS Server and REST API.
-- Integrate authentication with Azure AD using Azure API Management.
+- Deploy Azure API Management for public access to both the RDDMS Server.
+- Integrate authentication with Azure AD.
 <br><br>
 
 # Phase 1
@@ -46,7 +46,7 @@ The deployment is divided into two phases.
 1. Define variables
     ```ps
     ### RESOURCE GROUP ###
-    $resourceGroup = "eirikrddms" # name of the resource group (will be created if it doesn't exist)
+    $resourceGroup = "myResourceGroup" # name of the resource group (will be created if it doesn't exist)
     $location = "westeurope" # location where to deploy all resources
 
     ### RDDMS SERVER AND REST API ###
@@ -377,3 +377,8 @@ The deployment is divided into two phases.
     docker run -it --rm open-etp:ssl-client openETPServer space -S $websocketExternalUrl -l --auth bearer --jwt-token $accessToken.accessToken
     ```
 4. See more examples of end-to-end testing in the [official documentation](https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/reservoir/open-etp-server/-/blob/main/docs/testing.md).
+<br><br>
+
+## Work in Progress
+
+### Exposing the RDDMS REST API over internet.
