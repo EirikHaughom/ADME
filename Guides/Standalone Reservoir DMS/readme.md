@@ -66,6 +66,7 @@ The deployment is divided into two phases.
     $apiName = "" # [Unique] Name of the Azure API Management instance 
     $apiPublisherEmail = "user@contoso.com" # Email to receive notifications about the APIM instance
     $apiPublisherName = "Jane Doe" # Name to receive notifications
+    $azureAdGroupName = "rddms-users" # Unique name of the Azure AD group to use for access permissions to use the RDDMS server API
 
     ```
 2. Azure Virtual Network with three subnets (ACI, db and APIM)
@@ -283,20 +284,96 @@ The deployment is divided into two phases.
     ```ps 
     $serviceUrl = "ws://"+$rddmsServer.ipAddress.ip+":"+$rddmsServerPort
 
-    az apim api create --resource-group $resourceGroup `
+    $websocketApi = az apim api create --resource-group $resourceGroup `
     --api-id $rddmsServerName `
     --display-name $rddmsServerName `
     --path "/" `
     --service-name $api.name `
     --api-type websocket `
-    --service-url $serviceUrl
+    --service-url $serviceUrl `
+    | convertfrom-json
+    ```
 
+2. Create Azure AD group which will have access to call the RDDMS server API.
+    ```ps
+    $adGroup = az ad group create `
+    --display-name $azureAdGroupName `
+    --mail-nickname $azureAdGroupName `
+    | convertfrom-json
+    ```
+
+3. Add JWT token validation policy to APIM. 
+<br>Azure CLI currently do not support APIM policy configuration, for a programmatic approach you can use the [Az.ApiManagement](https://learn.microsoft.com/en-us/powershell/module/az.apimanagement/?view=azps-9.4.0) PowerShell module.
+    ```Powershell
     # Configure JWT token Azure AD validation
+    $environment = az account show | convertfrom-json 
+    $tenantId = $environment.tenantId
+    $subscriptionId = $environment.id
+    $groupId = $adGroup.id
+    $apiName = $api.name
+    $apiId = $api.id
 
+    $policy = @"
+    <policies>
+        <inbound>
+            <base />
+            <validate-azure-ad-token tenant-id="$tenantId" failed-validation-httpcode="401">
+                <client-application-ids>
+                    <application-id>04b07795-8ddb-461a-bbee-02f9e1bf7b46</application-id>
+                </client-application-ids>
+                <required-claims>
+                    <claim name="groups" match="all">
+                        <value>$groupId</value>
+                    </claim>
+                </required-claims>
+            </validate-azure-ad-token>
+            <set-header name="Authorization" exists-action="override">
+                <value>Basic Zm9vOmJhcg==</value>
+            </set-header>
+        </inbound>
+        <backend>
+            <base />
+        </backend>
+        <outbound>
+            <base />
+        </outbound>
+        <on-error>
+            <base />
+        </on-error>
+    </policies>
+    "@
+
+    Write-Host "Open https://portal.azure.com/#@$tenantId/resource$apiId/apim-apis"
+
+    Write-Host "Select the $websocketApi.Name and open the code editor view for Inbound policy. Replace the entire config with the following:"
+    $policy
 
     ```
 
+4. That's it! You should now be able to connect to the RDDMS Server websocket API using JWT tokens from Azure CLI.<br><br>
 
-Auth option 1 (preferred): User tokens (requires tenant admin consent)
+## Test and validate
+1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) locally.
+2. Fetch the RDDMS SSL Client container image.
+    ```powershell
+    # Download docker container image
+    docker pull community.opengroup.org:5555/osdu/platform/domain-data-mgmt-services/reservoir/open-etp-server/open-etp-sslclient-release-0-19
 
-Auth option 2: App Registration (client ID and secret)
+    # Rename to open-etp:ssl-client
+    docker tag community.opengroup.org:5555/osdu/platform/domain-data-mgmt-services/reservoir/open-etp-server/open-etp-sslclient-release-0-19 open-etp:ssl-client
+    ```
+3. Run the below command to test access to the RDDMS Websocket API
+    ```powershell
+    # Define variables
+    $websocketExternalUrl = "wss://"+$websocketApi.Name+".azure-api.net/"+$websocketApi.path
+
+    # Fetch an Access Token
+    $accessToken = az account get-access-token --tenant $tenantId | convertfrom-json
+
+    # Create a new dataspace
+    docker run -it --rm open-etp:ssl-client openETPServer space -S $websocketExternalUrl -l --auth bearer --jwt-token $accessToken.accessToken
+
+    # List dataspaces
+    docker run -it --rm open-etp:ssl-client openETPServer space -S $websocketExternalUrl -l --auth bearer --jwt-token $accessToken.accessToken
+    ```
+4. See more examples of end-to-end testing in the [official documentation](https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/reservoir/open-etp-server/-/blob/main/docs/testing.md).
