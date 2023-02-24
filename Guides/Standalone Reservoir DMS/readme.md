@@ -368,7 +368,7 @@ Part 2 will deploy the RDDMS REST API and allow you to expose the RDDMS Server o
 ## Test and validate
 1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) locally.
 2. Fetch the RDDMS SSL Client container image.
-    ```powershell
+    ```PowerShell
     # Download docker container image
     docker pull community.opengroup.org:5555/osdu/platform/domain-data-mgmt-services/reservoir/open-etp-server/open-etp-sslclient-release-0-19
 
@@ -376,7 +376,7 @@ Part 2 will deploy the RDDMS REST API and allow you to expose the RDDMS Server o
     docker tag community.opengroup.org:5555/osdu/platform/domain-data-mgmt-services/reservoir/open-etp-server/open-etp-sslclient-release-0-19 open-etp:ssl-client
     ```
 3. Run the below command to test access to the RDDMS Websocket API
-    ```powershell
+    ```PowerShell
     # Define variables
     $websocketExternalUrl = "wss://"+$websocketApi.Name+".azure-api.net/"+$websocketApi.path
 
