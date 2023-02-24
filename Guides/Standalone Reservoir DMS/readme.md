@@ -62,7 +62,7 @@ The deployment is divided into two phases.
     $containerRegistryName = "" # [Unique] Name of the Azure Container Registry
 
     ### POSTGRESQL SERVER ###
-    $dbServerName = "rddms-db" # [Unique] Name of the Azure Db for PostgreSQL server
+    $dbServerName = "" # [Unique] Name of the Azure Db for PostgreSQL server
     $dbServerUsername = "azureuser" # Username of the database admin
     $dbServerPassword = "" # Password of the database user
     
@@ -144,7 +144,7 @@ The deployment is divided into two phases.
     --name  "privatelink.postgres.database.azure.com" 
 
     # Link Private DNS Zone to VNET
-    az network private-dns link vnet create --resource-group eirikrddms `
+    az network private-dns link vnet create --resource-group $resourceGroup `
     --zone-name  "privatelink.postgres.database.azure.com" `
     --name $privateLinkName `
     --virtual-network $vnet.name `
