@@ -385,4 +385,4 @@ The deployment is divided into two phases.
 
 ## Work in Progress
 
-### Exposing the RDDMS REST API over internet.
+### Exposing the RDDMS REST API over internet with APIM.
