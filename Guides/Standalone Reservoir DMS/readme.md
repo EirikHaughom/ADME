@@ -317,7 +317,7 @@ Part 2 will deploy the RDDMS REST API and allow you to expose the RDDMS Server o
 
 3. Add JWT token validation policy to APIM. 
 <br>Azure CLI currently do not support APIM policy configuration, for a programmatic approach you can use the [Az.ApiManagement](https://learn.microsoft.com/en-us/powershell/module/az.apimanagement/?view=azps-9.4.0) PowerShell module.
-    ```Powershell
+    ```powershell
     # Configure JWT token Azure AD validation
     $environment = az account show | convertfrom-json 
     $tenantId = $environment.tenantId
