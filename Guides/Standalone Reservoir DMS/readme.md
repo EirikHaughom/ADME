@@ -8,6 +8,8 @@ RDDMS consists of 3 main components:
 2. Database (PostgreSQL): Database which stores the binary reservoir model files.
 3. OpenETPClient: REST API and C++ client which interacts with OpenETPServer.
 
+![Reservoir Model DMS container architecture with API Management](./img/rddms-architecture.png)
+
 <br>
 
 > ℹ️ A standalone RDDMS server will have no connection towards your OSDU or MEDS instance, and is solely meant to be used to test the RDDMS capabilities itself, such as data ingestion, consumption etc.
