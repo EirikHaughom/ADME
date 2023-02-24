@@ -5,6 +5,7 @@ This is the personal repository for Eirik Haughom on Microsoft Energy Data Servi
 - [Automatic data ingestion from ADLS to MEDS](/Guides/Synapse/DataLakeIngestion/)
 - [Azure AD to Entitlements sync](/Guides/AADEntitlementsSync/readme.md)
 - [Full Postman Collection for ADME](/Guides/Postman%20Collection/readme.md)
+- [Standalone Reservoir DMS (RDDMS)](/Guides/Standalone%20Reservoir%20DMS/readme.md)
 <br /><br />
 
 # Contribution
