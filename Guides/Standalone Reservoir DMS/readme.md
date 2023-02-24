@@ -48,7 +48,7 @@ The deployment is divided into two phases.
 
 ## Preparation
 1. Define variables
-    ```ps
+    ```Powershell
     ### RESOURCE GROUP ###
     $resourceGroup = "myResourceGroup" # name of the resource group (will be created if it doesn't exist)
     $location = "westeurope" # location where to deploy all resources
@@ -70,11 +70,11 @@ The deployment is divided into two phases.
     $apiName = "" # [Unique] Name of the Azure API Management instance 
     $apiPublisherEmail = "user@contoso.com" # Email to receive notifications about the APIM instance
     $apiPublisherName = "Jane Doe" # Name to receive notifications
-    $azureAdGroupName = "rddms-users" # Unique name of the Azure AD group to use for access permissions to use the RDDMS server API
+    $azureAdGroupName = "rddms-users" # [Unique] name of the Azure AD group to use for access permissions to use the RDDMS server API
 
     ```
 2. Azure Virtual Network with three subnets (ACI, db and APIM)
-    ```ps
+    ```Powershell
     # Create Resource Group if it doesn't exist
     if ((az group exists --resource-group $resourceGroup) -eq "false") {
         az group create --resource-group $resourceGroup --location $location
@@ -112,7 +112,7 @@ The deployment is divided into two phases.
 
 ## Deploying the PostgreSQL Database
 1. Create a new Azure Database for PostgreSQL server.
-    ```ps
+    ```Powershell
     $dbServer = az postgres server create --resource-group $resourceGroup `
     --name $dbServerName `
     --admin-user $dbServerUsername `
@@ -124,7 +124,7 @@ The deployment is divided into two phases.
     $dbServer = $dbServer | convertfrom-json
     ```
 2. Create Private Link and Private DNS Zone for the PostgreSQL server.
-    ```ps
+    ```Powershell
     $nicName = $dbServer.name+"-nic"
     $connName = $dbServer.name+"-privateEndpoint"
     $privateLinkName = $vnet.name+"-postgres-dnslink"
@@ -162,7 +162,7 @@ The deployment is divided into two phases.
     -a $privateEndpoint.customDnsConfigs.ipAddresses
     ```
 3. Create a database on the PostgreSQL server.
-    ```ps
+    ```Powershell
     $db = az postgres db create --resource-group $resourceGroup `
     --name rddms `
     --server-name $dbServer.name
@@ -172,7 +172,7 @@ The deployment is divided into two phases.
 
 ## Deploying the RDDMS Server
 1. Create an Azure Container Registry (ACR) to host the Container Image.
-    ```ps
+    ```Powershell
     $acr = az acr create --resource-group $resourceGroup `
     --name $containerRegistryName `
     --sku Basic `
@@ -186,12 +186,12 @@ The deployment is divided into two phases.
     $acrPassword = $acrCreds.passwords.value[0]    
     ```
 2. Pull the image from public repository into your ACR.
-    ```ps
+    ```Powershell
     az acr import -n $acr.name `
     --source rddms.azurecr.io/open-etp-server-eihaugho-aci:latest
     ```
 3. Create Azure Container Instance based on the image.
-    ```ps
+    ```Powershell
     $containerImage = $acr.loginServer+"/open-etp-server-eihaugho-aci:latest"
     $connString = "host="+$dbServer.fullyQualifiedDomainName+" port=5432 dbname="+$db.name+" user="+$dbServer.administratorlogin+"@"+$dbServer.name+" password="+$dbServer.password
     $cmd = "openETPServer server --start --port "+$rddmsServerPort+" --jwt-secret "+$jwtSecret
@@ -221,7 +221,7 @@ The deployment is divided into two phases.
 
 ## Deploying Azure API Management
 1. Create a new Azure API Management (APIM) instance.
-    ```ps
+    ```Powershell
     $nicName = $apiName+"-nic"
     $connName = $apiName+"-privateEndpoint"
     $privateLinkName = $vnet.name+"-api-dnslink"
@@ -236,7 +236,7 @@ The deployment is divided into two phases.
     ```
 
 2. ⚠️ **Wait until the APIM instance is activated before you continue.** This may take ~1 hour to complete. You will receive an email (to the one specified in $apiPublisherEmail) once it is activated.
-    ```ps
+    ```Powershell
     # Get the details from the provisioned APIM instance
     $api = az apim show --name $apiName --resource-group $resourceGroup | convertfrom-json
 
@@ -250,13 +250,13 @@ The deployment is divided into two phases.
 
 ## Deploying the RDDMS Client (REST API)
 1. Pull the image from public repository into your ACR.
-    ```ps
+    ```Powershell
     az acr import -n $acr.name `
     --source rddms.azurecr.io/open-etp-restapi-eihaugho-aci:latest
     ```
 
 2. Create Azure Container Instance based on the image.
-    ```ps
+    ```Powershell
     $containerImage = $acr.loginServer+"/open-etp-restapi-eihaugho-aci:latest"
     $rmdsRestMainUrl = $api.gatewayUrl
     $rdmsEtpHost = $rddmsServer.ipAddress.ip
@@ -285,7 +285,7 @@ The deployment is divided into two phases.
 
 ## Deploy RDDMS Server to APIM and add Azure AD authentication
 1. Deploy the RDDMS Server Websocket API to APIM
-    ```ps 
+    ```Powershell 
     $serviceUrl = "ws://"+$rddmsServer.ipAddress.ip+":"+$rddmsServerPort
 
     $websocketApi = az apim api create --resource-group $resourceGroup `
@@ -299,7 +299,7 @@ The deployment is divided into two phases.
     ```
 
 2. Create Azure AD group which will have access to call the RDDMS server API.
-    ```ps
+    ```Powershell
     $adGroup = az ad group create `
     --display-name $azureAdGroupName `
     --mail-nickname $azureAdGroupName `
@@ -375,7 +375,7 @@ The deployment is divided into two phases.
     $accessToken = az account get-access-token --tenant $tenantId | convertfrom-json
 
     # Create a new dataspace
-    docker run -it --rm open-etp:ssl-client openETPServer space -S $websocketExternalUrl -l --auth bearer --jwt-token $accessToken.accessToken
+    docker run -it --rm open-etp:ssl-client openETPServer space -S $websocketExternalUrl --new -s demo/Volve --auth bearer --jwt-token $accessToken.accessToken
 
     # List dataspaces
     docker run -it --rm open-etp:ssl-client openETPServer space -S $websocketExternalUrl -l --auth bearer --jwt-token $accessToken.accessToken
