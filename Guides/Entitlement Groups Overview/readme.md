@@ -9,13 +9,23 @@ There are two main group roles for which users and app registrations can be assi
 | OWNER     | Provides permission to manage members of the group |
 
 ## Default Groups
-The following groups are default in any OSDU, and thus also Microsoft Energy Data Services, instances:
-| Group Name                   | Services | API              | Permissions |
+The following groups are default in any OSDU, and thus also Microsoft Energy Data Services, instances.
+
+### Data Groups
+The built-in Data groups doesn't give any explicit permissions, but is the base groups used on the Access Control List (ACL) for data ingested into OSDU. It is more common to create your own data groups with explicit access according to your requirements in terms of access control.
+
+Group Name                   | Description
+-----------------------------|------------------
+data.default.owners          | Gives read/write permissions to data stored with default ACL list
+data.default.viewers         | Gives read only permissions to data stored with default ACL list
+
+### Service Groups
+The Service groups gives access to use the core services (APIs) and Dynamic Data Management Services (DDMS).
+
+Group Name                   | Services | API              | Permissions |
 |------------------------------|------------------|-------------------|-----------------------------|
-|data.default.owners           ||||
-|data.default.viewers          ||||
-|service.entitlements.admin    ||||
-|service.entitlements.user     ||||
+|service.entitlements.admin    | Entitlements | /entitlements/v2/groups | GET, POST, PATCH, DELETE |
+|service.entitlements.user     | Entitlements | /entitlements/v2/groups | GET, PATCH |
 |service.legal.admin           ||||
 |service.legal.editor          ||||
 |service.legal.user            ||||
@@ -37,3 +47,4 @@ The following groups are default in any OSDU, and thus also Microsoft Energy Dat
 
 ## User group membership matrix
 
+| 
