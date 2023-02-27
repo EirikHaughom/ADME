@@ -45,6 +45,41 @@ Group Name                   | Services | API              | Permissions |
 |service.workflow.viewer       ||||
 |service.plugin.user           ||||
 
-## User group membership matrix
+### User Groups
+User groups are used to gather a number of users and grant access across multiple ***Service Groups*** and ***Data Groups***. They can also be nested within other ***User Groups***. 
 
-| 
+Group Name             | Description
+-----------------------|-------------
+users                  | Base authentication group. All users will need to be member of this group to be able to authorize to the other OSDU services.
+users.datalake.viewers | 
+users.datalake.editors | 
+users.datalake.admins  | 
+users.datalake.ops     | 
+
+#### User Groups Membership Matrix
+Explains all the default groups that the different Users Groups are members of.
+
+Group Name                     | users | users.datalake.viewers | users.datalake.editors | users.datalake.admins | users.datalake.ops
+ ------------------------------|-------|------------------------|------------------------|-----------------------|-----------
+data.default.owners            |   X   |                        |                        |                       | 
+data.default.viewers           |   X   |                        |                        |                       | 
+service.entitlements.admin     |       |                        |                        |                       | 
+service.entitlements.user      |       |          X             |           X            |                       | 
+service.legal.admin            |       |                        |                        |                       | 
+service.legal.editor           |       |                        |           X            |                       | 
+service.legal.user             |       |          X             |           X            |                       | 
+service.storage.admin          |       |                        |                        |                       | 
+service.storage.creator        |       |                        |           X            |                       | 
+service.storage.viewer         |       |          X             |           X            |                       | 
+service.schema-service.admin   |       |                        |                        |                       | 
+service.schema-service.editors |       |                        |                        |                       | 
+service.schema-service.viewers |       |          X             |                        |                       | 
+service.file.editors           |       |                        |                        |                       | 
+service.file.viewers           |       |          X             |                        |                       | 
+service.messaging.user         |       |          X             |                        |                       | 
+service.search.admin           |       |                        |                        |                       | 
+service.search.user            |       |          X             |                        |                       | 
+service.workflow.admin         |       |                        |                        |                       | 
+service.workflow.creator       |       |                        |                        |                       | 
+service.workflow.viewer        |       |          X             |                        |                       | 
+service.plugin.user            |       |          X             |                        |                       | 
