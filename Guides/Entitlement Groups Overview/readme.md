@@ -12,7 +12,7 @@ There are two main group roles for which users and app registrations can be assi
 The following groups are default in any OSDU, and thus also Microsoft Energy Data Services, instances.
 
 ### Data Groups
-The built-in Data groups doesn't give any explicit permissions, but is the base groups used on the Access Control List (ACL) for data ingested into OSDU. It is more common to create your own data groups with explicit access according to your requirements in terms of access control.
+The built-in Data groups doesn't give any explicit permissions, but is the base groups used on the Access Control List (ACL) for data ingested into OSDU. It is recommended to create your own data groups with explicit access according to your requirements in terms of access control, as all users will be granted access to the data.default.owners by default, which is generally not desired.
 
 Group Name                   | Description
 -----------------------------|------------------
