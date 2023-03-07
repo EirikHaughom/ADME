@@ -4,7 +4,6 @@ info:
   title: Storage Service
   description: Api Documentation for Storage service
   contact: {}
-basePath: /
 securityDefinitions:
   Bearer:
     type: apiKey
