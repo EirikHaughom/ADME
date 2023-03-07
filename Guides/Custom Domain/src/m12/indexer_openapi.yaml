@@ -134,8 +134,7 @@ paths:
         '404':
           description: Not Found
       security:
-        - Authorization:
-            - global
+        - Bearer: []
   /reindex:
     post:
       tags:
@@ -178,8 +177,7 @@ paths:
         '404':
           description: Not Found
       security:
-        - Authorization:
-            - global
+        - Bearer: []
     patch:
       tags:
         - reindex-api
@@ -213,8 +211,7 @@ paths:
         '403':
           description: Forbidden
       security:
-        - Authorization:
-            - global
+        - Bearer: []
 securityDefinitions:
   Bearer:
     type: apiKey

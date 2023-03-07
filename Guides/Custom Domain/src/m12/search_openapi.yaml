@@ -1,5 +1,6 @@
 swagger: '2.0'
 info:
+  version: 1.0.0
   description: "Search service"
   title: "Search service"
 tags:
@@ -22,6 +23,7 @@ paths:
           name: data-partition-id
           description: tenant. This should be same value as first field in 'kind' field
           required: true
+          type: string
       responses:
         '200':
           description: OK
@@ -34,8 +36,7 @@ paths:
         '404':
           description: Not Found
       security:
-        - Authorization:
-            - global
+        - Bearer: []
   /query:
     post:
       tags:
@@ -57,6 +58,7 @@ paths:
           name: data-partition-id
           description: tenant. This should be same value as first field in 'kind' field
           required: true
+          type: string
         - in: body
           name: queryRequest
           description: queryRequest
@@ -106,7 +108,8 @@ paths:
         - in: header
           name: data-partition-id
           description: tenant. This should be same value as first field in 'kind' field
-          required: true        
+          required: true    
+          type: string    
         - in: body
           name: queryRequest
           description: queryRequest

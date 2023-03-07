@@ -2371,9 +2371,6 @@ definitions:
 
 security:
   - api-key: []
-    google-seismic-store-impersonation: []
-  - api-key: []
-    google-idtoken: []
 #{XplaceHolderForExtraSecurity}#
 
 securityDefinitions:
