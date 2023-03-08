@@ -6,8 +6,7 @@ info:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0
   version: '1.0'
-servers:
-  - url: https://adme.haughom.net/api/register/v1
+# basePath: /api/register/v1
 paths:
   '/ddms/{id}':
     get:

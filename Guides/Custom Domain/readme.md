@@ -62,7 +62,7 @@ This guide is meant as an example on how to use Azure API Management (APIM) as a
     foreach ($api in $apis) {
         $serviceUrl = "https://"+$admeHostname+"/"+$apiDefinitions[$api][0]
 
-        Write-Host "Importing $api"
+        Write-Host "Importing $api api"
         az apim api import --resource-group $resourceGroup `
             --path $apiDefinitions[$api][0] `
             --service-name $apimName `
