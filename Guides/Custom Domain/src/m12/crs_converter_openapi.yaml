@@ -157,6 +157,176 @@ paths:
           description: Not Found
       security:
         - Bearer: []
+  /v3/convertTrajectory:
+    post:
+      tags:
+        - Trajectory Computation and Conversion
+      summary: Convert trajectory stations
+      description: Convert a list of trajectory stations, given the unit and spatial context and a reference point in 3D where MD==0.
+      operationId: convertTrajectoryv3
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          required: false
+          schema:
+            $ref: '#/definitions/ConvertTrajectoryRequest'
+        - in: header
+          name: data-partition-id
+          required: false
+          type: string
+      responses:
+        '200':
+          description: Trajectory conversion performed successfully
+          schema:
+            $ref: '#/definitions/ConvertTrajectoryResponse'
+        '400':
+          description: Bad input format
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '503':
+          description: CRS-converter overloaded; try again later. See HttpHeader 'Retry-After'.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+        - Bearer: []
+  /v3/convert:
+    post:
+      tags:
+        - CRS Conversion
+      summary: Convert a list of points
+      description: Convert a list of points
+      operationId: convertPointv3
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          required: false
+          schema:
+            $ref: '#/definitions/ConvertPointsRequest'
+        - in: header
+          name: data-partition-id
+          required: false
+          type: string
+      responses:
+        '200':
+          description: Conversion performed successfully
+          schema:
+            $ref: '#/definitions/ConvertPointsResponse'
+        '400':
+          description: Bad input format
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '503':
+          description: CRS-converter overloaded; try again later. See HttpHeader 'Retry-After'.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+        - Bearer: []
+  /v3/convertGeoJson:
+    post:
+      tags:
+        - CRS Conversion
+      summary: Convert a GeoJSON or AnyCrsGeoJson structure
+      description: Convert a GeoJSON or AnyCrsGeoJson structure to a specified target CRS. GeoJSON is declared - by definition - to be in the context of WGS 84.
+      operationId: convertGeoJsonv3
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          required: false
+          schema:
+            $ref: '#/definitions/ConvertGeoJsonRequest'
+        - in: header
+          name: data-partition-id
+          required: false
+          type: string
+      responses:
+        '200':
+          description: Conversion performed successfully
+          schema:
+            $ref: '#/definitions/ConvertGeoJsonResponse'
+        '400':
+          description: Bad input format
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '503':
+          description: CRS-converter overloaded; try again later. See HttpHeader 'Retry-After'.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+        - Bearer: []
+  /v3/convertBinGrid:
+    post:
+      tags:
+        - CRS Conversion
+      summary: CRS Convert service is an OSDU platform standard method for QC and conversion of Bin Grids, associated in particular with ingested seismic volumes, that describe the “real world” (Easting, Northing) of bin grid centers at (inline, crossline) local coordinates
+      description: QC check of the “squareness” of a Bin Grid defined using 4 corner points. Coordinate conversion of a Bin Grid to a new CRS and “square it up” (if target CRS is same as original CRS then conversion is omitted, and the squareness test is done in the original CRS). Calculate derived P6 parameters from the input 4 corners. Calculate WGS 84 coordinates at the corners. Returns converted Bin Grid and a QC of squareness of the bin grid
+      operationId: convertBinGrid
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          required: false
+          schema:
+            $ref: '#/definitions/ConvertBinGridRequest'
+        - in: header
+          name: data-partition-id
+          required: false
+          type: string
+      responses:
+        '200':
+          description: Conversion performed successfully
+          schema:
+            $ref: '#/definitions/ConvertBinGridResponse'
+        '400':
+          description: Bad input format
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '503':
+          description: CRS-converter overloaded; try again later. See HttpHeader 'Retry-After'.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /v3/info:
+    get:
+      tags:
+        - Info Api
+      summary: info
+      operationId: infoUsingGETv3
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: data-partition-id
+          in: header
+          description: tenant
+          required: true
+          type: string
+          default: opendes
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/VersionInfo'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
 securityDefinitions:
   Bearer:
     type: apiKey
@@ -874,6 +1044,369 @@ definitions:
         description: The vertical axis unit for this AnyCrsGeoJsonFeatureCollection
           as persistable reference string.
         title: Vertical Unit
+  ConvertBinGridRequest:
+    type: object
+    properties:
+      toCRS:
+        type: string
+      inBinGrid:
+        $ref: '#/definitions/AbstractBinGrid'
+    example:
+      toCRS: 'osdu:reference-data--CoordinateReferenceSystem:BoundProjected:EPSG::32064_EPSG::15851:'
+      inBinGrid:
+        CoveragePercent: 1
+        ABCDBinGridSpatialLocation:
+          AsIngestedCoordinates:
+            type: AnyCrsFeatureCollection
+            CoordinateReferenceSystemID: 'osdu:reference-data--CoordinateReferenceSystem:Projected:EPSG::32615:'
+            features:
+              - type: AnyCrsFeature
+                properties:
+                  Kind: osdu:wks:AbstractGeoJson.PropertiesBinGridCorners:1.0.0
+                  PointProperties:
+                    - Inline: 1
+                      Crossline: 1000
+                geometry:
+                  type: AnyCrsPoint
+                  coordinates:
+                    - 500000
+                    - 3000000
+              - type: AnyCrsFeature
+                properties:
+                  Kind: osdu:wks:AbstractGeoJson.PropertiesBinGridCorners:1.0.0
+                  PointProperties:
+                    - Inline: 1
+                      Crossline: 2000
+                geometry:
+                  type: AnyCrsPoint
+                  coordinates:
+                    - 500000
+                    - 3100000
+              - type: AnyCrsFeature
+                properties:
+                  Kind: osdu:wks:AbstractGeoJson.PropertiesBinGridCorners:1.0.0
+                  PointProperties:
+                    - Inline: 101
+                      Crossline: 1000
+                geometry:
+                  type: AnyCrsPoint
+                  coordinates:
+                    - 600000
+                    - 3000000
+              - type: AnyCrsFeature
+                properties:
+                  Kind: osdu:wks:AbstractGeoJson.PropertiesBinGridCorners:1.0.0
+                  PointProperties:
+                    - Inline: 101
+                      Crossline: 2000
+                geometry:
+                  type: AnyCrsPoint
+                  coordinates:
+                    - 600000
+                    - 3100000
+        P6ScaleFactorOfBinGrid: 1
+        P6BinNodeIncrementOnIaxis: 1
+        P6BinNodeIncrementOnJaxis: 1
+  ConvertBinGridResponse:
+    type: object
+    properties:
+      maxMisLocation:
+        $ref: '#/definitions/MaxMisLocation'
+      outBinGrid:
+        $ref: '#/definitions/AbstractBinGrid'
+      AppliedOperations:
+        type: array
+        items:
+          type: string
+    example:
+      maxMisLocation:
+        dI: 0
+        dJ: 0.38
+      outBinGrid:
+        CoveragePercent: 1
+        BinGridDefinitionMethodTypeID: 'osdu:reference-data--BinGridDefinitionMethodType:4Corner:'
+        P6TransformationMethod: 9666
+        P6BinGridOriginI: 1
+        P6BinGridOriginJ: 1000
+        P6BinGridOriginEasting: 3593536.4619751107
+        P6BinGridOriginNorthing: 9888463.879346535
+        P6ScaleFactorOfBinGrid: 1
+        P6BinWidthOnIaxis: 3297.478414657676
+        P6BinWidthOnJaxis: 329.74530454204273
+        P6MapGridBearingOfBinGridJaxis: 357.2135341919337
+        P6BinNodeIncrementOnIaxis: 1
+        P6BinNodeIncrementOnJaxis: 1
+        ABCDBinGridSpatialLocation:
+          SpatialLocationCoordinatesDate: '2022-12-15T10:33:10.526Z'
+          CoordinateQualityCheckPerformedBy: CRS Convert service, POST convertBinGrid
+          CoordinateQualityCheckDateTime: '2022-12-15T10:33:10.526Z'
+          CoordinateQualityCheckRemarks:
+            - 'converted from to; squared up: dI= 0.0, dJ= 0.38 (bin)'
+          AsIngestedCoordinates:
+            persistableReferenceCrs: '{"authCode":{"auth":"OSDU","code":"32064079"},"lateBoundCRS":{"authCode":{"auth":"EPSG","code":"32064"},"name":"NAD_1927_BLM_Zone_14N","type":"LBC","ver":"PE_10_9_1","wkt":"PROJCS[\"NAD_1927_BLM_Zone_14N\",GEOGCS[\"GCS_North_American_1927\",DATUM[\"D_North_American_1927\",SPHEROID[\"Clarke_1866\",6378206.4,294.9786982]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",1640416.666666667],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-99.0],PARAMETER[\"Scale_Factor\",0.9996],PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Foot_US\",0.3048006096012192],AUTHORITY[\"EPSG\",32064]]"},"name":"NAD27 * OGP-Usa Conus / BLM zone 14N (US survey feet) [32064,15851]","singleCT":{"authCode":{"auth":"EPSG","code":"15851"},"name":"NAD_1927_To_WGS_1984_79_CONUS","type":"ST","ver":"PE_10_9_1","wkt":"GEOGTRAN[\"NAD_1927_To_WGS_1984_79_CONUS\",GEOGCS[\"GCS_North_American_1927\",DATUM[\"D_North_American_1927\",SPHEROID[\"Clarke_1866\",6378206.4,294.9786982]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137.0,298.257223563]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],METHOD[\"NADCON\"],PARAMETER[\"Dataset_conus\",0.0],OPERATIONACCURACY[5.0],AUTHORITY[\"EPSG\",15851]]"},"type":"EBC","ver":"PE_10_9_1"}'
+            CoordinateReferenceSystemID: 'osdu:reference-data--CoordinateReferenceSystem:BoundProjected:EPSG::32064_EPSG::15851:'
+            type: AnyCrsFeatureCollection
+            features:
+              - type: AnyCrsFeature
+                properties:
+                  Kind: osdu:wks:AbstractGeoJson.PropertiesBinGridCorners:1.0.0
+                  PointProperties:
+                    - Label: A
+                      Inline: 1
+                      Crossline: 1000
+                geometry:
+                  type: AnyCrsPoint
+                  coordinates:
+                    - 3593536.462
+                    - 9888463.879
+              - type: AnyCrsFeature
+                properties:
+                  Kind: osdu:wks:AbstractGeoJson.PropertiesBinGridCorners:1.0.0
+                  PointProperties:
+                    - Label: B
+                      Inline: 1
+                      Crossline: 2000
+                geometry:
+                  type: AnyCrsPoint
+                  coordinates:
+                    - 3577506.278
+                    - 10217819.309
+              - type: AnyCrsFeature
+                properties:
+                  Kind: osdu:wks:AbstractGeoJson.PropertiesBinGridCorners:1.0.0
+                  PointProperties:
+                    - Label: C
+                      Inline: 101
+                      Crossline: 1000
+                geometry:
+                  type: AnyCrsPoint
+                  coordinates:
+                    - 3922894.426
+                    - 9904494.186
+              - type: AnyCrsFeature
+                properties:
+                  Kind: osdu:wks:AbstractGeoJson.PropertiesBinGridCorners:1.0.0
+                  PointProperties:
+                    - Label: D
+                      Inline: 101
+                      Crossline: 2000
+                geometry:
+                  type: AnyCrsPoint
+                  coordinates:
+                    - 3906864.242
+                    - 10233849.616
+          Wgs84Coordinates:
+            features:
+              - type: Feature
+                properties:
+                  Kind: osdu:wks:AbstractGeoJson.PropertiesBinGridCorners:1.0.0
+                  PointProperties:
+                    - Label: A
+                      Inline: 1
+                      Crossline: 1000
+                geometry:
+                  type: Point
+                  coordinates:
+                    - -92.99998152
+                    - 27.12215051
+              - type: Feature
+                properties:
+                  Kind: osdu:wks:AbstractGeoJson.PropertiesBinGridCorners:1.0.0
+                  PointProperties:
+                    - Label: B
+                      Inline: 1
+                      Crossline: 2000
+                geometry:
+                  type: Point
+                  coordinates:
+                    - -93.00001836
+                    - 28.02559868
+              - type: Feature
+                properties:
+                  Kind: osdu:wks:AbstractGeoJson.PropertiesBinGridCorners:1.0.0
+                  PointProperties:
+                    - Label: C
+                      Inline: 101
+                      Crossline: 1000
+                geometry:
+                  type: Point
+                  coordinates:
+                    - -91.99107323
+                    - 27.11916457
+              - type: Feature
+                properties:
+                  Kind: osdu:wks:AbstractGeoJson.PropertiesBinGridCorners:1.0.0
+                  PointProperties:
+                    - Label: D
+                      Inline: 101
+                      Crossline: 2000
+                geometry:
+                  type: Point
+                  coordinates:
+                    - -91.98275212
+                    - 28.02114667
+            type: FeatureCollection
+      AppliedOperations:
+        - conversion from WGS_1984_UTM_Zone_15N to GCS_WGS_1984; 4 points converted
+        - transformation GCS_WGS_1984 to GCS_North_American_1927 using NAD_1927_To_WGS_1984_79_CONUS; 4 points successfully transformed
+        - conversion from GCS_North_American_1927 to NAD_1927_BLM_Zone_14N; 4 points converted
+        - No unit conversion for Z-axis
+        - Squared up the bin grid. dI= 0.0, dJ= 0.38 bin
+
+  AbstractBinGrid:
+    type: object
+    properties:
+      BinGridName:
+        type: string
+      BinGridTypeID:
+        type: string
+      SourceBinGridID:
+        type: integer
+        format: int32
+      SourceBinGridAppID:
+        type: string
+      CoveragePercent:
+        type: number
+        format: double
+      BinGridDefinitionMethodTypeID:
+        type: string
+      P6TransformationMethod:
+        type: integer
+        format: int32
+      P6BinGridOriginI:
+        type: number
+        format: double
+      P6BinGridOriginJ:
+        type: number
+        format: double
+      P6BinGridOriginEasting:
+        type: number
+        format: double
+      P6BinGridOriginNorthing:
+        type: number
+        format: double
+      P6ScaleFactorOfBinGrid:
+        type: number
+        format: double
+      P6BinWidthOnIaxis:
+        type: number
+        format: double
+      P6BinWidthOnJaxis:
+        type: number
+        format: double
+      P6MapGridBearingOfBinGridJaxis:
+        type: number
+        format: double
+      P6BinNodeIncrementOnIaxis:
+        type: integer
+        format: int32
+      P6BinNodeIncrementOnJaxis:
+        type: integer
+        format: int32
+      ABCDBinGridSpatialLocation:
+        $ref: '#/definitions/AbstractSpatialLocation'
+  AbstractSpatialLocation:
+    type: object
+    properties:
+      SpatialLocationCoordinatesDate:
+        type: string
+      QuantitativeAccuracyBandID:
+        type: string
+      QualitativeSpatialAccuracyTypeID:
+        type: string
+      CoordinateQualityCheckPerformedBy:
+        type: string
+      CoordinateQualityCheckDateTime:
+        type: string
+      CoordinateQualityCheckRemarks:
+        type: array
+        items:
+          type: string
+      AppliedOperations:
+        type: array
+        items:
+          type: string
+      SpatialParameterTypeID:
+        type: string
+      SpatialGeometryTypeID:
+        type: string
+      AsIngestedCoordinates:
+        $ref: '#/definitions/AbstractAnyCrsFeatureCollection'
+      Wgs84Coordinates:
+        $ref: '#/definitions/AbstractFeatureCollection'
+  MaxMisLocation:
+    type: object
+    properties:
+      dI:
+        type: number
+        format: double
+      dJ:
+        type: number
+        format: double
+  AbstractAnyCrsFeatureCollection:
+    type: object
+    properties:
+      persistableReferenceCrs:
+        type: string
+      CoordinateReferenceSystemID:
+        type: string
+      type:
+        type: string
+      features:
+        type: array
+        items:
+          $ref: '#/definitions/AbstractFeature'
+  AbstractFeatureCollection:
+    type: object
+    properties:
+      features:
+        type: array
+        items:
+          $ref: '#/definitions/AbstractFeature'
+      Type:
+        type: string
+  AbstractFeature:
+    type: object
+    properties:
+      type:
+        type: string
+      properties:
+        $ref: '#/definitions/PropertiesBinGridCorners'
+      geometry:
+        $ref: '#/definitions/Geometry'
+  PropertiesBinGridCorners:
+    type: object
+    properties:
+      Kind:
+        type: string
+      PointProperties:
+        type: array
+        items:
+          $ref: '#/definitions/PointProperties'
+  Geometry:
+    required:
+      - coordinates
+      - type
+    type: object
+    properties:
+      type:
+        type: string
+      coordinates:
+        type: array
+        items:
+          type: number
+          format: double
+  PointProperties:
+    type: object
+    properties:
+      Label:
+        type: string
+      Inline:
+        type: integer
+        format: int32
+      Crossline:
+        type: integer
+        format: int32
   VersionInfo:
     type: object
     properties:

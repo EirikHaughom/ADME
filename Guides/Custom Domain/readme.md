@@ -14,9 +14,7 @@ This guide is meant as an example on how to use Azure API Management (APIM) as a
     $resourceGroup = "myResourceGroup"
     $apimName = "myApiManagement"
 
-    # Defines the API definitions to load into APIM.
-    # Note: These are OSDU M12 API definitions.
-
+    # Defines all of the APIs to load
     $apis = @(
         "crsConverter",
         "crsCatalog",
@@ -38,6 +36,8 @@ This guide is meant as an example on how to use Azure API Management (APIM) as a
         "workflow"
     )
 
+    # Defines the basePath and source of API definitions
+    # Note: These are based off of OSDU M12 release definitions
     $apiDefinitions = @{
         crsConverter = @("api/crs/converter","https://raw.githubusercontent.com/EirikHaughom/ADME/custom-domain/Guides/Custom%20Domain/src/m12/crs_converter_openapi.yaml")
         crsCatalog = @("api/crs/catalog/v2","https://raw.githubusercontent.com/EirikHaughom/ADME/custom-domain/Guides/Custom%20Domain/src/m12/crs-catalog-openapi-v2.yaml")
@@ -59,18 +59,43 @@ This guide is meant as an example on how to use Azure API Management (APIM) as a
         workflow = @("api/workflow","https://raw.githubusercontent.com/EirikHaughom/ADME/custom-domain/Guides/Custom%20Domain/src/m12/workflow_openapi.yaml")
     }
 
+    # Gets the custom domain assigned to APIM
+    $customDomain = (az apim show --name $apimName --resource-group $resourceGroup | convertfrom-json).hostNameConfigurations.hostname | where { $_ -notlike "*.azure-api.net" }
+    $customDomain = "https://"+$customDomain+"/"
+
+    # Imports each api definition into the APIM instance
     foreach ($api in $apis) {
         $serviceUrl = "https://"+$admeHostname+"/"+$apiDefinitions[$api][0]
 
         Write-Host "Importing $api api"
-        az apim api import --resource-group $resourceGroup `
+        $output = az apim api import --resource-group $resourceGroup `
             --path $apiDefinitions[$api][0] `
             --service-name $apimName `
             --specification-format OpenApi `
             --specification-url $apiDefinitions[$api][1] `
             --protocols https `
             --service-url $serviceUrl `
-            --subscription-required false `
-            --output none
+            --subscription-required false
+        $apiFqdn = ""
+        $apiFqdn = $customDomain+$apiDefinitions[$api][0] -replace "$customDomain//","$customDomain/"
+
+        if (!$output) {
+            Write-Host "Import of $api api failed."  -ForegroundColor Red
+        } else { 
+            Write-Host "$api imported successfully to $apiFqdn."  -ForegroundColor Green
+        }
     }
     ```
+3. That's it! You should now have a Custom Domain enabled ADME instance.
+
+## Tests and validations
+It's always a good idea to test and validate that the APIs work as expected through the APIM using the custom domain name. 
+
+### 1. Self-testing
+Make API calls towards each API service and make sure it responds correctly. You could use my [Postman Collection](/Guides/Postman%20Collection/) to perform these tests efficiently.
+
+### 2. Pre-defined smoke-tests
+Use the smoke-tests from [ADME ExperienceLabs](https://github.com/microsoft/azure-data-manager-for-energy-experience-lab/tree/main/rest-scripts) to quickly test the various APIs.
+
+### Example Response
+![ADME Successful API call with Custom Domain](./img/ADMECustomDomainNameSuccessResponse.png)
