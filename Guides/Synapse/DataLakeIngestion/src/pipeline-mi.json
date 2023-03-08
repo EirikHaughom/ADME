@@ -123,7 +123,7 @@
                     },
                     "authentication": {
                         "type": "MSI",
-                        "resource": "@pipeline().parameters.synapse_managed_identity"
+                        "resource": "@pipeline().parameters.CLIENT_ID"
                     }
                 }
             },
@@ -158,7 +158,7 @@
                     },
                     "authentication": {
                         "type": "MSI",
-                        "resource": "@pipeline().parameters.synapse_managed_identity"
+                        "resource": "@pipeline().parameters.CLIENT_ID"
                     }
                 }
             },
