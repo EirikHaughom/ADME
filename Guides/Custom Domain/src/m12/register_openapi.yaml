@@ -1,25 +1,20 @@
-swagger: '2.0'
+openapi: 3.0.0
 info:
+  description: APIs to manage registrations in the OSDU.
   version: 1.0.0
-  description: Register Service
   title: Register Service
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0
 tags:
-  - name: action-api
-    description: Action Api
-  - name: ddms-api
-    description: Ddms Api
-  - name: gsa-subscriber-listener-api
-    description: Gsa Subscriber Listener Api
-  - name: health-checks-api
-    description: Health Checks Api
-  - name: info-api
-    description: Info Api
-  - name: subscriber-api
-    description: Subscriber Api
-  - name: subscriber-listener-api
-    description: Subscriber Listener Api
-basePath: /api/register/v1
-
+  - name: Domain Data Management Service (DDMS)
+    description: ""
+  - name: Action
+    description: ""
+  - name: Subscription
+    description: ""
+  - name: Info
+    description: Version info endpoint
 security:
   - bearer: []
   - appkey: []
@@ -1159,11 +1154,10 @@ paths:
       responses:
         200:
           description: "Version info."
-servers:
-  - url: https://evq.csp.osdu.com/api/register/v1
-    description: EVT
-  - url: https://evd.csp.osdu.com/api/register/v1
-    description: EVD
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VersionInfo"
 components:
   securitySchemes:
     bearer:
