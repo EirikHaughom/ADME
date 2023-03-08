@@ -36,7 +36,7 @@ paths:
         '404':
           description: Not Found
       security:
-        - Bearer: []
+        - Bearer Authorization: []
   "/_ah/readiness_check":
     get:
       tags:
@@ -59,7 +59,7 @@ paths:
         '404':
           description: Not Found
       security:
-        - Bearer: []
+        - Bearer Authorization: []
   "/v3/info":
     get:
       tags:
@@ -83,7 +83,7 @@ paths:
         '404':
           description: Not Found
       security:
-        - Bearer: []
+        - Bearer Authorization: []
   "/v3/catalog":
     get:
       tags:
@@ -114,7 +114,7 @@ paths:
         '404':
           description: Not Found
       security:
-        - Bearer: []
+        - Bearer Authorization: []
   "/v3/catalog/lastmodified":
     get:
       tags:
@@ -145,7 +145,7 @@ paths:
         '404':
           description: Not Found
       security:
-        - Bearer: []
+        - Bearer Authorization: []
   "/v3/catalog/mapstates":
     get:
       tags:
@@ -190,7 +190,7 @@ paths:
         '404':
           description: Not Found
       security:
-        - Bearer: []
+        - Bearer Authorization: []
   "/v3/catalog/search":
     post:
       tags:
@@ -243,7 +243,7 @@ paths:
         '404':
           description: Not Found
       security:
-        - Bearer: []
+        - Bearer Authorization: []
   "/v3/conversion/abcd":
     get:
       tags:
@@ -289,7 +289,7 @@ paths:
         '404':
           description: Not Found
       security:
-        - Bearer: []
+        - Bearer Authorization: []
     post:
       tags:
         - unit-api-v-3
@@ -327,7 +327,7 @@ paths:
         '404':
           description: Not Found
       security:
-        - Bearer: []
+        - Bearer Authorization: []
   "/v3/conversion/scale":
     get:
       tags:
@@ -373,7 +373,7 @@ paths:
         '404':
           description: Not Found
       security:
-        - Bearer: []
+        - Bearer Authorization: []
     post:
       tags:
         - unit-api-v-3
@@ -411,7 +411,7 @@ paths:
         '404':
           description: Not Found
       security:
-        - Bearer: []
+        - Bearer Authorization: []
   "/v3/measurement":
     get:
       tags:
@@ -447,7 +447,7 @@ paths:
         '404':
           description: Not Found
       security:
-        - Bearer: []
+        - Bearer Authorization: []
     post:
       tags:
         - unit-api-v-3
@@ -485,7 +485,7 @@ paths:
         '404':
           description: Not Found
       security:
-        - Bearer: []
+        - Bearer Authorization: []
   "/v3/measurement/list":
     get:
       tags:
@@ -530,7 +530,7 @@ paths:
         '404':
           description: Not Found
       security:
-        - Bearer: []
+        - Bearer Authorization: []
   "/v3/measurement/maps":
     get:
       tags:
@@ -575,7 +575,7 @@ paths:
         '404':
           description: Not Found
       security:
-        - Bearer: []
+        - Bearer Authorization: []
   "/v3/measurement/search":
     post:
       tags:
@@ -628,7 +628,7 @@ paths:
         '404':
           description: Not Found
       security:
-        - Bearer: []
+        - Bearer Authorization: []
   "/v3/unit":
     get:
       tags:
@@ -673,7 +673,7 @@ paths:
         '404':
           description: Not Found
       security:
-        - Bearer: []
+        - Bearer Authorization: []
     post:
       tags:
         - unit-api-v-3
@@ -711,7 +711,7 @@ paths:
         '404':
           description: Not Found
       security:
-        - Bearer: []
+        - Bearer Authorization: []
   "/v3/unit/maps":
     get:
       tags:
@@ -756,7 +756,7 @@ paths:
         '404':
           description: Not Found
       security:
-        - Bearer: []
+        - Bearer Authorization: []
   "/v3/unit/measurement":
     get:
       tags:
@@ -792,7 +792,7 @@ paths:
         '404':
           description: Not Found
       security:
-        - Bearer: []
+        - Bearer Authorization: []
     post:
       tags:
         - unit-api-v-3
@@ -830,7 +830,7 @@ paths:
         '404':
           description: Not Found
       security:
-        - Bearer: []
+        - Bearer Authorization: []
   "/v3/unit/measurement/preferred":
     get:
       tags:
@@ -866,7 +866,7 @@ paths:
         '404':
           description: Not Found
       security:
-        - Bearer: []
+        - Bearer Authorization: []
     post:
       tags:
         - unit-api-v-3
@@ -904,7 +904,7 @@ paths:
         '404':
           description: Not Found
       security:
-        - Bearer: []
+        - Bearer Authorization: []
   "/v3/unit/search":
     post:
       tags:
@@ -957,7 +957,7 @@ paths:
         '404':
           description: Not Found
       security:
-        - Bearer: []
+        - Bearer Authorization: []
   "/v3/unit/symbol":
     get:
       tags:
@@ -998,7 +998,7 @@ paths:
         '404':
           description: Not Found
       security:
-        - Bearer: []
+        - Bearer Authorization: []
   "/v3/unit/symbols":
     get:
       tags:
@@ -1034,7 +1034,7 @@ paths:
         '404':
           description: Not Found
       security:
-        - Bearer: []
+        - Bearer Authorization: []
   "/v3/unit/unitsystem":
     get:
       tags:
@@ -1075,7 +1075,7 @@ paths:
         '404':
           description: Not Found
       security:
-        - Bearer: []
+        - Bearer Authorization: []
     post:
       tags:
         - unit-api-v-3
@@ -1118,7 +1118,7 @@ paths:
         '404':
           description: Not Found
       security:
-        - Bearer: []
+        - Bearer Authorization: []
   "/v3/unitsystem":
     get:
       tags:
@@ -1168,7 +1168,7 @@ paths:
         '404':
           description: Not Found
       security:
-        - Bearer: []
+        - Bearer Authorization: []
     post:
       tags:
         - unit-api-v-3
@@ -1220,7 +1220,7 @@ paths:
         '404':
           description: Not Found
       security:
-        - Bearer: []
+        - Bearer Authorization: []
   "/v3/unitsystem/list":
     get:
       tags:
@@ -1265,9 +1265,9 @@ paths:
         '404':
           description: Not Found
       security:
-        - Bearer: []
+        - Bearer Authorization: []
 securityDefinitions:
-  Bearer:
+  Bearer Authorization:
     type: apiKey
     name: Authorization
     in: header
