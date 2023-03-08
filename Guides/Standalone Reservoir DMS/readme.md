@@ -1,5 +1,5 @@
 ## Overview
-The Reservoir Model DMS (RDDMS) is currently an experimental feature of OSDU and not part of Microsoft Energy Data Services.
+The Reservoir Model DMS (RDDMS) is currently an experimental feature of OSDU and not part of Azure Data Manager for Energy.
 
 This guide will explain how you can deploy a standalone version of the RDDMS on Azure Container Instance (ACI) with an Azure Database for PostgreSQL (PaaS), and secured with Azure AD authentication.
 
@@ -12,7 +12,7 @@ RDDMS consists of 3 main components:
 
 <br>
 
-> ℹ️ A standalone RDDMS server will have no connection towards your OSDU or MEDS instance, and is solely meant to be used to test the RDDMS capabilities itself, such as data ingestion, consumption etc.
+> ℹ️ A standalone RDDMS server will have no connection towards your OSDU or ADME instance, and is solely meant to be used to test the RDDMS capabilities itself, such as data ingestion, consumption etc.
 
 <br>
 
