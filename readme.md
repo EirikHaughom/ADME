@@ -1,11 +1,12 @@
 # Welcome
-This is the personal repository for Eirik Haughom on Microsoft Energy Data Services.
+This is the personal repository for Eirik Haughom on Azure Data Manager for Energy (ADME).
 
 ### Guides available
-- [Automatic data ingestion from ADLS to MEDS](/Guides/Synapse/DataLakeIngestion/)
-- [Azure AD to Entitlements sync](/Guides/AADEntitlementsSync/readme.md)
-- [Full Postman Collection for ADME](/Guides/Postman%20Collection/readme.md)
-- [Standalone Reservoir DMS (RDDMS)](/Guides/Standalone%20Reservoir%20DMS/readme.md)
+- [Automatic data ingestion from ADLS to ADME](/Guides/Synapse/DataLakeIngestion/)
+- [Azure AD to Entitlements sync](/Guides/AADEntitlementsSync/)
+- [Custom Domain Name](/Guides/Custom%20Domain/)
+- [Full Postman Collection for ADME](/Guides/Postman%20Collection/)
+- [Standalone Reservoir DMS (RDDMS)](/Guides/Standalone%20Reservoir%20DMS/)
 <br /><br />
 
 # Contribution

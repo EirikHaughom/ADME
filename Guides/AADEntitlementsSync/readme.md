@@ -1,22 +1,22 @@
 # Description
-This guide will help you create a Logic App which synchronizes changes made to an Azure AD group into an Entitlements group in [Microsoft Energy Data Services](https://azure.microsoft.com/en-us/products/energy-data-services/#overview).
+This guide will help you create a Logic App which synchronizes changes made to an Azure AD group into an Entitlements group in [Azure Data Manager for Energy](https://azure.microsoft.com/en-us/products/energy-data-services/#overview).
 
 The solution supports the [Azure AD Dynamic group assignment](https://learn.microsoft.com/en-us/azure/active-directory/enterprise-users/groups-dynamic-membership) for a policy-driven permission assignment. 
 
-While this guide is written for Microsoft Energy Data Services, it should work with any OSDU instance.
+While this guide is written for Azure Data Manager for Energy, it should work with any OSDU instance.
 
 I would suggest monitoring this Logic App's runs through Azure Monitor and alert on failed runs. It could also be a good idea to create some consistency validation to verify that the members are in sync in both groups, especially since it is a one-way sync and users added directly through Entitlements API will not be added to the Azure AD group.
 
 # Overview
-![Logic App for Azure AD group sync to Microsoft Energy Data Services](img/logicapp-concept.png)
+![Logic App for Azure AD group sync to Azure Data Manager for Energy](img/logicapp-concept.png)
 
 # Prerequisites
 <details>
 <summary>OSDU CLI</summary>
 
-1. Generate a [Refresh Token](https://learn.microsoft.com/en-us/azure/energy-data-services/how-to-generate-refresh-token) for your Microsoft Energy Data Services instance.
+1. Generate a [Refresh Token](https://learn.microsoft.com/en-us/azure/energy-data-services/how-to-generate-refresh-token) for your Azure Data Manager for Energy instance.
 2. Download [OSDU CLI](https://community.opengroup.org/osdu/platform/data-flow/data-loading/osdu-cli) from the Open Source Community.
-3. Authenticate to your Microsoft Energy Data Services instance by running the following command.
+3. Authenticate to your Azure Data Manager for Energy instance by running the following command.
 ```Powershell
 osdu config update
 ```
@@ -122,7 +122,7 @@ az account set --subscription <subscription-id>
         "displayName": "$azureAdGroup",
         "mailEnabled": true,
         "mailNickname": "$azureAdGroup",
-        "description": "User group synced to Microsoft Energy Data Services by Logic App",
+        "description": "User group synced to Azure Data Manager for Energy by Logic App",
         "securityEnabled": true,
         "groupTypes": [
             "Unified"
@@ -235,7 +235,7 @@ az account set --subscription <subscription-id>
 2. Check the Logic App runs in the [Azure Portal](https://portal.azure.com) (this may take minute to trigger automatically).
     ![Logic App run screenshot](img/logicapp-run-validation.png)
 
-3. Validate that the user's Object ID is added to the Microsoft Energy Data Services Entitlements service.
+3. Validate that the user's Object ID is added to the Azure Data Manager for Energy Entitlements service.
     ```powershell
     osdu entitlements groups members -g $entitlementsGroup@$dataPartitionId.dataservices.energy
     ```

@@ -1,6 +1,8 @@
 # Description
 The intent with this solution is to automatically ingest binary data created on an external datastore into Microsoft Energy Data Services. While the example uses an Azure Data Lake, any compatible storage solutions could theoretically be used.
 
+![Animation which shows a file being ingested from ADLS to ADME using Synapse Pipeline](./img/ADLStoADMESynapsePipeline.gif)
+
 # Shared Prerequisites
 These prerequisites is needed to deploy the solution above. Expand each prerequisite in the list below to see example code.
 <details>
