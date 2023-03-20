@@ -200,11 +200,13 @@ az account set --subscription <subscription-id>
     }
 
     # Create request body with M365 group properties
-    $groupBody = @"{
+    $groupBody = @"
+    {
         "principalId": "$logicAppManagedIdentity",
         "resourceId": "$GraphOID",
         "appRoleId": "$GroupReadAllOID",
-    }"@
+    }
+    "@
 
     # Invoke Graph service to create group
     Invoke-RestMethod `
