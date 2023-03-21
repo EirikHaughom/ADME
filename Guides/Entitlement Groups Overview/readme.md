@@ -1,17 +1,17 @@
-## Overview
+# Overview
 This is intended as a best-effort to list the available default OSDU Entitlements Groups and their usage.
 
-## Group Roles
+# Group Roles
 There are two main group roles for which users and app registrations can be assigned.
 | Role Name | Description                                        |
 |-----------|----------------------------------------------------|
 | MEMBER    | Regular member of the group                        |
 | OWNER     | Provides permission to manage members of the group |
 
-## Default Groups
+# Default Groups
 The following groups are default in any OSDU, and thus also Microsoft Energy Data Services, instances.
 
-### Data Groups
+## Data Groups
 The built-in Data groups doesn't give any explicit permissions, but is the base groups used on the Access Control List (ACL) for data ingested into OSDU. It is recommended to create your own data groups with explicit access according to your requirements in terms of access control, as all users will be granted access to the data.default.owners by default, which is generally not desired.
 
 Group Name                   | Description
@@ -19,7 +19,7 @@ Group Name                   | Description
 data.default.owners          | Gives read/write permissions to data stored with default ACL list
 data.default.viewers         | Gives read only permissions to data stored with default ACL list
 
-### Service Groups
+## Service Groups
 The Service groups gives access to use the core services (APIs) and Dynamic Data Management Services (DDMS).
 
 Group Name                    | Services         | API                      | Permissions 
@@ -45,7 +45,7 @@ service.workflow.admin        | Workflow         | |
 service.workflow.creator      | Workflow         | | 
 service.workflow.viewer       | Workflow         | | 
 
-### User Groups
+## User Groups
 User groups are used to gather a number of users and grant access across multiple ***Service Groups*** and ***Data Groups***. They can also be nested within other ***User Groups***. 
 
 Group Name             | Description
@@ -57,7 +57,7 @@ users.datalake.editors | This user group is meant for editor level authorization
 users.datalake.admins  | This user group is meant for admin level authorization.
 users.datalake.ops     | This user group is meant for operations level authorization. Association with this group provides the highest level of access to all the services and data in a partition.
 
-#### User Groups Membership Matrix
+### User Groups Membership Matrix
 Explains all the default groups that the different Users Groups are members of.
 
 Group Name                     | users | users.datalake.viewers | users.datalake.editors | users.datalake.admins | users.datalake.ops
@@ -84,3 +84,9 @@ service.storage.viewer         |       |          X             |           X   
 service.workflow.admin         |       |                        |                        |         **X**         |          X
 service.workflow.creator       |       |                        |         **X**          |           X           |          X
 service.workflow.viewer        |       |          X             |           X            |           X           |          X
+<br><br>
+
+## Seismic DDMS (SDDMS)
+The Seismic DDMS (SDDMS) does not have it's own entitlements group(s). Instead it relies on the **users.datalake.admins** group explicitly for admin rights (tenant creation on the SDDMS). 
+
+> **_NOTE:_** As shown in the [User Groups Membership Matrix](#user-groups-membership-matrix), it would seem obvious that the **users.datalake.ops** (as the most elevated group) also has the SDDMS tenant creation permissions, but it is worth noting that is *NOT* the case.
