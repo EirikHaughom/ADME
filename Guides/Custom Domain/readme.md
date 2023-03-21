@@ -1,6 +1,16 @@
 ## Description
 This guide is meant as an example on how to use Azure API Management (APIM) as a gateway with a custom DNS domain in front of Azure Data Manager for Energy (ADME) APIs. The solution allows you to brand your ADME instance with a domain name of your own choice, such as osdu.contoso.com instead of contoso.energy.azure.com.
 
+### Supported configurations
+
+API Management | ADME                        | Supported
+---------------|-----------------------------|----------
+External       | Public                      | Yes
+External       | Internal (Private Endpoint) | Yes
+Internal       | Public                      | Yes
+Internal       | Internal (Private Endpoint) | Yes
+
+
 ## Prerequisites
 - [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) installed and logged into the target subscription.
 - [Azure API Management](https://learn.microsoft.com/en-us/azure/api-management/get-started-create-service-instance-cli) instance with access to the ADME instance (i.e. VNET integrated if ADME is configured with Private Endpoint).
