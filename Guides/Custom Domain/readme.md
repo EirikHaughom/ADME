@@ -4,7 +4,7 @@ This guide is meant as an example on how to use Azure API Management (APIM) as a
 ### Supported configurations
 
 API Management | ADME                        | Supported
----------------|-----------------------------|----------
+---------------|:----------------------------|----------
 External       | Public                      | Yes
 External       | Internal (Private Endpoint) | Yes
 Internal       | Public                      | Yes
