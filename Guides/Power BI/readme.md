@@ -38,7 +38,7 @@ in
     results
 ```
 
-Then defined the parameters:
+Then create the following parameters:
 - ADME Instance
 - ADME Data Partition ID
 - Access Token
