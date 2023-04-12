@@ -9,7 +9,9 @@ The TNO template provides a ready-made template to visualize the [TNO dataset](h
 ### Generic Template ([download](./src/adme-generic-restnative.pbit))
 The generic template offers no pre-defined visualizations, and is meant for you to quickly retrieve data from ADME and build your own visualizations.
 
-You may build your own connection from scratch using the following Power Query:
+#### Self-built query
+
+You may build your own connection from scratch in stead of using the generic template. To get started, use the following Power Query:
 ```
 let
     content =
