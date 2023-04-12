@@ -35,7 +35,7 @@ I will address solution 1 in this guide.
 6. On the new App Registration, go to *API Permissions* and click ***Add a permission***
 7. Select ***My APIs*** and find the ADME main principal
 8. Check the *user_impersonation* permission and click *Add permission*
-9. Click Grant admin consent, or request this from your tenant administrators according to the [official documentation](https://learn.microsoft.com/en-us/azure/active-directory/manage-apps/grant-admin-consent?pivots=portal#grant-admin-consent-in-app-registrations)
+9. Depending on policies you may have to grant admin consent, if so: Click Grant admin consent, or request this from your tenant administrators according to the [official documentation](https://learn.microsoft.com/en-us/azure/active-directory/manage-apps/grant-admin-consent?pivots=portal#grant-admin-consent-in-app-registrations)
 10. Generate a new secret to be shared with the end users
 
 ## Verify solution
