@@ -43,7 +43,7 @@ The services mentioned below are covered, and the API calls are imported from th
 |data_partition|contoso-opendes|The Data Partition ID from ADME (i.e. eirik-opendes)|
 |client_secret|*N/A*|A valid App Registration secret for the above client_id|
 |tenant_id|00000000-0000-0000-0000-000000000000|Azure AD tenant ID
-|scope|00000000-0000-0000-0000-000000000000/.default openid profile offline_access|
+|scope|00000000-0000-0000-0000-000000000000/.default openid profile offline_access|The scope to use when authenticating. The ID represents an App Registration ID (client_id)|
 |baseUrl|https://{{instance}}|***Do not change***|
 
 
