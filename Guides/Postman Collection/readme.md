@@ -20,8 +20,11 @@ The services mentioned below are covered, and the API calls are imported from th
 - Register
 - Schema
 - Search
+- Seismic DDMS
 - Storage
 - Unit
+- Well Delivery DDMS
+- Wellbore DDMS
 - Workflow
 
 <sub>\* The Partition service is locked down on ADME, as data partitions are handled by Azure Resource Manager (ARM) through CLI, PowerShell or Azure Portal.</sub>
