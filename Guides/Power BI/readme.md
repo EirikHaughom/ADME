@@ -4,7 +4,7 @@ These Power BI templates are intended as examples to quickly start consuming dat
 ## Templates
 ### TNO Template ([download](./src/adme-tno-wells-restnative.pbit))
 The TNO template provides a ready-made template to visualize the [TNO dataset](https://community.opengroup.org/osdu/platform/data-flow/data-loading/open-test-data/-/tree/master/rc--3.0.0/1-data/3-provided/TNO) from ADME. It is mainly meant to prove the ability to consume and visualize data from ADME in Power BI.
-![image showing a visualization of the TNO dataset on ADME Power BI template](./img/tnodashboard.png)
+![image showing a visualization of the TNO dataset on ADME Power BI template](./img/tnowelldatainpowerbi.gif)
 
 ### Generic Template ([download](./src/adme-generic-restnative.pbit))
 The generic template offers no pre-defined visualizations, and is meant for you to quickly retrieve data from ADME and build your own visualizations.
