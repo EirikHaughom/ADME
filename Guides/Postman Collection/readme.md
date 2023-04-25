@@ -4,7 +4,7 @@ This postman collection includes all REST API calls available for Azure Data Man
 <br />
 
 ## Services Covered
-The services mentioned below are covered, and the API calls are imported from the official [ADME documentation](https://microsoft.github.io/meds-samples/).
+The services mentioned below are covered, and the API calls are imported from the official [ADME documentation](https://microsoft.github.io/adme-samples/).
 
 - CRS Catalog
 - CRS Converter
