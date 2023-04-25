@@ -1,8 +1,6 @@
 ## Description
 
-This postman collection includes all REST API calls available for Azure Data Manager for Energy (ADME) M12 core services. It is based on the native OSDU APIs, so it could also be used for anyone running a self-managed version of the OSDU M12 release.
-
-Domain Data Management Services are not included.
+This postman collection includes all REST API calls available for Azure Data Manager for Energy (ADME) M14 core services. It is based on the native OSDU APIs, so it could also be used for anyone running a self-managed version of the OSDU M14 release.
 <br />
 
 ## Services Covered
@@ -103,6 +101,15 @@ That's it! You should now be able to run all the API calls included.
 ___
 
 ## Changelog
+    25/04-2023
+    Corrected URI for Wellbore DDMS APIs
+
+    18/04-2023
+    ADME M14 release compliant
+    Added Seismic DDMS API
+    Added Well Delivery DDMS API
+    Added Wellbore DDMS API
+    Added Oauth2 authentication as default authentication mechanism
 
     08/02-2023
     Added Service Principal (App Registration) authentication mechanism.

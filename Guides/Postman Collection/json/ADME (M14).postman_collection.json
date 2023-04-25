@@ -30575,7 +30575,7 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/wells/:wellid/versions/:version",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wells/:wellid/versions/:version",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -30618,7 +30618,7 @@
 																					}
 																				],
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/wells/:wellid/versions/:version",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wells/:wellid/versions/:version",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -30669,7 +30669,7 @@
 																					}
 																				],
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/wells/:wellid/versions/:version",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wells/:wellid/versions/:version",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -30715,7 +30715,7 @@
 																					}
 																				],
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/wells/:wellid/versions/:version",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wells/:wellid/versions/:version",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -30769,7 +30769,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/wells/:wellid/versions",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wells/:wellid/versions",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -30807,7 +30807,7 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/wells/:wellid/versions",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wells/:wellid/versions",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -30854,7 +30854,7 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/wells/:wellid/versions",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wells/:wellid/versions",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -30896,7 +30896,7 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/wells/:wellid/versions",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wells/:wellid/versions",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -30946,7 +30946,7 @@
 															}
 														],
 														"url": {
-															"raw": "{{baseUrl}}/ddms/v3/wells/:wellid",
+															"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wells/:wellid",
 															"host": [
 																"{{baseUrl}}"
 															],
@@ -30983,7 +30983,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/wells/:wellid",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wells/:wellid",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -31024,7 +31024,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/wells/:wellid",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wells/:wellid",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -31065,7 +31065,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/wells/:wellid",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wells/:wellid",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -31112,7 +31112,7 @@
 															}
 														],
 														"url": {
-															"raw": "{{baseUrl}}/ddms/v3/wells/:wellid",
+															"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wells/:wellid",
 															"host": [
 																"{{baseUrl}}"
 															],
@@ -31149,7 +31149,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/wells/:wellid",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wells/:wellid",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -31195,7 +31195,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/wells/:wellid",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wells/:wellid",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -31236,7 +31236,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/wells/:wellid",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wells/:wellid",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -31299,7 +31299,7 @@
 													}
 												},
 												"url": {
-													"raw": "{{baseUrl}}/ddms/v3/wells",
+													"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wells",
 													"host": [
 														"{{baseUrl}}"
 													],
@@ -31343,7 +31343,7 @@
 															}
 														},
 														"url": {
-															"raw": "{{baseUrl}}/ddms/v3/wells",
+															"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wells",
 															"host": [
 																"{{baseUrl}}"
 															],
@@ -31397,7 +31397,7 @@
 															}
 														},
 														"url": {
-															"raw": "{{baseUrl}}/ddms/v3/wells",
+															"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wells",
 															"host": [
 																"{{baseUrl}}"
 															],
@@ -31446,7 +31446,7 @@
 															}
 														},
 														"url": {
-															"raw": "{{baseUrl}}/ddms/v3/wells",
+															"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wells",
 															"host": [
 																"{{baseUrl}}"
 															],
@@ -31501,7 +31501,7 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/welllogs/:welllogid/versions/:version",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:welllogid/versions/:version",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -31544,7 +31544,7 @@
 																					}
 																				],
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/welllogs/:welllogid/versions/:version",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:welllogid/versions/:version",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -31595,7 +31595,7 @@
 																					}
 																				],
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/welllogs/:welllogid/versions/:version",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:welllogid/versions/:version",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -31641,7 +31641,7 @@
 																					}
 																				],
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/welllogs/:welllogid/versions/:version",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:welllogid/versions/:version",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -31695,7 +31695,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/welllogs/:welllogid/versions",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:welllogid/versions",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -31733,7 +31733,7 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/welllogs/:welllogid/versions",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:welllogid/versions",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -31780,7 +31780,7 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/welllogs/:welllogid/versions",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:welllogid/versions",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -31822,7 +31822,7 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/welllogs/:welllogid/versions",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:welllogid/versions",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -31872,7 +31872,7 @@
 															}
 														],
 														"url": {
-															"raw": "{{baseUrl}}/ddms/v3/welllogs/:welllogid?purge=false",
+															"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:welllogid?purge=false",
 															"host": [
 																"{{baseUrl}}"
 															],
@@ -31915,7 +31915,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/welllogs/:welllogid?purge=false",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:welllogid?purge=false",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -31962,7 +31962,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/welllogs/:welllogid?purge=false",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:welllogid?purge=false",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -32009,7 +32009,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/welllogs/:welllogid?purge=false",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:welllogid?purge=false",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -32062,7 +32062,7 @@
 															}
 														],
 														"url": {
-															"raw": "{{baseUrl}}/ddms/v3/welllogs/:welllogid",
+															"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:welllogid",
 															"host": [
 																"{{baseUrl}}"
 															],
@@ -32099,7 +32099,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/welllogs/:welllogid",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:welllogid",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -32145,7 +32145,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/welllogs/:welllogid",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:welllogid",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -32186,7 +32186,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/welllogs/:welllogid",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:welllogid",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -32247,7 +32247,7 @@
 																					}
 																				],
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/welllogs/:record_id/versions/:version/data?offset=<integer>&limit=<integer>&curves=<string>&describe=false&filter=<string>&filter=<string>&orient=split",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:record_id/versions/:version/data?offset=<integer>&limit=<integer>&curves=<string>&describe=false&filter=<string>&filter=<string>&orient=split",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -32328,7 +32328,7 @@
 																							}
 																						],
 																						"url": {
-																							"raw": "{{baseUrl}}/ddms/v3/welllogs/:record_id/versions/:version/data?offset=<integer>&limit=<integer>&curves=<string>&describe=false&filter=<string>&orient=split",
+																							"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:record_id/versions/:version/data?offset=<integer>&limit=<integer>&curves=<string>&describe=false&filter=<string>&orient=split",
 																							"host": [
 																								"{{baseUrl}}"
 																							],
@@ -32412,7 +32412,7 @@
 																							}
 																						],
 																						"url": {
-																							"raw": "{{baseUrl}}/ddms/v3/welllogs/:record_id/versions/:version/data?offset=<integer>&limit=<integer>&curves=<string>&describe=false&filter=<string>&orient=split",
+																							"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:record_id/versions/:version/data?offset=<integer>&limit=<integer>&curves=<string>&describe=false&filter=<string>&orient=split",
 																							"host": [
 																								"{{baseUrl}}"
 																							],
@@ -32491,7 +32491,7 @@
 																							}
 																						],
 																						"url": {
-																							"raw": "{{baseUrl}}/ddms/v3/welllogs/:record_id/versions/:version/data?offset=<integer>&limit=<integer>&curves=<string>&describe=false&filter=<string>&orient=split",
+																							"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:record_id/versions/:version/data?offset=<integer>&limit=<integer>&curves=<string>&describe=false&filter=<string>&orient=split",
 																							"host": [
 																								"{{baseUrl}}"
 																							],
@@ -32605,7 +32605,7 @@
 																					}
 																				},
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/welllogs/:record_id/sessions/:session_id/data",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:record_id/sessions/:session_id/data",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -32663,7 +32663,7 @@
 																							}
 																						},
 																						"url": {
-																							"raw": "{{baseUrl}}/ddms/v3/welllogs/:record_id/sessions/:session_id/data",
+																							"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:record_id/sessions/:session_id/data",
 																							"host": [
 																								"{{baseUrl}}"
 																							],
@@ -32729,7 +32729,7 @@
 																							}
 																						},
 																						"url": {
-																							"raw": "{{baseUrl}}/ddms/v3/welllogs/:record_id/sessions/:session_id/data",
+																							"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:record_id/sessions/:session_id/data",
 																							"host": [
 																								"{{baseUrl}}"
 																							],
@@ -32790,7 +32790,7 @@
 																							}
 																						},
 																						"url": {
-																							"raw": "{{baseUrl}}/ddms/v3/welllogs/:record_id/sessions/:session_id/data",
+																							"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:record_id/sessions/:session_id/data",
 																							"host": [
 																								"{{baseUrl}}"
 																							],
@@ -32845,7 +32845,7 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/welllogs/:record_id/sessions/:session_id",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:record_id/sessions/:session_id",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -32887,7 +32887,7 @@
 																					}
 																				],
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/welllogs/:record_id/sessions/:session_id",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:record_id/sessions/:session_id",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -32938,7 +32938,7 @@
 																					}
 																				],
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/welllogs/:record_id/sessions/:session_id",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:record_id/sessions/:session_id",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -33004,7 +33004,7 @@
 																			}
 																		},
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/welllogs/:record_id/sessions/:session_id",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:record_id/sessions/:session_id",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -33060,7 +33060,7 @@
 																					}
 																				},
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/welllogs/:record_id/sessions/:session_id",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:record_id/sessions/:session_id",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -33125,7 +33125,7 @@
 																					}
 																				},
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/welllogs/:record_id/sessions/:session_id",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:record_id/sessions/:session_id",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -33179,7 +33179,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/welllogs/:record_id/sessions",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:record_id/sessions",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -33216,7 +33216,7 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/welllogs/:record_id/sessions",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:record_id/sessions",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -33263,7 +33263,7 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/welllogs/:record_id/sessions",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:record_id/sessions",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -33325,7 +33325,7 @@
 																	}
 																},
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/welllogs/:record_id/sessions",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:record_id/sessions",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -33377,7 +33377,7 @@
 																			}
 																		},
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/welllogs/:record_id/sessions",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:record_id/sessions",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -33438,7 +33438,7 @@
 																			}
 																		},
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/welllogs/:record_id/sessions",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:record_id/sessions",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -33491,7 +33491,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/welllogs/:record_id/data?offset=<integer>&limit=<integer>&curves=<string>&describe=false&filter=<string>&filter=<string>&orient=split",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:record_id/data?offset=<integer>&limit=<integer>&curves=<string>&describe=false&filter=<string>&filter=<string>&orient=split",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -33566,7 +33566,7 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/welllogs/:record_id/data?offset=<integer>&limit=<integer>&curves=<string>&describe=false&filter=<string>&orient=split",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:record_id/data?offset=<integer>&limit=<integer>&curves=<string>&describe=false&filter=<string>&orient=split",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -33645,7 +33645,7 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/welllogs/:record_id/data?offset=<integer>&limit=<integer>&curves=<string>&describe=false&filter=<string>&orient=split",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:record_id/data?offset=<integer>&limit=<integer>&curves=<string>&describe=false&filter=<string>&orient=split",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -33719,7 +33719,7 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/welllogs/:record_id/data?offset=<integer>&limit=<integer>&curves=<string>&describe=false&filter=<string>&orient=split",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:record_id/data?offset=<integer>&limit=<integer>&curves=<string>&describe=false&filter=<string>&orient=split",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -33813,7 +33813,7 @@
 																	}
 																},
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/welllogs/:record_id/data",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:record_id/data",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -33865,7 +33865,7 @@
 																			}
 																		},
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/welllogs/:record_id/data",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:record_id/data",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -33926,7 +33926,7 @@
 																			}
 																		},
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/welllogs/:record_id/data",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:record_id/data",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -33982,7 +33982,7 @@
 																			}
 																		},
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/welllogs/:record_id/data",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs/:record_id/data",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -34048,7 +34048,7 @@
 													}
 												},
 												"url": {
-													"raw": "{{baseUrl}}/ddms/v3/welllogs",
+													"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs",
 													"host": [
 														"{{baseUrl}}"
 													],
@@ -34092,7 +34092,7 @@
 															}
 														},
 														"url": {
-															"raw": "{{baseUrl}}/ddms/v3/welllogs",
+															"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs",
 															"host": [
 																"{{baseUrl}}"
 															],
@@ -34146,7 +34146,7 @@
 															}
 														},
 														"url": {
-															"raw": "{{baseUrl}}/ddms/v3/welllogs",
+															"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs",
 															"host": [
 																"{{baseUrl}}"
 															],
@@ -34195,7 +34195,7 @@
 															}
 														},
 														"url": {
-															"raw": "{{baseUrl}}/ddms/v3/welllogs",
+															"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3welllogs",
 															"host": [
 																"{{baseUrl}}"
 															],
@@ -34250,7 +34250,7 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:wellboretrajectoryid/versions/:version",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:wellboretrajectoryid/versions/:version",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -34293,7 +34293,7 @@
 																					}
 																				],
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:wellboretrajectoryid/versions/:version",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:wellboretrajectoryid/versions/:version",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -34344,7 +34344,7 @@
 																					}
 																				],
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:wellboretrajectoryid/versions/:version",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:wellboretrajectoryid/versions/:version",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -34390,7 +34390,7 @@
 																					}
 																				],
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:wellboretrajectoryid/versions/:version",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:wellboretrajectoryid/versions/:version",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -34444,7 +34444,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:wellboretrajectoryid/versions",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:wellboretrajectoryid/versions",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -34482,7 +34482,7 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:wellboretrajectoryid/versions",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:wellboretrajectoryid/versions",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -34529,7 +34529,7 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:wellboretrajectoryid/versions",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:wellboretrajectoryid/versions",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -34571,7 +34571,7 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:wellboretrajectoryid/versions",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:wellboretrajectoryid/versions",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -34621,7 +34621,7 @@
 															}
 														],
 														"url": {
-															"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:wellboretrajectoryid?purge=false",
+															"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:wellboretrajectoryid?purge=false",
 															"host": [
 																"{{baseUrl}}"
 															],
@@ -34664,7 +34664,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:wellboretrajectoryid?purge=false",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:wellboretrajectoryid?purge=false",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -34711,7 +34711,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:wellboretrajectoryid?purge=false",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:wellboretrajectoryid?purge=false",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -34758,7 +34758,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:wellboretrajectoryid?purge=false",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:wellboretrajectoryid?purge=false",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -34811,7 +34811,7 @@
 															}
 														],
 														"url": {
-															"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:wellboretrajectoryid",
+															"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:wellboretrajectoryid",
 															"host": [
 																"{{baseUrl}}"
 															],
@@ -34848,7 +34848,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:wellboretrajectoryid",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:wellboretrajectoryid",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -34894,7 +34894,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:wellboretrajectoryid",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:wellboretrajectoryid",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -34935,7 +34935,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:wellboretrajectoryid",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:wellboretrajectoryid",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -34996,7 +34996,7 @@
 																					}
 																				],
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:record_id/versions/:version/data?offset=<integer>&limit=<integer>&curves=<string>&describe=false&filter=<string>&filter=<string>&orient=split",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:record_id/versions/:version/data?offset=<integer>&limit=<integer>&curves=<string>&describe=false&filter=<string>&filter=<string>&orient=split",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -35077,7 +35077,7 @@
 																							}
 																						],
 																						"url": {
-																							"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:record_id/versions/:version/data?offset=<integer>&limit=<integer>&curves=<string>&describe=false&filter=<string>&orient=split",
+																							"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:record_id/versions/:version/data?offset=<integer>&limit=<integer>&curves=<string>&describe=false&filter=<string>&orient=split",
 																							"host": [
 																								"{{baseUrl}}"
 																							],
@@ -35161,7 +35161,7 @@
 																							}
 																						],
 																						"url": {
-																							"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:record_id/versions/:version/data?offset=<integer>&limit=<integer>&curves=<string>&describe=false&filter=<string>&orient=split",
+																							"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:record_id/versions/:version/data?offset=<integer>&limit=<integer>&curves=<string>&describe=false&filter=<string>&orient=split",
 																							"host": [
 																								"{{baseUrl}}"
 																							],
@@ -35240,7 +35240,7 @@
 																							}
 																						],
 																						"url": {
-																							"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:record_id/versions/:version/data?offset=<integer>&limit=<integer>&curves=<string>&describe=false&filter=<string>&orient=split",
+																							"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:record_id/versions/:version/data?offset=<integer>&limit=<integer>&curves=<string>&describe=false&filter=<string>&orient=split",
 																							"host": [
 																								"{{baseUrl}}"
 																							],
@@ -35354,7 +35354,7 @@
 																					}
 																				},
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:record_id/sessions/:session_id/data",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:record_id/sessions/:session_id/data",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -35412,7 +35412,7 @@
 																							}
 																						},
 																						"url": {
-																							"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:record_id/sessions/:session_id/data",
+																							"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:record_id/sessions/:session_id/data",
 																							"host": [
 																								"{{baseUrl}}"
 																							],
@@ -35478,7 +35478,7 @@
 																							}
 																						},
 																						"url": {
-																							"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:record_id/sessions/:session_id/data",
+																							"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:record_id/sessions/:session_id/data",
 																							"host": [
 																								"{{baseUrl}}"
 																							],
@@ -35539,7 +35539,7 @@
 																							}
 																						},
 																						"url": {
-																							"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:record_id/sessions/:session_id/data",
+																							"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:record_id/sessions/:session_id/data",
 																							"host": [
 																								"{{baseUrl}}"
 																							],
@@ -35594,7 +35594,7 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:record_id/sessions/:session_id",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:record_id/sessions/:session_id",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -35636,7 +35636,7 @@
 																					}
 																				],
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:record_id/sessions/:session_id",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:record_id/sessions/:session_id",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -35687,7 +35687,7 @@
 																					}
 																				],
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:record_id/sessions/:session_id",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:record_id/sessions/:session_id",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -35753,7 +35753,7 @@
 																			}
 																		},
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:record_id/sessions/:session_id",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:record_id/sessions/:session_id",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -35809,7 +35809,7 @@
 																					}
 																				},
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:record_id/sessions/:session_id",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:record_id/sessions/:session_id",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -35874,7 +35874,7 @@
 																					}
 																				},
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:record_id/sessions/:session_id",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:record_id/sessions/:session_id",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -35928,7 +35928,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:record_id/sessions",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:record_id/sessions",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -35965,7 +35965,7 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:record_id/sessions",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:record_id/sessions",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -36012,7 +36012,7 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:record_id/sessions",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:record_id/sessions",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -36074,7 +36074,7 @@
 																	}
 																},
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:record_id/sessions",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:record_id/sessions",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -36126,7 +36126,7 @@
 																			}
 																		},
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:record_id/sessions",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:record_id/sessions",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -36187,7 +36187,7 @@
 																			}
 																		},
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:record_id/sessions",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:record_id/sessions",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -36240,7 +36240,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:record_id/data?offset=<integer>&limit=<integer>&curves=<string>&describe=false&filter=<string>&filter=<string>&orient=split",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:record_id/data?offset=<integer>&limit=<integer>&curves=<string>&describe=false&filter=<string>&filter=<string>&orient=split",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -36315,7 +36315,7 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:record_id/data?offset=<integer>&limit=<integer>&curves=<string>&describe=false&filter=<string>&orient=split",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:record_id/data?offset=<integer>&limit=<integer>&curves=<string>&describe=false&filter=<string>&orient=split",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -36394,7 +36394,7 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:record_id/data?offset=<integer>&limit=<integer>&curves=<string>&describe=false&filter=<string>&orient=split",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:record_id/data?offset=<integer>&limit=<integer>&curves=<string>&describe=false&filter=<string>&orient=split",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -36468,7 +36468,7 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:record_id/data?offset=<integer>&limit=<integer>&curves=<string>&describe=false&filter=<string>&orient=split",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:record_id/data?offset=<integer>&limit=<integer>&curves=<string>&describe=false&filter=<string>&orient=split",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -36562,7 +36562,7 @@
 																	}
 																},
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:record_id/data",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:record_id/data",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -36614,7 +36614,7 @@
 																			}
 																		},
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:record_id/data",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:record_id/data",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -36675,7 +36675,7 @@
 																			}
 																		},
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:record_id/data",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:record_id/data",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -36731,7 +36731,7 @@
 																			}
 																		},
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories/:record_id/data",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories/:record_id/data",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -36797,7 +36797,7 @@
 													}
 												},
 												"url": {
-													"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories",
+													"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories",
 													"host": [
 														"{{baseUrl}}"
 													],
@@ -36841,7 +36841,7 @@
 															}
 														},
 														"url": {
-															"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories",
+															"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories",
 															"host": [
 																"{{baseUrl}}"
 															],
@@ -36895,7 +36895,7 @@
 															}
 														},
 														"url": {
-															"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories",
+															"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories",
 															"host": [
 																"{{baseUrl}}"
 															],
@@ -36944,7 +36944,7 @@
 															}
 														},
 														"url": {
-															"raw": "{{baseUrl}}/ddms/v3/wellboretrajectories",
+															"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboretrajectories",
 															"host": [
 																"{{baseUrl}}"
 															],
@@ -36999,7 +36999,7 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/wellbores/:wellboreid/versions/:version",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellbores/:wellboreid/versions/:version",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -37042,7 +37042,7 @@
 																					}
 																				],
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/wellbores/:wellboreid/versions/:version",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellbores/:wellboreid/versions/:version",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -37093,7 +37093,7 @@
 																					}
 																				],
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/wellbores/:wellboreid/versions/:version",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellbores/:wellboreid/versions/:version",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -37139,7 +37139,7 @@
 																					}
 																				],
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/wellbores/:wellboreid/versions/:version",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellbores/:wellboreid/versions/:version",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -37193,7 +37193,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/wellbores/:wellboreid/versions",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellbores/:wellboreid/versions",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -37231,7 +37231,7 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/wellbores/:wellboreid/versions",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellbores/:wellboreid/versions",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -37278,7 +37278,7 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/wellbores/:wellboreid/versions",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellbores/:wellboreid/versions",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -37320,7 +37320,7 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/wellbores/:wellboreid/versions",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellbores/:wellboreid/versions",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -37370,7 +37370,7 @@
 															}
 														],
 														"url": {
-															"raw": "{{baseUrl}}/ddms/v3/wellbores/:wellboreid",
+															"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellbores/:wellboreid",
 															"host": [
 																"{{baseUrl}}"
 															],
@@ -37407,7 +37407,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/wellbores/:wellboreid",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellbores/:wellboreid",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -37448,7 +37448,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/wellbores/:wellboreid",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellbores/:wellboreid",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -37489,7 +37489,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/wellbores/:wellboreid",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellbores/:wellboreid",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -37536,7 +37536,7 @@
 															}
 														],
 														"url": {
-															"raw": "{{baseUrl}}/ddms/v3/wellbores/:wellboreid",
+															"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellbores/:wellboreid",
 															"host": [
 																"{{baseUrl}}"
 															],
@@ -37573,7 +37573,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/wellbores/:wellboreid",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellbores/:wellboreid",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -37619,7 +37619,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/wellbores/:wellboreid",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellbores/:wellboreid",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -37660,7 +37660,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/wellbores/:wellboreid",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellbores/:wellboreid",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -37723,7 +37723,7 @@
 													}
 												},
 												"url": {
-													"raw": "{{baseUrl}}/ddms/v3/wellbores",
+													"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellbores",
 													"host": [
 														"{{baseUrl}}"
 													],
@@ -37767,7 +37767,7 @@
 															}
 														},
 														"url": {
-															"raw": "{{baseUrl}}/ddms/v3/wellbores",
+															"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellbores",
 															"host": [
 																"{{baseUrl}}"
 															],
@@ -37821,7 +37821,7 @@
 															}
 														},
 														"url": {
-															"raw": "{{baseUrl}}/ddms/v3/wellbores",
+															"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellbores",
 															"host": [
 																"{{baseUrl}}"
 															],
@@ -37870,7 +37870,7 @@
 															}
 														},
 														"url": {
-															"raw": "{{baseUrl}}/ddms/v3/wellbores",
+															"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellbores",
 															"host": [
 																"{{baseUrl}}"
 															],
@@ -37925,7 +37925,7 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/wellboremarkersets/:wellboremarkersetid/versions/:version",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboremarkersets/:wellboremarkersetid/versions/:version",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -37968,7 +37968,7 @@
 																					}
 																				],
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/wellboremarkersets/:wellboremarkersetid/versions/:version",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboremarkersets/:wellboremarkersetid/versions/:version",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -38019,7 +38019,7 @@
 																					}
 																				],
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/wellboremarkersets/:wellboremarkersetid/versions/:version",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboremarkersets/:wellboremarkersetid/versions/:version",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -38065,7 +38065,7 @@
 																					}
 																				],
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/wellboremarkersets/:wellboremarkersetid/versions/:version",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboremarkersets/:wellboremarkersetid/versions/:version",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -38119,7 +38119,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/wellboremarkersets/:wellboremarkersetid/versions",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboremarkersets/:wellboremarkersetid/versions",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -38157,7 +38157,7 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/wellboremarkersets/:wellboremarkersetid/versions",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboremarkersets/:wellboremarkersetid/versions",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -38204,7 +38204,7 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/wellboremarkersets/:wellboremarkersetid/versions",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboremarkersets/:wellboremarkersetid/versions",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -38246,7 +38246,7 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/wellboremarkersets/:wellboremarkersetid/versions",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboremarkersets/:wellboremarkersetid/versions",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -38296,7 +38296,7 @@
 															}
 														],
 														"url": {
-															"raw": "{{baseUrl}}/ddms/v3/wellboremarkersets/:wellboremarkersetid",
+															"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboremarkersets/:wellboremarkersetid",
 															"host": [
 																"{{baseUrl}}"
 															],
@@ -38333,7 +38333,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/wellboremarkersets/:wellboremarkersetid",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboremarkersets/:wellboremarkersetid",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -38374,7 +38374,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/wellboremarkersets/:wellboremarkersetid",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboremarkersets/:wellboremarkersetid",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -38415,7 +38415,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/wellboremarkersets/:wellboremarkersetid",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboremarkersets/:wellboremarkersetid",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -38462,7 +38462,7 @@
 															}
 														],
 														"url": {
-															"raw": "{{baseUrl}}/ddms/v3/wellboremarkersets/:wellboremarkersetid",
+															"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboremarkersets/:wellboremarkersetid",
 															"host": [
 																"{{baseUrl}}"
 															],
@@ -38499,7 +38499,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/wellboremarkersets/:wellboremarkersetid",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboremarkersets/:wellboremarkersetid",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -38545,7 +38545,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/wellboremarkersets/:wellboremarkersetid",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboremarkersets/:wellboremarkersetid",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -38586,7 +38586,7 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/wellboremarkersets/:wellboremarkersetid",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboremarkersets/:wellboremarkersetid",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -38649,7 +38649,7 @@
 													}
 												},
 												"url": {
-													"raw": "{{baseUrl}}/ddms/v3/wellboremarkersets",
+													"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboremarkersets",
 													"host": [
 														"{{baseUrl}}"
 													],
@@ -38693,7 +38693,7 @@
 															}
 														},
 														"url": {
-															"raw": "{{baseUrl}}/ddms/v3/wellboremarkersets",
+															"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboremarkersets",
 															"host": [
 																"{{baseUrl}}"
 															],
@@ -38747,7 +38747,7 @@
 															}
 														},
 														"url": {
-															"raw": "{{baseUrl}}/ddms/v3/wellboremarkersets",
+															"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboremarkersets",
 															"host": [
 																"{{baseUrl}}"
 															],
@@ -38796,7 +38796,7 @@
 															}
 														},
 														"url": {
-															"raw": "{{baseUrl}}/ddms/v3/wellboremarkersets",
+															"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3wellboremarkersets",
 															"host": [
 																"{{baseUrl}}"
 															],
@@ -38859,7 +38859,7 @@
 															}
 														},
 														"url": {
-															"raw": "{{baseUrl}}/ddms/v3/records/delete",
+															"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3records/delete",
 															"host": [
 																"{{baseUrl}}"
 															],
@@ -38904,7 +38904,7 @@
 																	}
 																},
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/records/delete",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3records/delete",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -38954,7 +38954,7 @@
 																	}
 																},
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/records/delete",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3records/delete",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -39004,7 +39004,7 @@
 																	}
 																},
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/records/delete",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3records/delete",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -39076,7 +39076,7 @@
 																			}
 																		},
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/query/wellbores/:wellboreId/welllogs",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3query/wellbores/:wellboreId/welllogs",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -39129,7 +39129,7 @@
 																					}
 																				},
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/query/wellbores/:wellboreId/welllogs",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3query/wellbores/:wellboreId/welllogs",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -39191,7 +39191,7 @@
 																					}
 																				},
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/query/wellbores/:wellboreId/welllogs",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3query/wellbores/:wellboreId/welllogs",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -39259,7 +39259,7 @@
 																			}
 																		},
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/query/wellbores/:wellboreId/wellboremarkersets",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3query/wellbores/:wellboreId/wellboremarkersets",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -39312,7 +39312,7 @@
 																					}
 																				},
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/query/wellbores/:wellboreId/wellboremarkersets",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3query/wellbores/:wellboreId/wellboremarkersets",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -39374,7 +39374,7 @@
 																					}
 																				},
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/query/wellbores/:wellboreId/wellboremarkersets",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3query/wellbores/:wellboreId/wellboremarkersets",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -39441,7 +39441,7 @@
 															}
 														},
 														"url": {
-															"raw": "{{baseUrl}}/ddms/v3/query/wellbores",
+															"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3query/wellbores",
 															"host": [
 																"{{baseUrl}}"
 															],
@@ -39486,7 +39486,7 @@
 																	}
 																},
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/query/wellbores",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3query/wellbores",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -39541,7 +39541,7 @@
 																	}
 																},
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/query/wellbores",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3query/wellbores",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -39608,7 +39608,7 @@
 																			}
 																		},
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/query/wellbore/:wellboreAttribute/welllogs",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3query/wellbore/:wellboreAttribute/welllogs",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -39661,7 +39661,7 @@
 																					}
 																				},
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/query/wellbore/:wellboreAttribute/welllogs",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3query/wellbore/:wellboreAttribute/welllogs",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -39723,7 +39723,7 @@
 																					}
 																				},
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/query/wellbore/:wellboreAttribute/welllogs",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3query/wellbore/:wellboreAttribute/welllogs",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -39806,7 +39806,7 @@
 																			}
 																		},
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/fastquery/wellbores/:wellbore_id/welllogs",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3fastquery/wellbores/:wellbore_id/welllogs",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -39859,7 +39859,7 @@
 																					}
 																				},
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/fastquery/wellbores/:wellbore_id/welllogs",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3fastquery/wellbores/:wellbore_id/welllogs",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -39921,7 +39921,7 @@
 																					}
 																				},
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/fastquery/wellbores/:wellbore_id/welllogs",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3fastquery/wellbores/:wellbore_id/welllogs",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -39989,7 +39989,7 @@
 																			}
 																		},
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/fastquery/wellbores/:wellbore_id/wellboremarkersets",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3fastquery/wellbores/:wellbore_id/wellboremarkersets",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -40042,7 +40042,7 @@
 																					}
 																				},
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/fastquery/wellbores/:wellbore_id/wellboremarkersets",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3fastquery/wellbores/:wellbore_id/wellboremarkersets",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -40104,7 +40104,7 @@
 																					}
 																				},
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/fastquery/wellbores/:wellbore_id/wellboremarkersets",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3fastquery/wellbores/:wellbore_id/wellboremarkersets",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -40171,7 +40171,7 @@
 															}
 														},
 														"url": {
-															"raw": "{{baseUrl}}/ddms/v3/fastquery/wellbores",
+															"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3fastquery/wellbores",
 															"host": [
 																"{{baseUrl}}"
 															],
@@ -40216,7 +40216,7 @@
 																	}
 																},
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/fastquery/wellbores",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3fastquery/wellbores",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -40271,7 +40271,7 @@
 																	}
 																},
 																"url": {
-																	"raw": "{{baseUrl}}/ddms/v3/fastquery/wellbores",
+																	"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3fastquery/wellbores",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
@@ -40338,7 +40338,7 @@
 																			}
 																		},
 																		"url": {
-																			"raw": "{{baseUrl}}/ddms/v3/fastquery/wellbore/:wellbore_attribute/welllogs",
+																			"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3fastquery/wellbore/:wellbore_attribute/welllogs",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
@@ -40391,7 +40391,7 @@
 																					}
 																				},
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/fastquery/wellbore/:wellbore_attribute/welllogs",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3fastquery/wellbore/:wellbore_attribute/welllogs",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
@@ -40453,7 +40453,7 @@
 																					}
 																				},
 																				"url": {
-																					"raw": "{{baseUrl}}/ddms/v3/fastquery/wellbore/:wellbore_attribute/welllogs",
+																					"raw": "{{baseUrl}}/api/os-wellbore-ddms/ddms/v3fastquery/wellbore/:wellbore_attribute/welllogs",
 																					"host": [
 																						"{{baseUrl}}"
 																					],
