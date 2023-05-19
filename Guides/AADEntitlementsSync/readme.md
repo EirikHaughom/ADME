@@ -210,14 +210,21 @@ az account set --subscription <subscription-id>
 
     # Invoke Graph service to create group
     Invoke-RestMethod `
-        -Uri "https://graph.microsoft.com/v1.0/servicePrincipals/$GraphOID/appRoleAssignments" `
+        -Uri "https://graph.microsoft.com/v1.0/servicePrincipals/$logicAppManagedIdentity/appRoleAssignments" `
         -ContentType "application/json" `
         -Method POST `
         -Headers $headers `
         -Body $groupBody
     ```
 
-5. That's it! Now you should have a working Logic App monitoring the group specified. Proceed to the next chapter to test and verify the Logic App.
+5. Add the Logic App Managed Identity to the necessary OSDU Entitlements groups
+    ```powershell
+    osdu entitlements members add -m $logicAppManagedIdentity -g $entitlementsGroup@$dataPartitionId.dataservices.energy -r OWNER
+    osdu entitlements members add -m $logicAppManagedIdentity -g users@$dataPartitionId.dataservices.energy -r MEMBER
+    osdu entitlements members add -m $logicAppManagedIdentity -g service.entitlements.admin@$dataPartitionId.dataservices.energy -r MEMBER
+    ```
+
+6. That's it! Now you should have a working Logic App monitoring the group specified. Proceed to the next chapter to test and verify the Logic App.
 
 
 # Test and verify
