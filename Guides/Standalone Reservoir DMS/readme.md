@@ -371,11 +371,12 @@ Part 2 will deploy the RDDMS REST API and allow you to expose the RDDMS Server o
 2. Fetch the RDDMS SSL Client container image.
     ```PowerShell
     # Download docker container image
-    docker pull community.opengroup.org:5555/osdu/platform/domain-data-mgmt-services/reservoir/open-etp-server/open-etp-sslclient-release-0-19
+    docker pull community.opengroup.org:5555/osdu/platform/domain-data-mgmt-services/reservoir/open-etp-server/open-etp-sslclient-v0-21-0
 
     # Rename to open-etp:ssl-client
-    docker tag community.opengroup.org:5555/osdu/platform/domain-data-mgmt-services/reservoir/open-etp-server/open-etp-sslclient-release-0-19 open-etp:ssl-client
+    docker tag community.opengroup.org:5555/osdu/platform/domain-data-mgmt-services/reservoir/open-etp-server/open-etp-sslclient-v0-21-0 open-etp:ssl-client
     ```
+    > ⚠️ Note: If the download doesn't work, check if there's a new client version in the [OSDU repository](https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/reservoir/open-etp-server/container_registry).
 3. Run the below command to test access to the RDDMS Websocket API
     ```PowerShell
     # Define variables
