@@ -464,9 +464,9 @@ Part 2 will deploy the RDDMS REST API and allow you to expose the RDDMS Server o
 
     Write-Host "Open https://portal.azure.com/#@$tenantId/resource$apiId/apim-apis"
 
-    Write-Host "Select the $websocketApi.Name and open the code editor view for Inbound policy. Replace the entire config with the following:"
+    Write-Host "Select the $restApi.Name and open the code editor view for Inbound policy. Replace the entire config with the following:"
     $policy
 
     ```
 
-1. That's it! You should now be able to connect to the RDDMS Server websocket API using JWT tokens from Azure CLI.<br><br>
+1. That's it! You should now be able to connect to the RDDMS Server REST API using JWT tokens from Azure CLI.<br><br>
