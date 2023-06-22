@@ -399,7 +399,7 @@ Part 2 will deploy the RDDMS REST API and allow you to expose the RDDMS Server o
 1. Deploy the RDDMS Client REST API to APIM
     ```Powershell 
     $serviceUrl = "https://"+$rddmsApi.ipAddress.ip+":"+$rddmsApiPort+"/Reservoir/v2"
-    $apiDefinition = ""
+    $apiDefinition = "https://raw.githubusercontent.com/EirikHaughom/ADME/main/Guides/Standalone%20Reservoir%20DMS/api-docs/ReservoirDDMS.openapi.yaml"
 
     $restApi = az apim api import --resource-group $resourceGroup `
             --path "/" `
