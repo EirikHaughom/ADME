@@ -227,6 +227,41 @@ Part 2 will deploy the RDDMS REST API and allow you to expose the RDDMS Server o
     ```
 <br>
 
+## Deploying the RDDMS Client (REST API)
+1. Pull the image from public repository into your ACR.
+    ```Powershell
+    az acr import -n $acr.name `
+    --source rddms.azurecr.io/open-etp-restapi-eihaugho-aci:latest
+    ```
+
+2. Create Azure Container Instance based on the image.
+    ```Powershell
+    $containerImage = $acr.loginServer+"/open-etp-restapi-eihaugho-aci:latest"
+    $rmdsRestMainUrl = $api.gatewayUrl
+    $rdmsEtpHost = $rddmsServer.ipAddress.ip
+
+    $rddmsApi = az container create --resource-group $resourceGroup `
+        --name $rddmsApiName `
+        --image $containerImage `
+        --registry-username $acrUsername `
+        --registry-password $acrPassword `
+        --ports $rddmsApiPort `
+        --environment-variables `
+        RDMS_ETP_HOST=$rdmsEtpHost `
+        RDMS_ETP_PROTOCOL=ws `
+        RDMS_ETP_PORT=$rddmsServerPort `
+        RDMS_REST_PORT=$rddmsApiPort `
+        RDMS_JWT_SECRET=$jwtSecret `
+        RDMS_AUTHENTICATION_KEY_BASE=0000000-0000-0000-0000-000000000000 `
+        RDMS_REST_ROOT_PATH=/Reservoir/v2 `
+        RDMS_REST_MAIN_URL=$rmdsRestMainUrl `
+        RDMS_DATA_PARTITION_MODE=single `
+        --ip-address Private `
+        --vnet $vnet.name `
+        --subnet $containerSubnet.id
+    ```
+    <br>
+
 # Part 2
 
 ## Deploying Azure API Management
@@ -255,41 +290,6 @@ Part 2 will deploy the RDDMS REST API and allow you to expose the RDDMS Server o
 
     # Add subnet configuration to the APIM resource
     az resource update --ids $apiId --set properties.virtualNetworkConfiguration.subnetResourceId=$apiSubnetId --set properties.virtualNetworkType=External
-    ```
-    <br>
-
-## Deploying the RDDMS Client (REST API)
-1. Pull the image from public repository into your ACR.
-    ```Powershell
-    az acr import -n $acr.name `
-    --source rddms.azurecr.io/open-etp-restapi-eihaugho-aci:latest
-    ```
-
-2. Create Azure Container Instance based on the image.
-    ```Powershell
-    $containerImage = $acr.loginServer+"/open-etp-restapi-eihaugho-aci:latest"
-    $rmdsRestMainUrl = $api.gatewayUrl
-    $rdmsEtpHost = $rddmsServer.ipAddress.ip
-
-    az container create --resource-group $resourceGroup `
-        --name $rddmsApiName `
-        --image $containerImage `
-        --registry-username $acrUsername `
-        --registry-password $acrPassword `
-        --ports $rddmsApiPort `
-        --environment-variables `
-        RDMS_ETP_HOST=$rdmsEtpHost `
-        RDMS_ETP_PROTOCOL=ws `
-        RDMS_ETP_PORT=$rddmsServerPort `
-        RDMS_REST_PORT=$rddmsApiPort `
-        RDMS_JWT_SECRET=$jwtSecret `
-        RDMS_AUTHENTICATION_KEY_BASE=0000000-0000-0000-0000-000000000000 `
-        RDMS_REST_ROOT_PATH=/Reservoir/v2 `
-        RDMS_REST_MAIN_URL=$rmdsRestMainUrl `
-        RDMS_DATA_PARTITION_MODE=single `
-        --ip-address Private `
-        --vnet $vnet.name `
-        --subnet $containerSubnet.id
     ```
     <br>
 
@@ -394,6 +394,79 @@ Part 2 will deploy the RDDMS REST API and allow you to expose the RDDMS Server o
 4. See more examples of end-to-end testing in the [official documentation](https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/reservoir/open-etp-server/-/blob/main/docs/testing.md).
 <br><br>
 
-## Work in Progress
+## Deploy RDDMS Server to APIM and add Azure AD authentication
 
-### Exposing the RDDMS REST API over internet with APIM.
+1. Deploy the RDDMS Client REST API to APIM
+    ```Powershell 
+    $serviceUrl = "https://"+$rddmsApi.ipAddress.ip+":"+$rddmsApiPort+"/Reservoir/v2"
+    $apiDefinition = ""
+
+    $restApi = az apim api import --resource-group $resourceGroup `
+            --path "/" `
+            --service-name $api.name `
+            --specification-format OpenApi `
+            --specification-url $apiDefinition `
+            --protocols https `
+            --service-url $serviceUrl `
+            --subscription-required false
+    ```
+
+1. Add JWT token validation policy to APIM. 
+<br>Azure CLI currently do not support APIM policy configuration, for a programmatic approach you can use the [Az.ApiManagement](https://learn.microsoft.com/en-us/powershell/module/az.apimanagement/?view=azps-9.4.0) PowerShell module.
+    ```powershell
+    # Configure JWT token Azure AD validation
+    $environment = az account show | convertfrom-json 
+    $tenantId = $environment.tenantId
+    $subscriptionId = $environment.id
+    $groupId = $adGroup.id
+    $apiName = $api.name
+    $apiId = $api.id
+
+    $policy = @"
+    <policies>
+        <inbound>
+            <base />
+                <validate-azure-ad-token tenant-id="$tenantId" failed-validation-httpcode="401">
+                    <client-application-ids>
+                        <application-id>04b07795-8ddb-461a-bbee-02f9e1bf7b46</application-id>
+                    </client-application-ids>
+                    <required-claims>
+                        <claim name="groups" match="all">
+                            <value>$groupId</value>
+                        </claim>
+                    </required-claims>
+                </validate-azure-ad-token>
+            <!-- Send request to Token Server to validate token (see RFC 7662) -->
+            <send-request mode="new" response-variable-name="getrddmstokenresponse" timeout="20" ignore-error="true">
+                <set-url>http://$rddmsApi.ipAddress.ip:$rddmsApiPort/reservoir/v2/auth/token</set-url>
+                <set-method>GET</set-method>
+            </send-request>
+            <set-variable name="getrddmstoken" value="@{
+                var responseJson = ((IResponse)context.Variables["getrddmstokenresponse"]).Body.As<string>();
+                var tokenObj = Newtonsoft.Json.JsonConvert.DeserializeObject<Newtonsoft.Json.Linq.JObject>(responseJson);
+                return tokenObj["token"].Value<string>();
+            }" />
+            <set-header name="Authorization" exists-action="override">
+                <value>@("Bearer " + (string)context.Variables["getrddmstoken"])</value>
+            </set-header>
+        </inbound>
+        <backend>
+            <base />
+        </backend>
+        <outbound>
+            <base />
+        </outbound>
+        <on-error>
+            <base />
+        </on-error>
+    </policies>
+    "@
+
+    Write-Host "Open https://portal.azure.com/#@$tenantId/resource$apiId/apim-apis"
+
+    Write-Host "Select the $websocketApi.Name and open the code editor view for Inbound policy. Replace the entire config with the following:"
+    $policy
+
+    ```
+
+1. That's it! You should now be able to connect to the RDDMS Server websocket API using JWT tokens from Azure CLI.<br><br>
