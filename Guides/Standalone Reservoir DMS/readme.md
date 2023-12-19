@@ -91,30 +91,30 @@ Part 2 will deploy the RDDMS REST API and allow you to expose the RDDMS Server o
 
     # Create Virtual Network
     $vnet = az network vnet create --resource-group $resourceGroup `
-    --name myName `
-    --address-prefix 10.1.0.0/16
+        --name myName `
+        --address-prefix 10.1.0.0/16
     $vnet = ($vnet | convertfrom-json).newvnet
 
     # Create subnet for the containers
     $containerSubnet = az network vnet subnet create --resource-group $resourceGroup `
-    --name containerSubnet `
-    --address-prefix 10.1.0.0/24 `
-    --vnet-name $vnet.name `
-    --delegations Microsoft.ContainerInstance/containerGroups
+        --name containerSubnet `
+        --address-prefix 10.1.0.0/24 `
+        --vnet-name $vnet.name `
+        --delegations Microsoft.ContainerInstance/containerGroups
     $containerSubnet = $containerSubnet | convertfrom-json
 
     # Create subnet for the database
     $dbSubnet = az network vnet subnet create --resource-group $resourceGroup `
-    --name dbSubnet `
-    --address-prefix 10.1.1.0/24 `
-    --vnet-name $vnet.name
+        --name dbSubnet `
+        --address-prefix 10.1.1.0/24 `
+        --vnet-name $vnet.name
     $dbSubnet = $dbSubnet | convertfrom-json
 
     # Create subnet for the Azure API Management
     $apiSubnet = az network vnet subnet create --resource-group $resourceGroup `
-    --name apiSubnet `
-    --address-prefix 10.1.2.0/24 `
-    --vnet-name $vnet.name
+        --name apiSubnet `
+        --address-prefix 10.1.2.0/24 `
+        --vnet-name $vnet.name
     $apiSubnet = $apiSubnet | convertfrom-json
     ```
 <br>
@@ -123,13 +123,13 @@ Part 2 will deploy the RDDMS REST API and allow you to expose the RDDMS Server o
 1. Create a new Azure Database for PostgreSQL server.
     ```Powershell
     $dbServer = az postgres server create --resource-group $resourceGroup `
-    --name $dbServerName `
-    --admin-user $dbServerUsername `
-    --admin-password $dbServerPassword `
-    --sku-name GP_Gen5_2 `
-    --public-network-access disabled `
-    --ssl-enforcement disabled `
-    --version 11
+        --name $dbServerName `
+        --admin-user $dbServerUsername `
+        --admin-password $dbServerPassword `
+        --sku-name GP_Gen5_2 `
+        --public-network-access disabled `
+        --ssl-enforcement disabled `
+        --version 11
     $dbServer = $dbServer | convertfrom-json
     ```
 2. Create Private Link and Private DNS Zone for the PostgreSQL server.
@@ -140,12 +140,12 @@ Part 2 will deploy the RDDMS REST API and allow you to expose the RDDMS Server o
 
     # Create Private Endpoint
     $privateEndpoint = az network private-endpoint create --resource-group $resourceGroup `
-    --name $nicName `
-    --vnet-name $vnet.name `
-    --subnet $dbSubnet.name `
-    --private-connection-resource-id $dbServer.id `
-    --group-id postgresqlServer `
-    --connection-name $connName
+        --name $nicName `
+        --vnet-name $vnet.name `
+        --subnet $dbSubnet.name `
+        --private-connection-resource-id $dbServer.id `
+        --group-id postgresqlServer `
+        --connection-name $connName
     $privateEndpoint = $privateEndpoint | convertfrom-json
 
     # Create Private DNS Zone
@@ -154,27 +154,27 @@ Part 2 will deploy the RDDMS REST API and allow you to expose the RDDMS Server o
 
     # Link Private DNS Zone to VNET
     az network private-dns link vnet create --resource-group $resourceGroup `
-    --zone-name  "privatelink.postgres.database.azure.com" `
-    --name $privateLinkName `
-    --virtual-network $vnet.name `
-    --registration-enabled false
+        --zone-name  "privatelink.postgres.database.azure.com" `
+        --name $privateLinkName `
+        --virtual-network $vnet.name `
+        --registration-enabled false
 
     # Create a-record in the Private DNS Zone
     az network private-dns record-set a create --resource-group $resourceGroup `
-    --name $dbServer.name `
-    --zone-name privatelink.postgres.database.azure.com 
+        --name $dbServer.name `
+        --zone-name privatelink.postgres.database.azure.com 
 
     # Add Private IP address to the a-record
     az network private-dns record-set a add-record --resource-group $resourceGroup `
-    --record-set-name $dbServer.name `
-    --zone-name privatelink.postgres.database.azure.com `
-    -a $privateEndpoint.customDnsConfigs.ipAddresses
+        --record-set-name $dbServer.name `
+        --zone-name privatelink.postgres.database.azure.com `
+        -a $privateEndpoint.customDnsConfigs.ipAddresses
     ```
 3. Create a database on the PostgreSQL server.
     ```Powershell
     $db = az postgres db create --resource-group $resourceGroup `
-    --name rddms `
-    --server-name $dbServer.name
+        --name rddms `
+        --server-name $dbServer.name
     $db = $db | convertfrom-json
     ```
 <br><br>
@@ -183,9 +183,9 @@ Part 2 will deploy the RDDMS REST API and allow you to expose the RDDMS Server o
 1. Create an Azure Container Registry (ACR) to host the Container Image.
     ```Powershell
     $acr = az acr create --resource-group $resourceGroup `
-    --name $containerRegistryName `
-    --sku Basic `
-    --admin-enabled true
+        --name $containerRegistryName `
+        --sku Basic `
+        --admin-enabled true
     $acr = $acr | convertfrom-json
 
     # Gets admin credentials for the AC, to be used when creating container later on.
@@ -206,17 +206,18 @@ Part 2 will deploy the RDDMS REST API and allow you to expose the RDDMS Server o
     $cmd = "openETPServer server --start --port "+$rddmsServerPort+" --jwt-secret "+$jwtSecret
 
     $rddmsServer = az container create --resource-group $resourceGroup `
-    --name $rddmsServerName `
-    --dns-name-label $rddmsServerName `
-    --image $containerImage `
-    --registry-username $acrUsername `
-    --registry-password $acrPassword `
-    --ports $rddmsServerPort `
-    --environment-variables `
-    RDMS_DATA_PARTITION_MODE=single `
-    POSTGRESQL_CONN_STRING=$connString `
-    --command-line $cmd `
-    --ip-address Public
+        --name $rddmsServerName `
+        --image $containerImage `
+        --registry-username $acrUsername `
+        --registry-password $acrPassword `
+        --ports $rddmsServerPort `
+        --environment-variables `
+        RDMS_DATA_PARTITION_MODE=single `
+        POSTGRESQL_CONN_STRING=$connString `
+        --command-line $cmd `
+        --ip-address Private `
+        --vnet $vnet.id `
+        --subnet $containerSubnet.id
     $rddmsServer = $rddmsServer | convertfrom-json
 
     $rddmsServerUrl = "ws://"+$rddmsServer.ipAddress.ip+":"+$rddmsServerPort
@@ -225,6 +226,41 @@ Part 2 will deploy the RDDMS REST API and allow you to expose the RDDMS Server o
     Write-Host "Proceed with Phase 2 to deploy the API Gateway and REST API for public access" -ForegroundColor green 
     ```
 <br>
+
+## Deploying the RDDMS Client (REST API)
+1. Pull the image from public repository into your ACR.
+    ```Powershell
+    az acr import -n $acr.name `
+    --source rddms.azurecr.io/open-etp-restapi-eihaugho-aci:latest
+    ```
+
+2. Create Azure Container Instance based on the image.
+    ```Powershell
+    $containerImage = $acr.loginServer+"/open-etp-restapi-eihaugho-aci:latest"
+    $rmdsRestMainUrl = $api.gatewayUrl
+    $rdmsEtpHost = $rddmsServer.ipAddress.ip
+
+    $rddmsApi = az container create --resource-group $resourceGroup `
+        --name $rddmsApiName `
+        --image $containerImage `
+        --registry-username $acrUsername `
+        --registry-password $acrPassword `
+        --ports $rddmsApiPort `
+        --environment-variables `
+        RDMS_ETP_HOST=$rdmsEtpHost `
+        RDMS_ETP_PROTOCOL=ws `
+        RDMS_ETP_PORT=$rddmsServerPort `
+        RDMS_REST_PORT=$rddmsApiPort `
+        RDMS_JWT_SECRET=$jwtSecret `
+        RDMS_AUTHENTICATION_KEY_BASE=0000000-0000-0000-0000-000000000000 `
+        RDMS_REST_ROOT_PATH=/Reservoir/v2 `
+        RDMS_REST_MAIN_URL=$rmdsRestMainUrl `
+        RDMS_DATA_PARTITION_MODE=single `
+        --ip-address Private `
+        --vnet $vnet.name `
+        --subnet $containerSubnet.id
+    ```
+    <br>
 
 # Part 2
 
@@ -236,12 +272,12 @@ Part 2 will deploy the RDDMS REST API and allow you to expose the RDDMS Server o
     $privateLinkName = $vnet.name+"-api-dnslink"
 
     az apim create --resource-group $resourceGroup `
-    --name $apiName `
-    --publisher-email $apiPublisherEmail `
-    --publisher-name $apiPublisherName `
-    --public-network-access true `
-    --sku-name Developer `
-    --virtual-network External
+        --name $apiName `
+        --publisher-email $apiPublisherEmail `
+        --publisher-name $apiPublisherName `
+        --public-network-access true `
+        --sku-name Developer `
+        --virtual-network External
     ```
 
 2. ⚠️ **Wait until the APIM instance is activated before you continue.** This may take ~1 hour to complete. You will receive an email (to the one specified in $apiPublisherEmail) once it is activated.
@@ -257,62 +293,27 @@ Part 2 will deploy the RDDMS REST API and allow you to expose the RDDMS Server o
     ```
     <br>
 
-## Deploying the RDDMS Client (REST API)
-1. Pull the image from public repository into your ACR.
-    ```Powershell
-    az acr import -n $acr.name `
-    --source rddms.azurecr.io/open-etp-restapi-eihaugho-aci:latest
-    ```
-
-2. Create Azure Container Instance based on the image.
-    ```Powershell
-    $containerImage = $acr.loginServer+"/open-etp-restapi-eihaugho-aci:latest"
-    $rmdsRestMainUrl = $api.gatewayUrl
-    $rdmsEtpHost = $rddmsServer.ipAddress.ip
-
-    az container create --resource-group $resourceGroup `
-    --name $rddmsApiName `
-    --image $containerImage `
-    --registry-username $acrUsername `
-    --registry-password $acrPassword `
-    --ports $rddmsApiPort `
-    --environment-variables `
-    RDMS_ETP_HOST=$rdmsEtpHost `
-    RDMS_ETP_PROTOCOL=ws `
-    RDMS_ETP_PORT=$rddmsServerPort `
-    RDMS_REST_PORT=$rddmsApiPort `
-    RDMS_JWT_SECRET=$jwtSecret `
-    RDMS_AUTHENTICATION_KEY_BASE=0000000-0000-0000-0000-000000000000 `
-    RDMS_REST_ROOT_PATH=/Reservoir/v2 `
-    RDMS_REST_MAIN_URL=$rmdsRestMainUrl `
-    RDMS_DATA_PARTITION_MODE=single `
-    --ip-address Private `
-    --vnet $vnet.name `
-    --subnet $containerSubnet.id
-    ```
-    <br>
-
 ## Deploy RDDMS Server to APIM and add Azure AD authentication
 1. Deploy the RDDMS Server Websocket API to APIM
     ```Powershell 
     $serviceUrl = "ws://"+$rddmsServer.ipAddress.ip+":"+$rddmsServerPort
 
     $websocketApi = az apim api create --resource-group $resourceGroup `
-    --api-id $rddmsServerName `
-    --display-name $rddmsServerName `
-    --path "/" `
-    --service-name $api.name `
-    --api-type websocket `
-    --service-url $serviceUrl `
-    | convertfrom-json
+        --api-id $rddmsServerName `
+        --display-name $rddmsServerName `
+        --path "/" `
+        --service-name $api.name `
+        --api-type websocket `
+        --service-url $serviceUrl `
+        | convertfrom-json
     ```
 
 2. Create Azure AD group which will have access to call the RDDMS server API.
     ```Powershell
     $adGroup = az ad group create `
-    --display-name $azureAdGroupName `
-    --mail-nickname $azureAdGroupName `
-    | convertfrom-json
+        --display-name $azureAdGroupName `
+        --mail-nickname $azureAdGroupName `
+        | convertfrom-json
     ```
 
 3. Add JWT token validation policy to APIM. 
@@ -370,11 +371,12 @@ Part 2 will deploy the RDDMS REST API and allow you to expose the RDDMS Server o
 2. Fetch the RDDMS SSL Client container image.
     ```PowerShell
     # Download docker container image
-    docker pull community.opengroup.org:5555/osdu/platform/domain-data-mgmt-services/reservoir/open-etp-server/open-etp-sslclient-release-0-19
+    docker pull community.opengroup.org:5555/osdu/platform/domain-data-mgmt-services/reservoir/open-etp-server/open-etp-sslclient-v0-21-0
 
     # Rename to open-etp:ssl-client
-    docker tag community.opengroup.org:5555/osdu/platform/domain-data-mgmt-services/reservoir/open-etp-server/open-etp-sslclient-release-0-19 open-etp:ssl-client
+    docker tag community.opengroup.org:5555/osdu/platform/domain-data-mgmt-services/reservoir/open-etp-server/open-etp-sslclient-v0-21-0 open-etp:ssl-client
     ```
+    > ⚠️ Note: If the download doesn't work, check if there's a new client version in the [OSDU repository](https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/reservoir/open-etp-server/container_registry).
 3. Run the below command to test access to the RDDMS Websocket API
     ```PowerShell
     # Define variables
@@ -392,6 +394,79 @@ Part 2 will deploy the RDDMS REST API and allow you to expose the RDDMS Server o
 4. See more examples of end-to-end testing in the [official documentation](https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/reservoir/open-etp-server/-/blob/main/docs/testing.md).
 <br><br>
 
-## Work in Progress
+## Deploy RDDMS Server to APIM and add Azure AD authentication
 
-### Exposing the RDDMS REST API over internet with APIM.
+1. Deploy the RDDMS Client REST API to APIM
+    ```Powershell 
+    $serviceUrl = "https://"+$rddmsApi.ipAddress.ip+":"+$rddmsApiPort+"/Reservoir/v2"
+    $apiDefinition = "https://raw.githubusercontent.com/EirikHaughom/ADME/main/Guides/Standalone%20Reservoir%20DMS/api-docs/ReservoirDDMS.openapi.yaml"
+
+    $restApi = az apim api import --resource-group $resourceGroup `
+            --path "/" `
+            --service-name $api.name `
+            --specification-format OpenApi `
+            --specification-url $apiDefinition `
+            --protocols https `
+            --service-url $serviceUrl `
+            --subscription-required false
+    ```
+
+1. Add JWT token validation policy to APIM. 
+<br>Azure CLI currently do not support APIM policy configuration, for a programmatic approach you can use the [Az.ApiManagement](https://learn.microsoft.com/en-us/powershell/module/az.apimanagement/?view=azps-9.4.0) PowerShell module.
+    ```powershell
+    # Configure JWT token Azure AD validation
+    $environment = az account show | convertfrom-json 
+    $tenantId = $environment.tenantId
+    $subscriptionId = $environment.id
+    $groupId = $adGroup.id
+    $apiName = $api.name
+    $apiId = $api.id
+
+    $policy = @"
+    <policies>
+        <inbound>
+            <base />
+                <validate-azure-ad-token tenant-id="$tenantId" failed-validation-httpcode="401">
+                    <client-application-ids>
+                        <application-id>04b07795-8ddb-461a-bbee-02f9e1bf7b46</application-id>
+                    </client-application-ids>
+                    <required-claims>
+                        <claim name="groups" match="all">
+                            <value>$groupId</value>
+                        </claim>
+                    </required-claims>
+                </validate-azure-ad-token>
+            <!-- Send request to Token Server to validate token (see RFC 7662) -->
+            <send-request mode="new" response-variable-name="getrddmstokenresponse" timeout="20" ignore-error="true">
+                <set-url>http://$rddmsApi.ipAddress.ip:$rddmsApiPort/reservoir/v2/auth/token</set-url>
+                <set-method>GET</set-method>
+            </send-request>
+            <set-variable name="getrddmstoken" value="@{
+                var responseJson = ((IResponse)context.Variables["getrddmstokenresponse"]).Body.As<string>();
+                var tokenObj = Newtonsoft.Json.JsonConvert.DeserializeObject<Newtonsoft.Json.Linq.JObject>(responseJson);
+                return tokenObj["token"].Value<string>();
+            }" />
+            <set-header name="Authorization" exists-action="override">
+                <value>@("Bearer " + (string)context.Variables["getrddmstoken"])</value>
+            </set-header>
+        </inbound>
+        <backend>
+            <base />
+        </backend>
+        <outbound>
+            <base />
+        </outbound>
+        <on-error>
+            <base />
+        </on-error>
+    </policies>
+    "@
+
+    Write-Host "Open https://portal.azure.com/#@$tenantId/resource$apiId/apim-apis"
+
+    Write-Host "Select the $restApi.Name and open the code editor view for Inbound policy. Replace the entire config with the following:"
+    $policy
+
+    ```
+
+1. That's it! You should now be able to connect to the RDDMS Server REST API using JWT tokens from Azure CLI.<br><br>

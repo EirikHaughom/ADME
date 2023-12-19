@@ -1,12 +1,10 @@
 ## Description
 
-This postman collection includes all REST API calls available for Azure Data Manager for Energy (ADME) M12 core services. It is based on the native OSDU APIs, so it could also be used for anyone running a self-managed version of the OSDU M12 release.
-
-Domain Data Management Services are not included.
+This postman collection includes all REST API calls available for Azure Data Manager for Energy (ADME) M14 core services. It is based on the native OSDU APIs, so it could also be used for anyone running a self-managed version of the OSDU M14 release.
 <br />
 
 ## Services Covered
-The services mentioned below are covered, and the API calls are imported from the official [ADME documentation](https://microsoft.github.io/meds-samples/).
+The services mentioned below are covered, and the API calls are imported from the official [ADME documentation](https://microsoft.github.io/adme-samples/).
 
 - CRS Catalog
 - CRS Converter
@@ -20,51 +18,79 @@ The services mentioned below are covered, and the API calls are imported from th
 - Register
 - Schema
 - Search
+- Seismic DDMS
 - Storage
 - Unit
+- Well Delivery DDMS
+- Wellbore DDMS
 - Workflow
 
 <sub>\* The Partition service is locked down on ADME, as data partitions are handled by Azure Resource Manager (ARM) through CLI, PowerShell or Azure Portal.</sub>
 
 ## Usage
-1. Copy the link to the [Postman Collection JSON file](json/Azure%20Data%20Manager%20for%20Energy%20(M12).postman_collection.json?raw=1).
+1. Copy the link to the [Postman Collection JSON file](./json/ADME%20(M14).postman_collection.json?raw=1).
 2. In Postman select *Import*.
 3. Select *Link*.
 4. Paste the link copied above.
-5. Repeat the same for the [Postman Environment JSON file](json/Azure%20Data%20Manager%20for%20Energy.postman_environment.json?raw=1).
+5. Repeat the same for the [Postman Environment JSON file](./json/ADME.postman_environment.json?raw=1).
 
 ## Environment variables
-| Variable | Description |
-|----------|----------------------|
-|access_token|Value will be automatically populated by running the authenticate API calls|
-|refresh_token|Value will be automatically populated by running the authenticate API calls|
-|instance|Hostname of your ADME instance (i.e. eirik.energy.azure.com)
-|client_id|The App Registration client ID used to provision ADME|
-|data_partition|The Data Partition ID from ADME (i.e. eirik-opendes)|
-|client_secret|A valid App Registration secret for the above client_id|
-|tenant_id|Azure AD tenant ID
-|baseUrl|**Do not change**|
+| Variable |Format | Description |
+|----------|-------|-------------|
+|access_token|*N/A*|Value will be automatically populated by running the manual authentication API calls|
+|refresh_token|*N/A*|Value will be automatically populated by running the manual authentication API calls|
+|instance|contoso.energy.azure.com|Hostname of your ADME instance
+|client_id|00000000-0000-0000-0000-000000000000|The App Registration client ID used to provision ADME|
+|data_partition|contoso-opendes|The Data Partition ID from ADME (i.e. eirik-opendes)|
+|client_secret|*N/A*|A valid App Registration secret for the above client_id|
+|tenant_id|00000000-0000-0000-0000-000000000000|Azure AD tenant ID
+|scope|00000000-0000-0000-0000-000000000000/.default openid profile offline_access|The scope to use when authenticating. The ID represents an App Registration ID (client_id)|
+|baseUrl|https://{{instance}}|***Do not change***|
+
 
 ## Authenticating
+### Interactive
+#### User Token
+Interactive login is the default authentication method. This will use open an interactive browser window and automatically authenticate and refresh access tokens.
 
-### User Token
+1. Configure the following callback URL (Web) on the App Registration
+    ```
+    https://oauth.pstmn.io/v1/callback
+    ```
+2. Go to the top folder of the ADME API collection you have imported
+3. Scroll to the bottom and click `Get New Access Token`
+![screenshot of Postman Oauth2 configuration](./img/postman-oauth2.png)
+4. A new tab will open in your browser, complete the sign-in. *Note that you may have to allow pop-ups in your browser the first time.*
+5. **You should now have obtained an Access Token to consume the APIs**
+
+#### Service Principal (App Registration)
+Follow the procedure for [User Token](#user-token), but change the `Grant Type` to ***`Client Credentials`***.
+![screenshot of Postman Bearer Token authentication](./img/postman-bearertoken.png)
+
+### Manual
+Manual authentication requires some additional manual steps to generate the authorization code 
+
+#### User Token
 1. Go to the ADME API collection you have imported.
-2. Generate an `authentication code` by navigating to the following URL:
+2. Select the top folder and choose the *Authorization* tab.
+3. Change *Type* to `Bearer Token` and add {{access_token}} as the *Token* value.
+4. Generate an `authentication code` by navigating to the following URL (replace {values} with your information):
 ```
 https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/authorize?client_id={client_id}&response_type=code&redirect_uri=http%3a%2f%2flocalhost%3a8080&response_mode=query&scope={client_id}%2f.default&state=12345&sso_reload=true
 ```
-2. In the `Authenticate` folder, navigate into User folder and in the `getRefreshToken` API call body, add the authorization code to the `Body`.
-3. Run the `getRefreshToken` call.
-3. Make sure the Refresh Token is returned, and that it is now populated in the refresh_token environment variable.
-4. Run the getAccessToken call.
-5. Make sure the Access Token is returned, and that it is now populated in the access_token environment variable.
+5. In the `Authenticate` folder, navigate into User folder and in the `getRefreshToken` API call body, add the authorization code to the `Body`.
+6. Run the `getRefreshToken` call.
+7. Make sure the Refresh Token is returned, and that it is now populated in the refresh_token environment variable.
+8. Run the getAccessToken call.
+9. Make sure the Access Token is returned, and that it is now populated in the access_token environment variable.
 
 
 **Note** that the access_token is added automatically as a Bearer token to all requests (given that the user have authorization to use the APIs), and you do not need to explicitly define the authorization header.
 
 <sub>\* The authorization code is generated by browsing to https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/authorize?client_id={client_id}&response_type=code&redirect_uri=http%3a%2f%2flocalhost%3a8080&response_mode=query&scope={client_id}%2f.default&state=12345&sso_reload=true. Please note that the App Registration needs to have a web redirect URL set to http://localhost:8080. Please see the [official documentation](https://learn.microsoft.com/en-us/azure/energy-data-services/how-to-generate-refresh-token#get-authorization) for more information.</sub>
 <br><br>
-### Service Principal (App Registration)
+
+#### Service Principal (App Registration)
 1. Go to the ADME API collection you have imported.
 2. In the Authenticate folder, navigate into App Registration folder and run the `getAccessToken appRegistration` call.
 3. Make sure the Access Token is returned, and that it is now populated in the access_token environment variable.
@@ -75,6 +101,15 @@ That's it! You should now be able to run all the API calls included.
 ___
 
 ## Changelog
+    25/04-2023
+    Corrected URI for Wellbore DDMS APIs
+
+    18/04-2023
+    ADME M14 release compliant
+    Added Seismic DDMS API
+    Added Well Delivery DDMS API
+    Added Wellbore DDMS API
+    Added Oauth2 authentication as default authentication mechanism
 
     08/02-2023
     Added Service Principal (App Registration) authentication mechanism.
