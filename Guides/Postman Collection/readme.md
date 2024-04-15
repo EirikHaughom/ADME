@@ -122,6 +122,7 @@ That's it! You should now be able to run all the API calls included.
 ```text
 13/04-2024
 Updated to M18 APIs
+Added Oath2 variables to environment for multi-CSP support
 Added EDS
 Added Petrel DMS
 Added Seismic File Metadata service
