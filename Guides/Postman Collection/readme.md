@@ -29,27 +29,39 @@ The services mentioned below are covered, and the API calls are imported from th
 - Wellbore DDMS
 - Workflow
 
-## Usage
+## Usage (Postman)
 
 1. Copy the link to the [Postman Collection JSON file](./json/ADME.postman_collection.json?raw=1).
 1. In Postman select *Import*.
 1. Select *Link*.
 1. Paste the link copied above.
-1. Repeat the same for the [Postman Environment JSON file](./json/ADME.postman_environment.json?raw=1).
+1. Repeat the same for the [Environment JSON file](./json/ADME.environment.json?raw=1).
+
+## Usage (Bruno)
+
+1. Download the [Bruno Collection JSON file](./json/ADME.bruno_collection.json).
+1. Download the [Environment JSON file](./json/ADME.environment.json).
+1. In Bruno click `...` in the navigation pane and then `Import Collection`.
+1. Choose `Bruno Collection` and browse to the Bruno Collection JSON file.
+1. Once imported, right-click the imported collection and select `Settings`.
+1. In the top right, click the `Environment` dropdown, and then `configure`.
+1. Click `Import` in the bottom left corner and then `Postman Environment`.
+1. Browse to the Environment JSON file and import it.
 
 ## Environment variables
 
 | Variable |Format | Description |
 |----------|-------|-------------|
-|access_token|*N/A*|Value will be automatically populated by running the manual authentication API calls|
-|refresh_token|*N/A*|Value will be automatically populated by running the manual authentication API calls|
-|instance|contoso.energy.azure.com|Hostname of your ADME instance|
-|client_id|00000000-0000-0000-0000-000000000000|The App Registration client ID used to provision ADME|
-|data_partition|contoso-opendes|The Data Partition ID from ADME (i.e. eirik-opendes)|
-|client_secret|*N/A*|A valid App Registration secret for the above client_id|
-|tenant_id|00000000-0000-0000-0000-000000000000|Azure AD tenant ID|
-|scope|00000000-0000-0000-0000-000000000000/.default openid profile offline_access|The scope to use when authenticating. The ID represents an App Registration ID (client_id)|
-|baseUrl|https://{{instance}}|***Do not change***|
+|`accessToken`||Value will be automatically populated by running the manual authentication API calls|
+|`refreshToken`||Value will be automatically populated by running the manual authentication API calls|
+|`clientId`|`00000000-0000-0000-0000-000000000000`|The App Registration client ID used to provision ADME|
+|`dataPartitionId`|`opendes`|The Data Partition ID from ADME (i.e. eirik-opendes)|
+|`clientSecret`|`secret`|A valid App Registration secret for the above client_id|
+|`tenantId`|`00000000-0000-0000-0000-000000000000`|Azure AD tenant ID|
+|`scope`|`00000000-0000-0000-0000-000000000000/.default openid profile offline_access`|The scope to use when authenticating. The ID represents an App Registration ID (client_id)|
+|`baseUrl`|`https://contoso.energy.azure.com`|API endpoint of your OSDU instance|
+|`authorizationEndpoint`|`https://login.microsoftonline.com/{{tenantId}}/oauth2/v2.0/authorize`| Oauth2 authorization endpoint|
+|`tokenEndpoint`|`https://login.microsoftonline.com/{{tenantId}}/oauth2/v2.0/token`| Oauth2 token endpoint|
 
 ## Authenticating
 
