@@ -1,0 +1,6 @@
+apiVersion: v2
+name: etpclient
+appVersion: "latest"
+description: Helm Chart for installing Reservoir DDMS Open ETP Client on Azure Data Manager for Energy
+version: 0.1.0
+type: application

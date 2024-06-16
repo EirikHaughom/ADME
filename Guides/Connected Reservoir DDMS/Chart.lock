@@ -1,0 +1,9 @@
+dependencies:
+- name: etpserver
+  repository: file://etpserver
+  version: 0.1.0
+- name: etpclient
+  repository: file://etpclient
+  version: 0.1.0
+digest: sha256:97856355507bd224fcbf0d8a440ebe8a0f86c979dd5b72867b3bc62801890f92
+generated: "2024-06-05T20:39:49.3707423+02:00"

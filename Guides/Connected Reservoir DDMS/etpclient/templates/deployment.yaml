@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: etpclient
+  namespace: {{ $.Values.global.etpclient.namespace }}
+spec:
+  replicas: {{ $.Values.global.etpclient.replicaCount }}
+  selector:
+    matchLabels:
+      app: etpclient
+  template:
+    metadata:
+      labels:
+        app: etpclient
+    spec:
+      containers:
+      - name: etpclient
+        image: {{ $.Values.global.etpclient.image.repository }}/{{ $.Values.global.etpclient.image.name }}:{{ $.Values.global.etpclient.image.tag | default .Chart.AppVersion }}
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 9002
+          protocol: TCP

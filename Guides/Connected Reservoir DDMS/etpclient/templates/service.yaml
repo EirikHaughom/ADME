@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: etpclient
+  namespace: {{ $.Values.global.etpclient.namespace }}
+  annotations:
+    {{- range $key, $value := $.Values.global.etpclient.service.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+spec:
+  selector:
+    app: etpclient
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 9002
+  type: {{ $.Values.global.etpclient.service.type }}
