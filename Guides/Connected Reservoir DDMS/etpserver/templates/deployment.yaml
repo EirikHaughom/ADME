@@ -20,7 +20,7 @@ spec:
         ports:
         - containerPort: 9002
           protocol: TCP
-        command: {{ $.Values.global.etpserver.image.command }}
+        command: [ "openETPServer", "server", "--start", "--log_level", "debug", "--port", "9002", "--authZ", "delegate=https://demo.energy.azure.com", "--authN", "none" ]
         env:
         - name: RDMS_DATA_PARTITION_MODE
           value: {{ $.Values.global.etpserver.configuration.RDMS_DATA_PARTITION_MODE }}

@@ -20,3 +20,24 @@ spec:
         ports:
         - containerPort: 9002
           protocol: TCP
+        env:
+          - name: RDMS_ETP_HOST
+            value: etpserver
+          - name: RDMS_ETP_PORT
+            value: '"80"'
+          - name: RDMS_ETP_PROTOCOL
+            value: {{ $.Values.global.etpclient.configuration.RDMS_ETP_PROTOCOL }}
+          - name: RDMS_REST_PORT
+            value: {{ $.Values.global.etpclient.configuration.RDMS_REST_PORT }}
+          - name: RDMS_AUTHENTICATION_KEY_BASE
+            value: {{ $.Values.global.etpclient.configuration.RDMS_AUTHENTICATION_KEY_BASE }}
+          - name: RDMS_REST_ROOT_PATH
+            value: {{ $.Values.global.etpclient.configuration.RDMS_REST_ROOT_PATH }}
+          - name: RDMS_REST_MAIN_URL
+            value: {{ $.Values.global.etpclient.configuration.RDMS_REST_MAIN_URL }}
+          - name: RDMS_DATA_PARTITION_MODE
+            value: {{ $.Values.global.etpclient.configuration.RDMS_DATA_PARTITION_MODE }}
+          - name: OPEN_API_PORT
+            value: {{ $.Values.global.etpclient.configuration.OPEN_API_PORT }}
+          - name: RDMS_TEST_DATA_PARTITION_ID
+            value: {{ $.Values.global.etpclient.configuration.RDMS_TEST_DATA_PARTITION_ID }}
