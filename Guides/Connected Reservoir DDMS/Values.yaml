@@ -18,7 +18,7 @@ global:
       RDMS_DATA_PARTITION_MODE: single
       RDMS_DATA_CONNECTIVITY_MODE: osdu
       DOMAIN_NAME: dataservices.energy
-      POSTGRESQL_CONN_STRING: host=rddms-db.postgres.database.azure.com port=5432 dbname=resdms user=azureuser@rddms-db password=13WVk0Y!stNLNc!&
+      POSTGRESQL_CONN_STRING: host=rddms-db.postgres.database.azure.com port=5432 dbname=resdms user=azureuser@rddms-db password=
   etpclient:
     namespace: rddms
     name: etpclient
