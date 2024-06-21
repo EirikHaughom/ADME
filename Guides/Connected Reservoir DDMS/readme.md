@@ -12,7 +12,7 @@ This guide will walk you through deploying a Reservoir DDMS service connected to
 > [!WARNING]
 > If you are using private network connectivity, the Azure Kubernetes Service (AKS) cluster must be routable to the Azure PostgreSQL flexible server and the Azure Data Manager for Energy (ADME) instance. Ensure that the AKS cluster is deployed in the same or a peered virtual network as the Azure PostgreSQL flexible server and the ADME instance.
 
-## Deploy the Reservoir DDMS service
+## Prepare the configuration of the Reservoir DDMS service
 
 1. Launch the Azure Cloud Shell from the Azure portal, or click the following button to open the Azure Cloud Shell directly:
 
@@ -110,6 +110,8 @@ This guide will walk you through deploying a Reservoir DDMS service connected to
 
 > [!IMPORTANT]
 > The `POSTGRESQL_CONN_STRING` value will be viewable by anyone with access to the Kubernetes cluster. I would recommend storing the connection string in an Azure KeyVault and referencing it in the deployment template. See [Azure Key Vault provider with Secrets Store CSI Driver](https://learn.microsoft.com/azure/aks/csi-secrets-store-driver) for more information.
+
+## Deploy the Reservoir DDMS service to the AKS cluster
 
 1. Deploy the Reservoir DDMS service using the following commands:
 
