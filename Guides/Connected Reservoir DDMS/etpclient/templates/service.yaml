@@ -13,5 +13,5 @@ spec:
   ports:
   - port: 80
     protocol: TCP
-    targetPort: 9002
+    targetPort: 8003
   type: {{ $.Values.global.etpclient.service.type }}

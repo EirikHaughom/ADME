@@ -1,6 +1,6 @@
 global:
   provider:
-    replicaCount: 1
+    replicaCount: 
     namespace: rddms
     name: etpclient
     image:

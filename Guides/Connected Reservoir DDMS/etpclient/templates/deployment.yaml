@@ -24,7 +24,7 @@ spec:
           - name: RDMS_ETP_HOST
             value: etpserver
           - name: RDMS_ETP_PORT
-            value: '"80"'
+            value: {{ $.Values.global.etpclient.configuration.RDMS_ETP_PORT }}
           - name: RDMS_ETP_PROTOCOL
             value: {{ $.Values.global.etpclient.configuration.RDMS_ETP_PROTOCOL }}
           - name: RDMS_REST_PORT
