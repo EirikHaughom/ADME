@@ -1,0 +1,13 @@
+apiVersion: v2
+name: adme-connected-rddms
+type: application
+description: Installs the Reservoir DDMS on Azure Data Manager for Energy
+version: 0.1.0
+appVersion: 0.1.0
+dependencies:
+  - name: "etpserver"
+    repository: file://etpserver
+    version: "0.1.0"
+  - name: "etpclient"
+    repository: file://etpclient
+    version: "0.1.0"

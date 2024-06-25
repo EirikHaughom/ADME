@@ -1,0 +1,9 @@
+global:
+  provider:
+    replicaCount: 
+    namespace: rddms
+    name: etpclient
+    image:
+      repository: {}
+      name: {}
+      tag: {}

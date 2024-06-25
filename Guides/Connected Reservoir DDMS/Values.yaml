@@ -1,0 +1,43 @@
+# This file contains the essential configs for the gcz on azure helm chart
+################################################################################
+# Specify the values for each service.
+#
+global:
+  etpserver:
+    namespace: default
+    name: etpserver
+    replicaCount: 3
+    image:
+      repository: community.opengroup.org:5555
+      name: osdu/platform/domain-data-mgmt-services/reservoir/open-etp-server/open-etp-server-main
+      tag: latest
+    service:
+      type: LoadBalancer
+      annotations:
+        service.beta.kubernetes.io/azure-load-balancer-internal: "false"
+    configuration:
+      RDMS_DATA_PARTITION_MODE: single
+      RDMS_DATA_CONNECTIVITY_MODE: osdu
+      DOMAIN_NAME: dataservices.energy
+  etpclient:
+    namespace: default
+    name: etpclient
+    replicaCount: 3
+    image:
+      repository: community.opengroup.org:5555
+      name: osdu/platform/domain-data-mgmt-services/reservoir/open-etp-client/open-etp-client-main
+      tag: latest
+    service:
+      type: LoadBalancer
+      annotations:
+        service.beta.kubernetes.io/azure-load-balancer-internal: "false"
+    configuration:
+      RDMS_ETP_PORT: '"80"'
+      RDMS_ETP_PROTOCOL: ws
+      RDMS_REST_PORT: '"8003"'
+      RDMS_AUTHENTICATION_KEY_BASE: "0000000-0000-0000-0000-000000000000"
+      RDMS_REST_ROOT_PATH: "/Reservoir/v2"
+      RDMS_REST_MAIN_URL: "http://localhost"
+      RDMS_DATA_PARTITION_MODE: single
+      OPEN_API_PORT: '"443"'
+      RDMS_TEST_DATA_PARTITION_ID: dp1

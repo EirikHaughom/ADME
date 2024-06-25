@@ -1,0 +1,14 @@
+global:
+  provider:
+    replicaCount:
+    namespace: rddms
+    name: etpserver
+    configuration:
+      RDMS_DATA_PARTITION_MODE: 
+      RDMS_DATA_CONNECTIVITY_MODE: 
+      DOMAIN_NAME: 
+      POSTGRESQL_CONN_STRING: 
+    image:
+      repository: {}
+      name: {}
+      tag: {}
