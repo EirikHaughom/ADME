@@ -1,3 +1,11 @@
+# This solution has been deprecated and is no longer maintained. See the new [Connected Reservoir DDMS](../Connected%20Reservoir%20DDMS/) guide for the latest information.
+
+
+
+
+
+
+
 ## Overview
 The Reservoir Model DMS (RDDMS) is currently an experimental feature of OSDU and not part of Azure Data Manager for Energy.
 
