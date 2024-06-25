@@ -19,7 +19,7 @@ This guide will walk you through deploying a Reservoir DDMS service connected to
 
 1. Launch the Azure Cloud Shell from the Azure portal, or click the following button to open the Azure Cloud Shell directly:
 
-    [![Launch Azure Cloud Shell](https://shell.azure.com/images/launchcloudshell.png "Launch Azure Cloud Shell")](https://shell.azure.com)
+    [![Open in Remote - Containers](https://img.shields.io/static/v1?style=for-the-badge&label=Azure%20Cloud%20Shell&message=Open&color=blue&logo=microsoftazure)](https://shell.azure.com)
 
 1. Make sure you are connected to the correct subscription by running the following command:
 
