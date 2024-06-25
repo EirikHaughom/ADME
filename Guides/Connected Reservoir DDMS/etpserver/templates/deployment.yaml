@@ -16,11 +16,14 @@ spec:
       containers:
       - name: etpserver
         image: {{ $.Values.global.etpserver.image.repository }}/{{ $.Values.global.etpserver.image.name }}:{{ $.Values.global.etpserver.image.tag | default .Chart.AppVersion }}
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         ports:
         - containerPort: 9002
           protocol: TCP
-        command: {{ $.Values.global.etpserver.image.command }}
+        envFrom:
+          - secretRef:
+              name: sc-postgresql587ef-secret
+        command: [ "sh", "-c", "openETPServer server --start --log_level info --port 9002 --authZ delegate=https://demo.energy.azure.com --authN none --db-connection \"host=${AZURE_POSTGRESQL_HOST} port=${AZURE_POSTGRESQL_PORT} dbname=${AZURE_POSTGRESQL_DATABASE} user=${AZURE_POSTGRESQL_USERNAME} password=${AZURE_POSTGRESQL_PASSWORD}\"" ]
         env:
         - name: RDMS_DATA_PARTITION_MODE
           value: {{ $.Values.global.etpserver.configuration.RDMS_DATA_PARTITION_MODE }}
@@ -28,5 +31,3 @@ spec:
           value: {{ $.Values.global.etpserver.configuration.RDMS_DATA_CONNECTIVITY_MODE }}
         - name: DOMAIN_NAME
           value: {{ $.Values.global.etpserver.configuration.DOMAIN_NAME }}
-        - name: POSTGRESQL_CONN_STRING
-          value: {{ $.Values.global.etpserver.configuration.POSTGRESQL_CONN_STRING }}
