@@ -8,11 +8,14 @@ This guide will walk you through deploying a Reservoir DDMS service connected to
 - An Azure Data Manager for Energy (ADME) instance. If you don't have an ADME instance, [follow the ADME deployment guide](https://learn.microsoft.com/azure/energy-data-services/quickstart-create-microsoft-energy-data-services-instance).
 - An Azure PostgreSQL flexible server. If you don't have an Azure PostgreSQL database, [follow the PostgreSQL deployment guide](https://learn.microsoft.com/azure/postgresql/flexible-server/quickstart-create-server-portal).
 - An Azure Kubernetes Service (AKS) cluster. If you don't have an AKS cluster, [follow the AKS deployment guide](https://learn.microsoft.com/azure/aks/learn/quick-kubernetes-deploy-portal?tabs=azure-cli).
+- (optional) An Azure Key Vault. If you don't have an Azure Key Vault, [follow the Key Vault deployment guide](https://learn.microsoft.com/azure/key-vault/quick-create-portal).*
+
+\* The Azure Key Vault is optional, but recommended for storing sensitive information such as connection strings. There are other solutions available as well, such as [HashiCorp Vault Enterprise on Azure Kubernetes Service](https://developer.hashicorp.com/vault/tutorials/kubernetes?ajs_aid=5bbd8d7a-e31c-4576-9e7b-0db256a0453e&product_intent=vault&utm_channel_bucket=paid) or [Sealed Secrets](https://github.com/bitnami-labs/sealed-secrets).
 
 > [!WARNING]
 > If you are using private network connectivity, the Azure Kubernetes Service (AKS) cluster must be routable to the Azure PostgreSQL flexible server and the Azure Data Manager for Energy (ADME) instance. Ensure that the AKS cluster is deployed in the same or a peered virtual network as the Azure PostgreSQL flexible server and the ADME instance.
 
-## Prepare the configuration of the Reservoir DDMS service
+## Configuration
 
 1. Launch the Azure Cloud Shell from the Azure portal, or click the following button to open the Azure Cloud Shell directly:
 
@@ -109,7 +112,7 @@ This guide will walk you through deploying a Reservoir DDMS service connected to
     ```
 
 > [!IMPORTANT]
-> The `POSTGRESQL_CONN_STRING` value will be viewable by anyone with access to the Kubernetes cluster. I would recommend storing the connection string in an Azure KeyVault and referencing it in the deployment template. See [Azure Key Vault provider with Secrets Store CSI Driver](https://learn.microsoft.com/azure/aks/csi-secrets-store-driver) for more information.
+> The `POSTGRESQL_CONN_STRING` value will be viewable by anyone with access to the Kubernetes cluster. It is recommended to store the connection string in an Azure Key Vault and referencing it in the deployment template. See [Azure Key Vault provider with Secrets Store CSI Driver](https://learn.microsoft.com/azure/aks/csi-secrets-store-driver) for more information.
 
 ## Deploy the Reservoir DDMS service to the AKS cluster
 
@@ -179,3 +182,5 @@ For this guide we will use an Azure API Management service to expose the Reservo
     # Add the ETP client API
     az apim api create --service-name $APIM_SERVICE_NAME --api-id "etpclient" --path "/Reservoir/v2" --display-name "ETP Client" --service-url "http://$ETPCLIENT_IP:80" --protocols "https"
     ```
+
+1. 
