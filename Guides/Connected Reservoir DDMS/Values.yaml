@@ -19,6 +19,7 @@ global:
       RDMS_DATA_PARTITION_MODE: single
       RDMS_DATA_CONNECTIVITY_MODE: osdu
       DOMAIN_NAME: dataservices.energy
+      ADME_INSTANCE_NAME: 
   etpclient:
     namespace: default
     name: etpclient

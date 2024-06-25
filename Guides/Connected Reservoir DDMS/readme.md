@@ -8,14 +8,15 @@ This guide will walk you through deploying a Reservoir DDMS service connected to
 - An Azure Data Manager for Energy (ADME) instance. If you don't have an ADME instance, [follow the ADME deployment guide](https://learn.microsoft.com/azure/energy-data-services/quickstart-create-microsoft-energy-data-services-instance).
 - An Azure PostgreSQL flexible server. If you don't have an Azure PostgreSQL database, [follow the PostgreSQL deployment guide](https://learn.microsoft.com/azure/postgresql/flexible-server/quickstart-create-server-portal).
 - An Azure Kubernetes Service (AKS) cluster. If you don't have an AKS cluster, [follow the AKS deployment guide](https://learn.microsoft.com/azure/aks/learn/quick-kubernetes-deploy-portal?tabs=azure-cli).
-- (optional) An Azure Key Vault. If you don't have an Azure Key Vault, [follow the Key Vault deployment guide](https://learn.microsoft.com/azure/key-vault/quick-create-portal).*
-
-\* The Azure Key Vault is optional, but recommended for storing sensitive information such as connection strings. There are other solutions available as well, such as [HashiCorp Vault Enterprise on Azure Kubernetes Service](https://developer.hashicorp.com/vault/tutorials/kubernetes?ajs_aid=5bbd8d7a-e31c-4576-9e7b-0db256a0453e&product_intent=vault&utm_channel_bucket=paid) or [Sealed Secrets](https://github.com/bitnami-labs/sealed-secrets).
 
 > [!WARNING]
 > If you are using private network connectivity, the Azure Kubernetes Service (AKS) cluster must be routable to the Azure PostgreSQL flexible server and the Azure Data Manager for Energy (ADME) instance. Ensure that the AKS cluster is deployed in the same or a peered virtual network as the Azure PostgreSQL flexible server and the ADME instance.
 
-## Configuration
+## Connect AKS to database
+
+First we need to create a connection between AKS and the Azure PostgreSQL flexible server. This can be done by using the [Service Connector](https://learn.microsoft.com/en-us/azure/service-connector/) feature (preview), or [Azure Key Vault](https://learn.microsoft.com/en-us/azure/aks/csi-secrets-store-driver).
+
+For this guide we will use the `Service Connector` feature. Note that the `Service Connector` feature is in preview and may not be available in all regions. See the [Service Connector documentation](https://learn.microsoft.com/en-us/azure/service-connector/concept-region-support) for more information.
 
 1. Launch the Azure Cloud Shell from the Azure portal, or click the following button to open the Azure Cloud Shell directly:
 
@@ -39,24 +40,55 @@ This guide will walk you through deploying a Reservoir DDMS service connected to
     az account set --subscription "<subscription-id>"
     ```
 
+1. Deploy the Resource Provider in your subscription using the following command:
+
+    ```bash
+    az provider register --namespace Microsoft.ServiceConnector
+    ```
+
+1. Define variables.
+
+    ```bash
+    ### AKS cluster variables
+    export AKS_CLUSTER_NAME="example" # Replace with AKS cluster name
+    export AKS_RESOURCE_GROUP="example-rg" # Replace with AKS resource group
+
+    ### PostgreSQL flexible server variables
+    export POSTGRESQL_FLEXIBLE_SERVER_NAME="example" # Replace with PostgreSQL flexible server name (do not include .postgres.database.azure.com)
+    export POSTGRESQL_RESOURCE_GROUP="example-rg" # Replace with PostgreSQL resource group
+    export POSTGRESQL_DATABASE_NAME="rddms" # Replace with PostgreSQL database name
+    export POSTGRESQL_USERNAME="azureuser" # Replace with PostgreSQL username
+    export POSTGRESQL_PASSWORD="<password>" # Replace with PostgreSQL password
+
+    ### Azure Data Manager for Energy (ADME variables)
+    export ADME_INSTANCE_NAME="contoso.energy.azure.com" # Replace with ADME instance name
+    export ADME_DATA_PARTITION_ID="opendes" # Replace with ADME data partition ID
+
+    ### Expose publicly
+    export PUBLIC_LOAD_BALANCER="true" # If set to true, the connection will be created using a public IP on the AKS load balancer for public access, if you are using private network connectivity (or plan to expose the service to the internet using a different method), set this to false
+
+    ### Reservoir DDMS service variables
+    export RDDMS_REST_MAIN_URL="http://localhost" # If you use a different method to expose the ETP REST API service to the internet, set this to the public DNS endpoint of the service or custom domain
+    export RDDMS_ETP_REPLICAS=3 # Target number of replicas for the ETP server, scaling beyond this number might happen depending on the load and AKS configuration
+    export RDDMS_CLIENT_REPLICAS=3 # Target number of replicas for the ETP REST API server, scaling beyond this number might happen depending on the load and AKS configuration. Set to 0 if you don't want to deploy the ETP REST API server
+    ```
+
+1. Connect AKS to Azure PostgreSQL flexible server using Service Connector by executing the following command:
+
+    ```bash
+    az aks connection create postgres-flexible --resource-group $AKS_RESOURCE_GROUP --name $AKS_CLUSTER_NAME --kube-namespace rddms --target-resource-group $POSTGRESQL_RESOURCE_GROUP --server $POSTGRESQL_FLEXIBLE_SERVER_NAME --database $POSTGRESQL_DATABASE_NAME --connection rddmsPostgresConnection --client-type none --secret name=rddmsPostgresPassword secret=$POSTGRESQL_PASSWORD
+    ```
+
+> [!IMPORTANT]
+> By exposing the service publicly using the `AKS load balancer` it will not support Secure Websocket (wss) and HTTPS protocols. We recommend to use a different method to expose the service to the internet, such as Azure Application Gateway, Istio ingress gateway, or Azure API Management service. See the [Expose the Reservoir DDMS service to the internet](#expose-the-reservoir-ddms-service-to-the-internet) section for more information.
+
+## Configuration
+
 1. Clone the GitHub repository that contains the Reservoir DDMS service deployment files:
 
     ```bash
     git clone https://github.com/EirikHaughom/ADME.git
     cd /Guides/Connected%20Reservoir%20DDMS
-    ```
-
-1. Define values.
-
-    ```bash
-    export AKS_CLUSTER_NAME="example" # Replace with AKS cluster name
-    export AKS_RESOURCE_GROUP="example-rg" # Replace with AKS resource group
-    export POSTGRESQL_FLEXIBLE_SERVER_NAME="example.postgres.database.azure.com" # Replace with PostgreSQL flexible server name
-    export POSTGRESQL_DATABASE_NAME="rddms" # Replace with PostgreSQL database name
-    export POSTGRESQL_USERNAME="azureuser" # Replace with PostgreSQL username
-    export POSTGRESQL_PASSWORD="<password>" # Replace with PostgreSQL password
-    export ADME_INSTANCE_NAME="contoso.energy.azure.com" # Replace with ADME instance name
-    export ADME_DATA_PARTITION_ID="opendes" # Replace with ADME data partition ID
     ```
 
 1. Replace the values in the [Values.yaml](Values.yaml) file.
@@ -69,27 +101,26 @@ This guide will walk you through deploying a Reservoir DDMS service connected to
     #
     global:
       etpserver:
-        namespace: rddms
+        namespace: default
         name: etpserver
-        replicaCount: 3 # Number of replicas for the service
+        replicaCount: $RDDMS_ETP_REPLICAS
         image:
           repository: community.opengroup.org:5555
           name: osdu/platform/domain-data-mgmt-services/reservoir/open-etp-server/open-etp-server-main
           tag: latest
-          command: '[ "openETPServer", "server", "--start", "--log_level", "info", "--port", "9002", "--authZ", "delegate=https://$ADME_INSTANCE_NAME", "--authN", "none" ]'
         service:
           type: LoadBalancer
           annotations:
-            service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+            service.beta.kubernetes.io/azure-load-balancer-internal: "false"
         configuration:
           RDMS_DATA_PARTITION_MODE: single
           RDMS_DATA_CONNECTIVITY_MODE: osdu
           DOMAIN_NAME: dataservices.energy
-          POSTGRESQL_CONN_STRING: host=$POSTGRESQL_FLEXIBLE_SERVER_NAME port=5432 dbname=$POSTGRESQL_DATABASE_NAME user=$POSTGRESQL_USERNAME password=$POSTGRESQL_PASSWORD
+          ADME_INSTANCE_NAME: $ADME_INSTANCE_NAME
       etpclient:
-        namespace: rddms
+        namespace: default
         name: etpclient
-        replicaCount: 3
+        replicaCount: $RDDMS_CLIENT_REPLICAS
         image:
           repository: community.opengroup.org:5555
           name: osdu/platform/domain-data-mgmt-services/reservoir/open-etp-client/open-etp-client-main
@@ -97,22 +128,19 @@ This guide will walk you through deploying a Reservoir DDMS service connected to
         service:
           type: LoadBalancer
           annotations:
-            service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+            service.beta.kubernetes.io/azure-load-balancer-internal: "false"
         configuration:
           RDMS_ETP_PORT: '"80"'
           RDMS_ETP_PROTOCOL: ws
           RDMS_REST_PORT: '"8003"'
           RDMS_AUTHENTICATION_KEY_BASE: "0000000-0000-0000-0000-000000000000"
           RDMS_REST_ROOT_PATH: "/Reservoir/v2"
-          RDMS_REST_MAIN_URL: "http://localhost" # If you plan to expose the service to the internet, replace localhost with the public IP address or hostname of the service
+          RDMS_REST_MAIN_URL: $RDDMS_REST_MAIN_URL
           RDMS_DATA_PARTITION_MODE: single
-          OPEN_API_PORT: '"80"' # If you plan to expose the service to the internet, replace 80 with the desired port (i.e. 443).
+          OPEN_API_PORT: '"443"'
           RDMS_TEST_DATA_PARTITION_ID: $ADME_DATA_PARTITION_ID
     EOF
     ```
-
-> [!IMPORTANT]
-> The `POSTGRESQL_CONN_STRING` value will be viewable by anyone with access to the Kubernetes cluster. It is recommended to store the connection string in an Azure Key Vault and referencing it in the deployment template. See [Azure Key Vault provider with Secrets Store CSI Driver](https://learn.microsoft.com/azure/aks/csi-secrets-store-driver) for more information.
 
 ## Deploy the Reservoir DDMS service to the AKS cluster
 
@@ -147,40 +175,11 @@ This guide will walk you through deploying a Reservoir DDMS service connected to
 
 ## Expose the Reservoir DDMS service to the internet
 
-There are multiple ways to expose the Reservoir DDMS service to the internet, such as using Azure Application Gateway, Istio ingress gateway, or an Azure API Management service.
+By default, the Reservoir DDMS service is exposed to the internet using the AKS load balancer with a public IP. If you want to expose the service to the internet using a different method, you can modify the solution to use a different service type, such as:
 
-For this guide we will use an Azure API Management service to expose the Reservoir DDMS service to the internet.
+- [Azure Application Gateway](https://learn.microsoft.com/en-us/azure/application-gateway/ingress-controller-expose-service-over-http-https)
+- [Istio ingress gateway](https://learn.microsoft.com/en-us/azure/aks/istio-secure-gateway)
+- [Azure API Management service](https://learn.microsoft.com/en-us/azure/api-management/api-management-kubernetes)
 
-### Prerequisites
-
-- An Azure API Management service. If you don't have an Azure API Management service, [follow the API Management deployment guide](https://learn.microsoft.com/azure/api-management/get-started-create-service-instance).
-
-> [!WARNING]
-> The Azure API Management service must be routable to the Azure Kubernetes Service (AKS) cluster. Ensure that the Azure API Management service is deployed in the same or a peered virtual network as the AKS cluster.
-
-### Add the Reservoir DDMS APIs to the Azure API Management service
-
-1. Define values.
-
-    ```bash
-    export APIM_SERVICE_NAME="example" # Replace with API Management service name
-    ```
-
-1. In the Azure Shell, run the following command to get the Reservoir DDMS  service IP addresses:
-
-    ```bash
-    $ETPSERVER_IP=$(kubectl get service etpserver -n rddms -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-    $ETPCLIENT_IP=$(kubectl get service etpclient -n rddms -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-    ```
-
-1. Add the Reservoir DDMS APIs to the Azure API Management service using the following commands:
-
-    ```bash
-    # Add the ETP server API
-    az apim api create --service-name $APIM_SERVICE_NAME --api-id "etpserver" --path "/" --display-name "ETP Server" --service-url "http://$ETPSERVER_IP:80" --protocols "wss"
-
-    # Add the ETP client API
-    az apim api create --service-name $APIM_SERVICE_NAME --api-id "etpclient" --path "/Reservoir/v2" --display-name "ETP Client" --service-url "http://$ETPCLIENT_IP:80" --protocols "https"
-    ```
-
-1. 
+> [!NOTE]
+> If you want to use other methods to expose the service to the internet, you need to verify that it supports Secure Websocket (wss) and HTTPS protocols.
