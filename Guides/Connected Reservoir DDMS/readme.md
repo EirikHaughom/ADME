@@ -65,7 +65,7 @@ For this guide we will use the `Service Connector` feature. Note that the `Servi
     export ADME_DATA_PARTITION_ID="opendes" # Replace with ADME data partition ID
 
     ### Expose publicly
-    export PUBLIC_LOAD_BALANCER="true" # If set to true, the connection will be created using a public IP on the AKS load balancer for public access, if you are using private network connectivity (or plan to expose the service to the internet using a different method), set this to false
+    export INTERNAL_LOAD_BALANCER="true" # If set to false, the connection will be created using a public IP on the AKS load balancer for public access, if you are using private network connectivity (or plan to expose the service to the internet using a different method), set this to true
 
     ### Reservoir DDMS service variables
     export RDDMS_REST_MAIN_URL="http://localhost" # If you use a different method to expose the ETP REST API service to the internet, set this to the public DNS endpoint of the service or custom domain
@@ -111,7 +111,7 @@ For this guide we will use the `Service Connector` feature. Note that the `Servi
         service:
           type: LoadBalancer
           annotations:
-            service.beta.kubernetes.io/azure-load-balancer-internal: "false"
+            service.beta.kubernetes.io/azure-load-balancer-internal: $INTERNAL_LOAD_BALANCER
         configuration:
           RDMS_DATA_PARTITION_MODE: single
           RDMS_DATA_CONNECTIVITY_MODE: osdu
@@ -128,7 +128,7 @@ For this guide we will use the `Service Connector` feature. Note that the `Servi
         service:
           type: LoadBalancer
           annotations:
-            service.beta.kubernetes.io/azure-load-balancer-internal: "false"
+            service.beta.kubernetes.io/azure-load-balancer-internal: $INTERNAL_LOAD_BALANCER
         configuration:
           RDMS_ETP_PORT: '"80"'
           RDMS_ETP_PROTOCOL: ws
