@@ -16,7 +16,7 @@ spec:
       containers:
       - name: etpclient
         image: {{ $.Values.global.etpclient.image.repository }}/{{ $.Values.global.etpclient.image.name }}:{{ $.Values.global.etpclient.image.tag | default .Chart.AppVersion }}
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         ports:
         - containerPort: 9002
           protocol: TCP
