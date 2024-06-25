@@ -88,7 +88,7 @@ For this guide we will use the `Service Connector` feature. Note that the `Servi
 
     ```bash
     git clone https://github.com/EirikHaughom/ADME.git
-    cd /Guides/Connected%20Reservoir%20DDMS
+    cd ADME/Guides/Connected\ Reservoir\ DDMS/
     ```
 
 1. Replace the values in the [Values.yaml](Values.yaml) file.
@@ -143,6 +143,12 @@ For this guide we will use the `Service Connector` feature. Note that the `Servi
     ```
 
 ## Deploy the Reservoir DDMS service to the AKS cluster
+
+1. Connect to the AKS cluster
+  
+    ```bash
+    az aks get-credentials --resource-group $AKS_RESOURCE_GROUP --name $AKS_CLUSTER_NAME --admin
+    ```
 
 1. Deploy the Reservoir DDMS service using the following commands:
 

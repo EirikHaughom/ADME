@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: etpserver
-        image: {{ $.Values.global.etpserver.image.repository }}/{{ $.Values.global.etpserver.image.name }}:{{ $.Values.global.etpserver.image.tag | default latest }}
+        image: {{ $.Values.global.etpserver.image.repository }}/{{ $.Values.global.etpserver.image.name }}:{{ $.Values.global.etpserver.image.tag | default .Chart.AppVersion }}
         imagePullPolicy: Always
         ports:
         - containerPort: 9002
