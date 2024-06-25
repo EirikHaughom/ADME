@@ -76,7 +76,7 @@ For this guide we will use the `Service Connector` feature. Note that the `Servi
 1. Connect AKS to Azure PostgreSQL flexible server using Service Connector by executing the following command:
 
     ```bash
-    az aks connection create postgres-flexible --resource-group $AKS_RESOURCE_GROUP --name $AKS_CLUSTER_NAME --kube-namespace rddms --target-resource-group $POSTGRESQL_RESOURCE_GROUP --server $POSTGRESQL_FLEXIBLE_SERVER_NAME --database $POSTGRESQL_DATABASE_NAME --connection rddmsPostgresConnection --client-type none --secret name=$POSTGRESQL_USERNAME secret=$POSTGRESQL_PASSWORD
+    az aks connection create postgres-flexible --resource-group $AKS_RESOURCE_GROUP --name $AKS_CLUSTER_NAME --kube-namespace rddms --target-resource-group $POSTGRESQL_RESOURCE_GROUP --server $POSTGRESQL_FLEXIBLE_SERVER_NAME --database $POSTGRESQL_DATABASE_NAME --connection rddmspostgresconnection --client-type none --secret name=$POSTGRESQL_USERNAME secret=$POSTGRESQL_PASSWORD
     ```
 
 > [!IMPORTANT]

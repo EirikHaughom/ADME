@@ -22,7 +22,7 @@ spec:
           protocol: TCP
         envFrom:
           - secretRef:
-              name: sc-rddmsPostgresConnection-secret
+              name: sc-rddmspostgresconnection-secret
         command: [ "sh", "-c", "openETPServer server --start --log_level info --port 9002 --authZ delegate=https://\"${ADME_INSTANCE_NAME}\" --authN none --db-connection \"host=${AZURE_POSTGRESQL_HOST} port=${AZURE_POSTGRESQL_PORT} dbname=${AZURE_POSTGRESQL_DATABASE} user=${AZURE_POSTGRESQL_USERNAME} password=${AZURE_POSTGRESQL_PASSWORD}\"" ]
         env:
         - name: RDMS_DATA_PARTITION_MODE
