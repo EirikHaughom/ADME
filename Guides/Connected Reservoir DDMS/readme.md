@@ -101,7 +101,7 @@ For this guide we will use the `Service Connector` feature. Note that the `Servi
     #
     global:
       etpserver:
-        namespace: default
+        namespace: rddms
         name: etpserver
         replicaCount: $RDDMS_ETP_REPLICAS
         image:
@@ -118,7 +118,7 @@ For this guide we will use the `Service Connector` feature. Note that the `Servi
           DOMAIN_NAME: dataservices.energy
           ADME_INSTANCE_NAME: $ADME_INSTANCE_NAME
       etpclient:
-        namespace: default
+        namespace: rddms
         name: etpclient
         replicaCount: $RDDMS_CLIENT_REPLICAS
         image:
