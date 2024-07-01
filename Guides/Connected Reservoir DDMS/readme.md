@@ -43,7 +43,7 @@ For this guide we will use the `Service Connector` feature. Note that the `Servi
 1. Deploy the Resource Provider in your subscription using the following command:
 
     ```bash
-    az provider register --namespace Microsoft.ServiceConnector
+    az provider register --namespace Microsoft.ServiceLinker
     ```
 
 1. Define variables.
