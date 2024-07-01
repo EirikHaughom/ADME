@@ -189,3 +189,16 @@ By default, the Reservoir DDMS service is exposed to the internet using the AKS 
 
 > [!NOTE]
 > If you want to use other methods to expose the service to the internet, you need to verify that it supports Secure Websocket (wss) and HTTPS protocols.
+
+## Test the Reservoir DDMS service
+
+1. Create the following groups in your ADME instance:
+
+    | Group Name | Description |
+    |------------|-------------|
+    | `service.reservoir-dms.owners` | Owners of the Reservoir DDMS service |
+    | `service.reservoir-dms.viewers` | Viewers of the Reservoir DDMS service |
+
+1. Add users to the groups.
+
+1. See the [Reservoir DDMS service documentation](https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/reservoir/open-etp-server/-/blob/main/docs/testing.md) for more information on how to use the service.
