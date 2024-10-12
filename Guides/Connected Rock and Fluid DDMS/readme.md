@@ -21,7 +21,7 @@ This guide will walk you through deploying a Rock and Fluid DDMS (RAFS) service 
 
     ```bash
     git clone https://github.com/EirikHaughom/ADME.git
-    cd ADME/Guides/Connected\ Rock\ and\ Fluid\ DDMS/
+    cd "ADME/Guides/Connected Rock and Fluid DDMS/"
     ```
 
 1. Define variables
@@ -61,41 +61,63 @@ This guide will walk you through deploying a Rock and Fluid DDMS (RAFS) service 
 
 1. Create a values.yaml file
 
-    ```bash
-    cat > Values.yaml << EOF
+    ```powershell
+    Set-Content -Path "Values.yaml" -Value @"
     # This file contains the essential configs for the rafs on azure helm chart
     ################################################################################
+
     # Specify the values for each service.
     # Check the OSDU Forum RAFS container registry for newer versions.
     # https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/rock-and-fluid-sample/rafs-ddms-services/container_registry/
-    #
+
     global:
-      rafs-service:
-        namespace: rafs
-        name: rafs-service
-        replicaCount: 1
-        image:
-          repository: community.opengroup.org:5555
-          name: community.opengroup.org:5555/osdu/platform/domain-data-mgmt-services/rock-and-fluid-sample/rafs-ddms-services/rafs-ddms-services-v0-27-1
-          tag: 1630990d6bd460e8a8ed25be69778512346e9f10
-        service:
-          type: LoadBalancer
-          annotations:
-            service.beta.kubernetes.io/azure-load-balancer-internal: $PRIVATE_ACCESS
-        configuration:
-            ADME_ENDPOINT: $ADME_ENDPOINT
-            ADME_DATA_PARTITION: $ADME_DATA_PARTITION
-            OPENAPI_PREFIX: /api/rafs-ddms
-            URL_PREFIX: api/rafs-ddms
-            REDIS_CACHE_ENABLED: $REDIS_CACHE_ENABLED
-            LOGGING_LEVEL: $LOGGING_LEVEL
-    EOF
+        rafsservice:
+            namespace: rafs
+            name: rafsservice
+            replicaCount: 1
+            image:
+                repository: community.opengroup.org:5555
+                name: community.opengroup.org:5555/osdu/platform/domain-data-mgmt-services/rock-and-fluid-sample/rafs-ddms-services/rafs-ddms-services-v0-27-1
+                tag: 1630990d6bd460e8a8ed25be69778512346e9f10
+            service:
+                type: LoadBalancer
+                annotations:
+                    service.beta.kubernetes.io/azure-load-balancer-internal: $PRIVATE_ACCESS
+            configuration:
+                    ADME_ENDPOINT: $ADME_ENDPOINT
+                    ADME_DATA_PARTITION: $ADME_DATA_PARTITION
+                    OPENAPI_PREFIX: /api/rafs-ddms
+                    URL_PREFIX: api/rafs-ddms
+                    REDIS_CACHE_ENABLED: $REDIS_CACHE_ENABLED
+                    LOGGING_LEVEL: $LOGGING_LEVEL
+    "@ -Force
     ```
 
-1. Deploy the RAFS service
+1. Deploy the Reservoir DDMS service using the following commands:
 
     ```bash
-    helm install rafs-service ./Chart.yaml -f ./Values.yaml
+    # Build HELM charts
+    helm dependency build
+    
+    # Create AKS namespace
+    kubectl create namespace rafs
+
+    # Deploy HELM charts
+    helm upgrade -i adme-connected-rafs . -n rafs -f Values.yaml
     ```
 
-1. a
+1. Verify the deployment by running the following command:
+
+    ```bash
+    kubectl get pods -n rafs
+    ```
+
+    The output should show the pods for the Reservoir DDMS service.
+
+1. To find the IP address of the Reservoir DDMS service, run the following command:
+
+    ```bash
+    kubectl get service -n rddms
+    ```
+
+    The output should show the IP address of the Reservoir DDMS service.

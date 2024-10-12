@@ -2,7 +2,7 @@ global:
   provider:
     replicaCount:
     namespace: rafs
-    name: rafs-service
+    name: rafsservice
     configuration:
       ADME_INSTANCE_NAME:
       ADME_DATA_PARTITION:

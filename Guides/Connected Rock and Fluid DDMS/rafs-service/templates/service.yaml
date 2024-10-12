@@ -1,17 +1,17 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: rafs-service
-  namespace: {{ $.Values.global.rafs-service.namespace }}
+  name: rafsservice
+  namespace: {{ $.Values.global.rafsservice.namespace }}
   annotations:
-    {{- range $key, $value := $.Values.global.rafs-service.service.annotations }}
+    {{- range $key, $value := $.Values.global.rafsservice.service.annotations }}
     {{ $key }}: {{ $value | quote }}
     {{- end }}
 spec:
   selector:
-    app: rafs-service
+    app: rafsservice
   ports:
   - port: 80
     protocol: TCP
     targetPort: 8080
-  type: {{ $.Values.global.rafs-service.service.type }}
+  type: {{ $.Values.global.rafsservice.service.type }}

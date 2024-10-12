@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: rafs-service
-  namespace: {{ $.Values.global.rafs-service.namespace }}
+  name: rafsservice
+  namespace: {{ $.Values.global.rafsservice.namespace }}
 spec:
-  replicas: {{ $.Values.global.rafs-service.replicaCount }}
+  replicas: {{ $.Values.global.rafsservice.replicaCount }}
   selector:
     matchLabels:
-      app: rafs-service
+      app: rafsservice
   template:
     metadata:
       labels:
-        app: rafs-service
+        app: rafsservice
     spec:
       containers:
-      - name: rafs-service
-        image: {{ $.Values.global.rafs-service.image.repository }}/{{ $.Values.global.rafs-service.image.name }}:{{ $.Values.global.rafs-service.image.tag | default .Chart.AppVersion }}
+      - name: rafsservice
+        image: {{ $.Values.global.rafsservice.image.repository }}/{{ $.Values.global.rafsservice.image.name }}:{{ $.Values.global.rafsservice.image.tag | default .Chart.AppVersion }}
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
@@ -29,37 +29,37 @@ spec:
         - name: DDMS_ID
           value: rafs
         - name: OPENAPI_PREFIX
-          value: {{ $.Values.global.rafs-service.configuration.OPENAPI_PREFIX }}
+          value: {{ $.Values.global.rafsservice.configuration.OPENAPI_PREFIX }}
         - name: CACHE_ENABLED
-          value: {{ $.Values.global.rafs-service.configuration.REDIS_CACHE_ENABLED}}
+          value: {{ $.Values.global.rafsservice.configuration.REDIS_CACHE_ENABLED}}
         - name: URL_PREFIX
-          value: {{ $.Values.global.rafs-service.configuration.URL_PREFIX }}
+          value: {{ $.Values.global.rafsservice.configuration.URL_PREFIX }}
         - name: CLOUD_PROVIDER
           value: Azure
         - name: SERVICE_HOST_STORAGE
-          value: {{ $.Values.global.rafs-service.configuration.ADME_ENDPOINT + "api/storage/v2" }}
+          value: {{ $.Values.global.rafsservice.configuration.ADME_ENDPOINT + "api/storage/v2" }}
         - name: SERVICE_HOST_SCHEMA
-          value: {{ $.Values.global.rafs-service.configuration.ADME_ENDPOINT + "api/schema-service/v1" }}
+          value: {{ $.Values.global.rafsservice.configuration.ADME_ENDPOINT + "api/schema-service/v1" }}
         - name: SERVICE_HOST_PARTITION
-          value: {{ $.Values.global.rafs-service.configuration.ADME_ENDPOINT + "api/partition/v1" }}
+          value: {{ $.Values.global.rafsservice.configuration.ADME_ENDPOINT + "api/partition/v1" }}
         - name: SERVICE_HOST_DATASET
-          value: {{ $.Values.global.rafs-service.configuration.ADME_ENDPOINT + "api/dataset/v1" }}  
+          value: {{ $.Values.global.rafsservice.configuration.ADME_ENDPOINT + "api/dataset/v1" }}  
         - name: SERVICE_HOST_LEGAL
-          value: {{ $.Values.global.rafs-service.configuration.ADME_ENDPOINT + "api/legal/v1" }}
+          value: {{ $.Values.global.rafsservice.configuration.ADME_ENDPOINT + "api/legal/v1" }}
         - name: SERVICE_HOST_SEARCH
-          value: {{ $.Values.global.rafs-service.configuration.ADME_ENDPOINT + "api/search/v2" }}
+          value: {{ $.Values.global.rafsservice.configuration.ADME_ENDPOINT + "api/search/v2" }}
         - name: SERVICE_READINESS_URLS
-          value: "{{ $.Values.global.rafs-service.configuration.ADME_ENDPOINT }}api/storage/v2/liveness_check,{{ $.Values.global.rafs-service.configuration.ADME_ENDPOINT }}api/schema-service/v1/liveness_check"
+          value: "{{ $.Values.global.rafsservice.configuration.ADME_ENDPOINT }}api/storage/v2/liveness_check,{{ $.Values.global.rafsservice.configuration.ADME_ENDPOINT }}api/schema-service/v1/liveness_check"
         - name: REQUEST_TIMEOUT
           value: "180"
         - name: LOGGING_LEVEL
-          value: {{ $.Values.global.rafs-service.configuration.LOGGING_LEVEL }}
+          value: {{ $.Values.global.rafsservice.configuration.LOGGING_LEVEL }}
         - name: CACHE_ENABLE
-          value: {{ $.Values.global.rafs-service.configuration.REDIS_CACHE_ENABLED }}
+          value: {{ $.Values.global.rafsservice.configuration.REDIS_CACHE_ENABLED }}
         - name: CACHE_BACKEND
           value: app.core.helpers.cache.backends.redis_cache.RedisCacheBackend
         - name: PARTITION
-          value: {{ $.Values.global.rafs-service.configuration.ADME_DATA_PARTITION }}
+          value: {{ $.Values.global.rafsservice.configuration.ADME_DATA_PARTITION }}
         - name: PYTHONBUFFERED
           value: "1"
         

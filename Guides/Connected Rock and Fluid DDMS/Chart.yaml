@@ -5,6 +5,6 @@ description: Installs the Rock and Fluid DDMS on Azure Data Manager for Energy
 version: 0.1.0
 appVersion: 0.1.0
 dependencies:
-  - name: "rafs-service"
-    repository: file://rafs-service
+  - name: "rafsservice"
+    repository: file://rafsservice
     version: "0.1.0"
