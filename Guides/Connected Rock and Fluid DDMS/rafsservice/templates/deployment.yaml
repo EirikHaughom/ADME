@@ -47,7 +47,7 @@ spec:
         - name: SERVICE_HOST_LEGAL
           value: {{ $.Values.global.rafsservice.configuration.ADME_ENDPOINT | cat "api/legal/v1" }}
         - name: REQUEST_TIMEOUT
-          value: "180"
+          value: '"180"'
         - name: LOGGING_LEVEL
           value: {{ $.Values.global.rafsservice.configuration.LOGGING_LEVEL }}
         - name: CACHE_ENABLE
