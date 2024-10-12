@@ -25,9 +25,9 @@ spec:
               name: sc-rediscache-secret
         env:
         - name: SERVICE_NAME
-          value: rafs-ddms
+          value: "rafs-ddms"
         - name: DDMS_ID
-          value: rafs
+          value: "rafs"
         - name: OPENAPI_PREFIX
           value: {{ $.Values.global.rafsservice.configuration.OPENAPI_PREFIX }}
         - name: CACHE_ENABLED
@@ -35,7 +35,7 @@ spec:
         - name: URL_PREFIX
           value: {{ $.Values.global.rafsservice.configuration.URL_PREFIX }}
         - name: CLOUD_PROVIDER
-          value: Azure
+          value: "Azure"
         - name: SERVICE_HOST_STORAGE
           value: {{ $.Values.global.rafsservice.configuration.ADME_ENDPOINT | cat "api/storage/v2" }}
         - name: SERVICE_HOST_SCHEMA
