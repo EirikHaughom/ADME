@@ -1,0 +1,17 @@
+global:
+  provider:
+    replicaCount:
+    namespace: rafs
+    name: rafs-service
+    configuration:
+      ADME_INSTANCE_NAME:
+      ADME_DATA_PARTITION:
+      OPENAPI_PREFIX:
+      REDIS_CACHE_ENABLED:
+      REDIS_CACHE_NAME:
+      REDIS_CACHE_KEY:
+      LOGGING_LEVEL:
+    image:
+      repository: {}
+      name: {}
+      tag: {}

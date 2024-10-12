@@ -95,7 +95,7 @@ For this guide we will use the `Service Connector` feature. Note that the `Servi
 
     ```bash
     cat > Values.yaml << EOF
-    # This file contains the essential configs for the gcz on azure helm chart
+    # This file contains the essential configs for the rddms on azure helm chart
     ################################################################################
     # Specify the values for each service.
     #

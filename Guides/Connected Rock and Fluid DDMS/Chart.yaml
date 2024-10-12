@@ -1,0 +1,10 @@
+apiVersion: v2
+name: adme-connected-rafs
+type: application
+description: Installs the Rock and Fluid DDMS on Azure Data Manager for Energy
+version: 0.1.0
+appVersion: 0.1.0
+dependencies:
+  - name: "rafs-service"
+    repository: file://rafs-service
+    version: "0.1.0"

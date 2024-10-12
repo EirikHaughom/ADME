@@ -1,0 +1,6 @@
+apiVersion: v2
+name: rafs-service
+appVersion: "latest"
+description: Helm Chart for installing Rock and Fluid DDMS on Azure Data Manager for Energy
+version: 0.1.0
+type: application

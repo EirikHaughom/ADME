@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rafs-service
+  namespace: {{ $.Values.global.rafs-service.namespace }}
+spec:
+  replicas: {{ $.Values.global.rafs-service.replicaCount }}
+  selector:
+    matchLabels:
+      app: rafs-service
+  template:
+    metadata:
+      labels:
+        app: rafs-service
+    spec:
+      containers:
+      - name: rafs-service
+        image: {{ $.Values.global.rafs-service.image.repository }}/{{ $.Values.global.rafs-service.image.name }}:{{ $.Values.global.rafs-service.image.tag | default .Chart.AppVersion }}
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        envFrom:
+          - secretRef:
+              name: sc-rediscache-secret
+        env:
+        - name: SERVICE_NAME
+          value: rafs-ddms
+        - name: DDMS_ID
+          value: rafs
+        - name: OPENAPI_PREFIX
+          value: {{ $.Values.global.rafs-service.configuration.OPENAPI_PREFIX }}
+        - name: CACHE_ENABLED
+          value: {{ $.Values.global.rafs-service.configuration.REDIS_CACHE_ENABLED}}
+        - name: URL_PREFIX
+          value: {{ $.Values.global.rafs-service.configuration.URL_PREFIX }}
+        - name: CLOUD_PROVIDER
+          value: Azure
+        - name: SERVICE_HOST_STORAGE
+          value: {{ $.Values.global.rafs-service.configuration.ADME_ENDPOINT + "api/storage/v2" }}
+        - name: SERVICE_HOST_SCHEMA
+          value: {{ $.Values.global.rafs-service.configuration.ADME_ENDPOINT + "api/schema-service/v1" }}
+        - name: SERVICE_HOST_PARTITION
+          value: {{ $.Values.global.rafs-service.configuration.ADME_ENDPOINT + "api/partition/v1" }}
+        - name: SERVICE_HOST_DATASET
+          value: {{ $.Values.global.rafs-service.configuration.ADME_ENDPOINT + "api/dataset/v1" }}  
+        - name: SERVICE_HOST_LEGAL
+          value: {{ $.Values.global.rafs-service.configuration.ADME_ENDPOINT + "api/legal/v1" }}
+        - name: SERVICE_HOST_SEARCH
+          value: {{ $.Values.global.rafs-service.configuration.ADME_ENDPOINT + "api/search/v2" }}
+        - name: SERVICE_READINESS_URLS
+          value: "{{ $.Values.global.rafs-service.configuration.ADME_ENDPOINT }}api/storage/v2/liveness_check,{{ $.Values.global.rafs-service.configuration.ADME_ENDPOINT }}api/schema-service/v1/liveness_check"
+        - name: REQUEST_TIMEOUT
+          value: "180"
+        - name: LOGGING_LEVEL
+          value: {{ $.Values.global.rafs-service.configuration.LOGGING_LEVEL }}
+        - name: CACHE_ENABLE
+          value: {{ $.Values.global.rafs-service.configuration.REDIS_CACHE_ENABLED }}
+        - name: CACHE_BACKEND
+          value: app.core.helpers.cache.backends.redis_cache.RedisCacheBackend
+        - name: PARTITION
+          value: {{ $.Values.global.rafs-service.configuration.ADME_DATA_PARTITION }}
+        - name: PYTHONBUFFERED
+          value: "1"
+        
+        
