@@ -57,6 +57,6 @@ spec:
         - name: PARTITION
           value: {{ $.Values.global.rafsservice.configuration.ADME_DATA_PARTITION }}
         - name: PYTHONBUFFERED
-          value: "1"
+          value: '"1"'
         
         
