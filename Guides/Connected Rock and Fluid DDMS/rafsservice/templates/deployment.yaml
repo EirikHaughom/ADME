@@ -31,32 +31,30 @@ spec:
         - name: OPENAPI_PREFIX
           value: {{ $.Values.global.rafsservice.configuration.OPENAPI_PREFIX }}
         - name: CACHE_ENABLED
-          value: {{ $.Values.global.rafsservice.configuration.REDIS_CACHE_ENABLED }}
+          value: {{ $.Values.global.rafsservice.configuration.REDIS_CACHE_ENABLED | quote }}
         - name: URL_PREFIX
           value: {{ $.Values.global.rafsservice.configuration.URL_PREFIX }}
         - name: CLOUD_PROVIDER
           value: "Azure"
         - name: SERVICE_HOST_STORAGE
-          value: {{ $.Values.global.rafsservice.configuration.ADME_ENDPOINT | cat "api/storage/v2" }}
+          value: {{ printf "%sapi/storage/v2" $.Values.global.rafsservice.configuration.ADME_ENDPOINT }}
         - name: SERVICE_HOST_SCHEMA
-          value: {{ $.Values.global.rafsservice.configuration.ADME_ENDPOINT | cat "api/schema-service/v1" }}
+          value: {{ printf "%sapi/schema-service/v1" $.Values.global.rafsservice.configuration.ADME_ENDPOINT }}
         - name: SERVICE_HOST_PARTITION
-          value: {{ $.Values.global.rafsservice.configuration.ADME_ENDPOINT | cat "api/partition/v1" }}
+          value: {{ printf "%sapi/partition/v1" $.Values.global.rafsservice.configuration.ADME_ENDPOINT }}
         - name: SERVICE_HOST_DATASET
-          value: {{ $.Values.global.rafsservice.configuration.ADME_ENDPOINT | cat "api/dataset/v1" }}  
+          value: {{ printf "%sapi/dataset/v1" $.Values.global.rafsservice.configuration.ADME_ENDPOINT }}  
         - name: SERVICE_HOST_LEGAL
-          value: {{ $.Values.global.rafsservice.configuration.ADME_ENDPOINT | cat "api/legal/v1" }}
+          value: {{ printf "%sapi/legal/v1" $.Values.global.rafsservice.configuration.ADME_ENDPOINT }}
         - name: REQUEST_TIMEOUT
           value: '"180"'
         - name: LOGGING_LEVEL
           value: {{ $.Values.global.rafsservice.configuration.LOGGING_LEVEL }}
         - name: CACHE_ENABLE
-          value: {{ $.Values.global.rafsservice.configuration.REDIS_CACHE_ENABLED }}
+          value: {{ $.Values.global.rafsservice.configuration.REDIS_CACHE_ENABLED | quote }}
         - name: CACHE_BACKEND
-          value: app.core.helpers.cache.backends.redis_cache.RedisCacheBackend
+          value: "app.core.helpers.cache.backends.redis_cache.RedisCacheBackend"
         - name: PARTITION
           value: {{ $.Values.global.rafsservice.configuration.ADME_DATA_PARTITION }}
         - name: PYTHONBUFFERED
           value: '"1"'
-        
-        

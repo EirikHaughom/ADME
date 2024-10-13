@@ -77,7 +77,7 @@ This guide will walk you through deploying a Rock and Fluid DDMS (RAFS) service 
             replicaCount: 1
             image:
                 repository: community.opengroup.org:5555
-                name: community.opengroup.org:5555/osdu/platform/domain-data-mgmt-services/rock-and-fluid-sample/rafs-ddms-services/rafs-ddms-services-v0-27-1
+                name: osdu/platform/domain-data-mgmt-services/rock-and-fluid-sample/rafs-ddms-services/rafs-ddms-services-v0-27-1
                 tag: 1630990d6bd460e8a8ed25be69778512346e9f10
             service:
                 type: LoadBalancer
