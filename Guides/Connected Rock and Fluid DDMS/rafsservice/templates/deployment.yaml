@@ -35,7 +35,7 @@ spec:
         - name: URL_PREFIX
           value: {{ $.Values.global.rafsservice.configuration.URL_PREFIX }}
         - name: CLOUD_PROVIDER
-          value: "Azure"
+          value: "azure"
         - name: SERVICE_HOST_STORAGE
           value: {{ printf "%sapi/storage/v2" $.Values.global.rafsservice.configuration.ADME_ENDPOINT }}
         - name: SERVICE_HOST_SCHEMA
@@ -47,7 +47,7 @@ spec:
         - name: SERVICE_HOST_LEGAL
           value: {{ printf "%sapi/legal/v1" $.Values.global.rafsservice.configuration.ADME_ENDPOINT }}
         - name: REQUEST_TIMEOUT
-          value: '"180"'
+          value: '180'
         - name: LOGGING_LEVEL
           value: {{ $.Values.global.rafsservice.configuration.LOGGING_LEVEL }}
         - name: CACHE_ENABLE
@@ -57,4 +57,4 @@ spec:
         - name: PARTITION
           value: {{ $.Values.global.rafsservice.configuration.ADME_DATA_PARTITION }}
         - name: PYTHONBUFFERED
-          value: '"1"'
+          value: '1'
