@@ -128,6 +128,13 @@ To publish the Rock and Fluid DDMS service, you will need to use an ingress cont
 
 You may use the OpenAPI specification from the OSDU Forum if you wish to use Azure API Management. The OpenAPI specification can be found [here](https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/rock-and-fluid-sample/rafs-ddms-services/-/blob/main/docs/spec/openapi.json).
 
+### Access the swagger UI
+
+To access the swagger UI, navigate to `https://<public-dns>/api/rafs-ddms/swagger/index.html`.
+Replace `<public-dns>` with the public DNS of the service you chose to use.
+
+If you chose to expose the service through the `$PRIVATE_ACCESS=false` variable, you can access the service through the LoadBalancer IP address.
+
 ## Next steps
 
 - [Run the Rock and Fluid DDMS service integration tests](https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/rock-and-fluid-sample/rafs-ddms-services#local-running).
