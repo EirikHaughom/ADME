@@ -151,12 +151,12 @@
                                     {
                                         "condition": "[parameters('redisCacheEnable')]",
                                         "name": "REDIS_HOSTNAME",
-                                        "value": "[reference(concat(parameters('name'), '-redis')).hostName]"
+                                        "value": "[reference(concat(parameters('name'), '-redis'), '2024-02-02').hostName]"
                                     },
                                     {
                                         "condition": "[parameters('redisCacheEnable')]",
                                         "name": "REDIS_PASSWORD",
-                                        "value": "[reference(concat(parameters('name'), '-redis')).accessKeys.primaryKey]",
+                                        "value": "[reference(concat(parameters('name'), '-redis'), '2024-02-02').accessKeys.primaryKey]",
                                         "secureValue": true
                                     },
                                     {
