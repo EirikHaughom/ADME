@@ -57,9 +57,10 @@
     },
     "resources": [
         {
-            "apiVersion": "2024-02-02-preview",
+            "apiVersion": "2023-11-02-preview",
             "name": "[parameters('name')]",
             "type": "Microsoft.App/containerapps",
+            "kind": "containerapps",
             "location": "[resourceGroup().location]",
             "dependsOn": ["[resourceId('Microsoft.App/managedEnvironments', concat(parameters('name'),'-env'))]"],
             "properties": {
@@ -67,53 +68,144 @@
                 "configuration": {
                     "activeRevisionsMode": "Single",
                     "ingress": {
-                        "external": true,
-                        "targetPort": 80,
-                        "transport": "Auto"
+                        "value": {
+                            "external": true,
+                            "transport": "Auto",
+                            "targetPort": 8080,
+                            "allowInsecure": false
+                        }
                     }
                 },
                 "template": {
-                    "containers": [
-                        {
-                            "name": "rafs",
-                            "image": "[parameters('containerImage')]",
-                            "resources": {
-                                "cpu": "2",
-                                "memory": "4Gi"
-                            },
-                            "env": [
-                                {
-                                    "name": "SERVICE_NAME",
-                                    "value": "rafs-ddms"
+                    "containers": [{
+                        "value": [
+                            {
+                                "name": "rafs",
+                                "image": "[parameters('containerImage')]",
+                                "command": [],
+                                "args": [],
+                                "resources": {
+                                    "cpu": "2",
+                                    "memory": "4Gi"
                                 },
-                                {
-                                    "name": "REDIS_HOSTNAME",
-                                    "condition": "[parameters('redisCacheEnable')]",
-                                    "value": "[reference(concat(parameters('name'), '-redis'), '2024-03-01').hostName]"
-                                },
-                                {
-                                    "name": "REDIS_PASSWORD",
-                                    "condition": "[parameters('redisCacheEnable')]",
-                                    "value": "[reference(concat(parameters('name'), '-redis'), '2024-03-01').accessKeys.primaryKey]",
-                                    "secureValue": true
-                                }
-                            ]
-                        }
-                    ]
-                }
+                                "env": [
+                                    {
+                                        "name": "SERVICE_NAME",
+                                        "value": "rafs-ddms"
+                                    },
+                                    {
+                                        "name": "DDMS_ID",
+                                        "value": "rafs"
+                                    },
+                                    {
+                                        "name": "OPENAPI_PREFIX",
+                                        "value": "/api/rafs-ddms"
+                                    },
+                                    {
+                                        "name": "URL_PREFIX",
+                                        "value": "api/rafs-ddms"
+                                    },
+                                    {
+                                        "name": "CLOUD_PROVIDER",
+                                        "value": "azure"
+                                    },
+                                    {
+                                        "name": "SERVICE_HOST_STORAGE",
+                                        "value": "[concat(parameters('osduEndpoint'), 'api/storage/v2')]"
+                                    },
+                                    {
+                                        "name": "SERVICE_HOST_SCHEMA",
+                                        "value": "[concat(parameters('osduEndpoint'), 'api/schema-service/v1')]"
+                                    },
+                                    {
+                                        "name": "SERVICE_HOST_PARTITION",
+                                        "value": "[concat(parameters('osduEndpoint'), 'api/partition/v1')]"
+                                    },
+                                    {
+                                        "name": "SERVICE_HOST_DATASET",
+                                        "value": "[concat(parameters('osduEndpoint'), 'api/dataset/v1')]"
+                                    },
+                                    {
+                                        "name": "SERVICE_HOST_LEGAL",
+                                        "value": "[concat(parameters('osduEndpoint'), 'api/legal/v1')]"
+                                    },
+                                    {
+                                        "name": "SERVICE_HOST_SEARCH",
+                                        "value": "[concat(parameters('osduEndpoint'), 'api/search/v2')]"
+                                    },
+                                    {
+                                        "name": "REQUEST_TIMEOUT",
+                                        "value": "180"
+                                    },
+                                    {
+                                        "name": "SERVICE_READINESS_URLS",
+                                        "value": "[concat(parameters('osduEndpoint'), 'api/storage/v2/liveness_check', ',', parameters('osduEndpoint'), 'api/schema-service/v1/liveness_check')]"
+                                    },
+                                    {
+                                        "name": "CACHE_ENABLE",
+                                        "value": "[parameters('redisCacheEnable')]"
+                                    },
+                                    {
+                                        "condition": "[parameters('redisCacheEnable')]",
+                                        "name": "REDIS_HOSTNAME",
+                                        "value": "[reference(concat(parameters('name'), '-redis'), '2023-08-01').hostName]"
+                                    },
+                                    {
+                                        "condition": "[parameters('redisCacheEnable')]",
+                                        "name": "REDIS_PASSWORD",
+                                        "value": "[reference(concat(parameters('name'), '-redis'), '2023-08-01').accessKeys.primaryKey]",
+                                        "secureValue": true
+                                    },
+                                    {
+                                        "condition": "[parameters('redisCacheEnable')]",
+                                        "name": "REDIS_PORT",
+                                        "value": "6380"
+                                    },
+                                    {
+                                        "condition": "[parameters('redisCacheEnable')]",
+                                        "name": "REDIS_DATABASE",
+                                        "value": "0"
+                                    },
+                                    {
+                                        "condition": "[parameters('redisCacheEnable')]",
+                                        "name": "REDIS_SSL",
+                                        "value": "true"
+                                    },
+                                    {
+                                        "name": "PARTITION",
+                                        "value": "[parameters('dataPartitionId')]"
+                                    },
+                                    {
+                                        "name": "LOGGING_LEVEL",
+                                        "value": "[parameters('loggingLevel')]"
+                                    },
+                                    {
+                                        "name": "PYTHONUNBUFFERED",
+                                        "value": "1"
+                                    }
+
+                                ]
+                            }
+                        ]
+                    }],
+                    "scale": {
+                        "minReplicas": 0
+                    }
+                },
+                "workloadProfileName": "Consumption"
             }
         },
         {
-            "apiVersion": "2024-03-01",
+            "apiVersion": "2023-11-02-preview",
             "name": "[concat(parameters('name'),'-env')]",
             "type": "Microsoft.App/managedEnvironments",
             "location": "[resourceGroup().location]",
             "properties": {
                 "zoneRedundant": false,
-                "workloadProfiles": {
+                "workloadProfiles": [{
                     "workloadProfileType": "Consumption",
                     "name": "Consumption"
-                }
+                }]
             }
         },
         {
