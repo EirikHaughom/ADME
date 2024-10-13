@@ -121,3 +121,15 @@ This guide will walk you through deploying a Rock and Fluid DDMS (RAFS) service 
     ```
 
     The output should show the IP address of the Reservoir DDMS service.
+
+## Publish the Rock and Fluid DDMS service publicly
+
+To publish the Rock and Fluid DDMS service, you will need to use an ingress controller, such as [Azure API Management](https://learn.microsoft.com/en-us/azure/api-management/import-and-publish), [Azure Application Gateway](https://learn.microsoft.com/en-us/azure/application-gateway/ingress-controller-expose-service-over-http-https), [Azure Front Door](https://learn.microsoft.com/en-us/azure/architecture/example-scenario/aks-front-door/aks-front-door), [NGINX Ingress Controller](https://learn.microsoft.com/en-us/azure/aks/app-routing) or [Istio](https://learn.microsoft.com/en-us/azure/aks/istio-deploy-ingress).
+
+You may use the OpenAPI specification from the OSDU Forum if you wish to use Azure API Management. The OpenAPI specification can be found [here](https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/rock-and-fluid-sample/rafs-ddms-services/-/blob/main/docs/spec/openapi.json).
+
+## Next steps
+
+- [Run the Rock and Fluid DDMS service integration tests](https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/rock-and-fluid-sample/rafs-ddms-services#local-running).
+- [Publish the Rock and Fluid Samples schemas, reference- and master data](https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/rock-and-fluid-sample/rafs-ddms-services/-/tree/main/deployments).
+- [Follow the tutorial on how to use the Rock and Fluid DDMS service](https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/rock-and-fluid-sample/rafs-ddms-services/-/tree/main/docs/tutorial).
