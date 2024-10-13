@@ -7,6 +7,7 @@ This is the personal repository for Eirik Haughom on Azure Data Manager for Ener
 - [Automatic data ingestion from ADLS to ADME](/Guides/Synapse/DataLakeIngestion/)
 - [Azure AD to Entitlements sync](/Guides/AADEntitlementsSync/)
 - [Connected Reservoir DMS (RDDMS)](/Guides/Connected%20Reservoir%20DDMS/)
+- [Connected Rock and Fluid DDMS (RAFS)](/Guides/Connected%20Rock%20and%20Fluid%20DDMS/)
 - [Custom Domain Name](/Guides/Custom%20Domain/)
 - [Full Postman & Bruno API Collections for ADME](/Guides/Postman%20Collection/)
 - [Power BI connection from Power Query](/Guides/Power%20BI/)
