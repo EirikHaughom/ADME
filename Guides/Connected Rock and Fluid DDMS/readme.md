@@ -89,7 +89,7 @@ This guide will walk you through deploying a Rock and Fluid DDMS (RAFS) service 
                     OPENAPI_PREFIX: /api/rafs-ddms
                     URL_PREFIX: api/rafs-ddms
                     REDIS_CACHE_ENABLED: $REDIS_CACHE_ENABLED
-                    LOGGING_LEVEL: $LOGGING_LEVEL
+                    LOGGING_LEVEL: '"$LOGGING_LEVEL"'
     "@ -Force
     ```
 
