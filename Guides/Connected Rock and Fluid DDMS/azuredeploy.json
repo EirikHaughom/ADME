@@ -15,12 +15,6 @@
                 "description": "The name of the container app."
             }
         },
-        "location": {
-            "type": "string",
-            "metadata": {
-                "description": "The location of the container app."
-            }
-        },
         "containerImage": {
             "type": "string",
             "defaultValue": "community.opengroup.org:5555/osdu/platform/domain-data-mgmt-services/rock-and-fluid-sample/rafs-ddms-services/rafs-ddms-services-v0-27-1:1630990d6bd460e8a8ed25be69778512346e9f10",
@@ -67,10 +61,10 @@
             "name": "[parameters('name')]",
             "type": "Microsoft.App/containerapps",
             "kind": "containerapps",
-            "location": "[parameters('location')]",
-            "dependsOn": ["[resourceId('Microsoft.ContainerApps/environments', 'your-environment-name')]"],
+            "location": "[resourceGroup().location]",
+            "dependsOn": ["[resourceId('Microsoft.App/managedEnvironments', concat(parameters('name'),'-env'))]"],
             "properties": {
-                "environmentId": "[resourceId('Microsoft.ContainerApps/environments', 'your-environment-name')]",
+                "environmentId": ["[resourceId('Microsoft.App/managedEnvironments', concat(parameters('name'),'-env'))]"],
                 "configuration": {
                     "activeRevisionsMode": "Single",
                     "ingress": {
@@ -208,7 +202,7 @@
             "apiVersion": "2024-03-01",
             "name": "[concat(parameters('name'),'-env')]",
             "type": "Microsoft.App/managedEnvironments",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().location]",
             "properties": {
                 "zoneRedundant": false,
                 "workloadProfiles": {
@@ -218,10 +212,10 @@
             }
         },
         {
+            "apiVersion": "2024-02-02",
             "condition": "[parameters('redisCacheEnable')]",
             "name": "[concat(parameters('name'), '-redis')]",
             "type": "Microsoft.Cache/Redis",
-            "apiVersion": "2023-08-01",
             "location": "[resourceGroup().location]",
             "properties": {
                 "sku": {
