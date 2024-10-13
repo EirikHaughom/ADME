@@ -80,10 +80,8 @@
                     "containers": [{
                         "value": [
                             {
-                                "name": "rafs",
+                                "name": "[concat(parameters('name'), '-container')]",
                                 "image": "[parameters('containerImage')]",
-                                "command": [],
-                                "args": [],
                                 "resources": {
                                     "cpu": "2",
                                     "memory": "4Gi"
