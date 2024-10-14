@@ -12,14 +12,14 @@
         "name": {
             "type": "string",
             "metadata": {
-                "description": "The name of the container app."
+                "description": "The base name of the services."
             }
         },
         "containerImage": {
             "type": "string",
             "defaultValue": "community.opengroup.org:5555/osdu/platform/domain-data-mgmt-services/rock-and-fluid-sample/rafs-ddms-services/rafs-ddms-services-v0-27-1:1630990d6bd460e8a8ed25be69778512346e9f10",
             "metadata": {
-                "description": "The container image to use. See OSDU Forum RAFS repository for available images."
+                "description": "The container image to use. See [OSDU Forum RAFS Container Registry](https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/rock-and-fluid-sample/rafs-ddms-services/container_registry) for available images."
             }
         },
         "workloadProfile": {
@@ -27,17 +27,24 @@
             "defaultValue": "Consumption",
             "allowedValues": [
                 "Consumption",
-                "Premium"
+                "D4",
+                "D8",
+                "D16",
+                "D32",
+                "E4",
+                "E8",
+                "E16",
+                "E32"
             ],
             "metadata": {
-                "description": "The workload profile to use for the container app."
+                "description": "The workload profile to use for the container app. [Learn more](https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview#profile-types)."
             }
         },
         "osduEndpoint": {
             "type": "string",
-            "defaultValue": "https://<your-osdu-endpoint>.energy.azure.com/",
+            "defaultValue": "https://<your-adme-instance>.energy.azure.com/",
             "metadata": {
-                "description": "The OSDU endpoint to connect to."
+                "description": "The ADME endpoint to connect to."
             },
             "minLength": 26,
             "maxLength": 41
@@ -66,7 +73,7 @@
             "type": "bool",
             "defaultValue": false,
             "metadata": {
-                "description": "Enable Redis cache for the service."
+                "description": "Enable Redis cache for the service. This improves reliability and performance, but the deployment will take longer time."
             }
         }
     },
@@ -167,6 +174,10 @@
                                     "value": "[if(parameters('redisCacheEnable'), 'True', 'False')]"
                                 },
                                 {
+                                    "name": "CACHE_BACKEND",
+                                    "value": "[if(parameters('redisCacheEnable'), 'app.core.helpers.cache.backends.redis_cache.RedisCacheBackend', '')]"
+                                },
+                                {
                                     "name": "PARTITION",
                                     "value": "[parameters('dataPartitionId')]"
                                 },
@@ -228,7 +239,7 @@
             "condition": "[parameters('redisCacheEnable')]",
             "type": "Microsoft.ServiceLinker/linkers",
             "apiVersion": "2024-07-01-preview",
-            "scope": "[concat('Microsoft.App/containerApps/', variables('containerName'))]",
+            "scope": "[concat('Microsoft.App/containerApps/', variables('containerAppName'))]",
             "name": "rediscache",
             "properties": {
                 "clientType": "none",
@@ -244,7 +255,7 @@
                         "value": "[listKeys(variables('redisResourceID'), '2023-08-01').primaryKey]"
                     }
                 },
-                "scope": "[variables('containerAppName')]",
+                "scope": "[variables('containerName')]",
                 "configurationInfo": {
                     "customizedKeys": {
                         "AZURE_REDIS_HOST": "REDIS_HOSTNAME",
@@ -264,7 +275,7 @@
     "outputs": {
         "swaggerEndpoint": {
             "type": "string",
-            "value": "[concat(reference(variables('containerResourceID')).hostNames[0], '/api/rafs-ddms/docs')]"
+            "value": "[concat('https://', reference(variables('containerResourceID')).configuration.ingress.fqdn, '/api/rafs-ddms/docs')]"
         }
     }
 }

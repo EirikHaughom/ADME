@@ -26,12 +26,15 @@ There are two deployment options available for the RAFS DDMS service:
 
 | Parameter | Description | Required |
 | --- | --- | --- |
-| `osduEndpoint` | The endpoint of the OSDU/ADME instance. I.e. `https://contoso.energy.azure.com/`. IMPORTANT: Note the trailing / which is required. | Yes |
-| `ADME_DATA_PARTITION` | The data partition of the ADME instance. I.e. `opendes` | Yes |
+| `name` | The base name of the services. | Yes |
+| `containerImage` | The container image to use for the RAFS service. Check the [OSDU Forum RAFS Container Registry](https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/rock-and-fluid-sample/rafs-ddms-services/container_registry) for newer images. | Yes |
+| `workloadProfile` | The workload profile to use for the Container App service. Learn more. | Yes |
+| `dataPartition` | The data partition of the ADME instance. I.e. `opendes` | Yes |
 
 ### Option 2: Azure Kubernetes Service (AKS) deployment
 
 There are some additional prerequisites for the AKS deployment option:
+
 - An Azure Kubernetes Service (AKS) cluster. If you don't have an AKS cluster, [follow the AKS deployment guide](https://learn.microsoft.com/azure/aks/learn/quick-kubernetes-deploy-portal?tabs=azure-cli).
 - **\*OPTIONAL\*** An Azure Redis Cache instance. If you don't have an Azure Redis Cache instance, [follow the Azure Redis Cache deployment guide](https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/quickstart-create-redis).
 
@@ -43,7 +46,7 @@ There are some additional prerequisites for the AKS deployment option:
 
 1. Select `PowerShell` as the environment.
 
-1. Clone the GitHub repository that contains the Reservoir DDMS service deployment files:
+1. Clone the GitHub repository that contains the RAFS DDMS service deployment files:
 
     ```bash
     git clone https://github.com/EirikHaughom/ADME.git
@@ -119,7 +122,7 @@ There are some additional prerequisites for the AKS deployment option:
     "@ -Force
     ```
 
-1. Deploy the Reservoir DDMS service using the following commands:
+1. Deploy the RAFS DDMS service using the following commands:
 
     ```bash
     # Build HELM charts
@@ -138,19 +141,19 @@ There are some additional prerequisites for the AKS deployment option:
     kubectl get pods -n rafs
     ```
 
-    The output should show the pods for the Reservoir DDMS service.
+    The output should show the pods for the RAFS DDMS service.
 
-1. To find the IP address of the Reservoir DDMS service, run the following command:
+1. To find the IP address of the RAFS DDMS service, run the following command:
 
     ```bash
     kubectl get service -n rddms
     ```
 
-    The output should show the IP address of the Reservoir DDMS service.
+    The output should show the IP address of the RAFS DDMS service.
 
-## Publish the Rock and Fluid DDMS service publicly
+## Publish the RAFS DDMS service publicly
 
-To publish the Rock and Fluid DDMS service, you will need to use an ingress controller, such as [Azure API Management](https://learn.microsoft.com/en-us/azure/api-management/import-and-publish), [Azure Application Gateway](https://learn.microsoft.com/en-us/azure/application-gateway/ingress-controller-expose-service-over-http-https), [Azure Front Door](https://learn.microsoft.com/en-us/azure/architecture/example-scenario/aks-front-door/aks-front-door), [NGINX Ingress Controller](https://learn.microsoft.com/en-us/azure/aks/app-routing) or [Istio](https://learn.microsoft.com/en-us/azure/aks/istio-deploy-ingress).
+To publish the RAFS DDMS service, you will need to use an ingress controller, such as [Azure API Management](https://learn.microsoft.com/en-us/azure/api-management/import-and-publish), [Azure Application Gateway](https://learn.microsoft.com/en-us/azure/application-gateway/ingress-controller-expose-service-over-http-https), [Azure Front Door](https://learn.microsoft.com/en-us/azure/architecture/example-scenario/aks-front-door/aks-front-door), [NGINX Ingress Controller](https://learn.microsoft.com/en-us/azure/aks/app-routing) or [Istio](https://learn.microsoft.com/en-us/azure/aks/istio-deploy-ingress).
 
 You may use the OpenAPI specification from the OSDU Forum if you wish to use Azure API Management. The OpenAPI specification can be found [here](https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/rock-and-fluid-sample/rafs-ddms-services/-/blob/main/docs/spec/openapi.json).
 
@@ -161,8 +164,12 @@ Replace `<public-dns>` with the public DNS of the service you chose to use.
 
 If you chose to expose the service through the `$PRIVATE_ACCESS=false` variable, you can access the service through the LoadBalancer IP address.
 
+## Monitoring
+
+You can monitor the RAFS service using Azure Monitor. To enable monitoring, follow the [Logging options for Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/log-options) or [Azure Monitor for Kubernetes](https://docs.microsoft.com/en-us/azure/azure-monitor/insights/container-insights-overview) documentation.
+
 ## Next steps
 
-- [Run the Rock and Fluid DDMS service integration tests](https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/rock-and-fluid-sample/rafs-ddms-services#local-running).
+- [Run the Rock and Fluid Samples DDMS service integration tests](https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/rock-and-fluid-sample/rafs-ddms-services#local-running).
 - [Publish the Rock and Fluid Samples schemas, reference- and master data](https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/rock-and-fluid-sample/rafs-ddms-services/-/tree/main/deployments).
 - [Follow the tutorial on how to use the Rock and Fluid DDMS service](https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/rock-and-fluid-sample/rafs-ddms-services/-/tree/main/docs/tutorial).
