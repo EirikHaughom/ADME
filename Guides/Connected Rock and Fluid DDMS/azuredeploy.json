@@ -37,15 +37,19 @@
             "type": "string",
             "defaultValue": "https://<your-osdu-endpoint>.energy.azure.com/",
             "metadata": {
-                "description": "The OSDU endpoint to connect to. IMPORTANT: Keep the trailing slash."
-            }
+                "description": "The OSDU endpoint to connect to."
+            },
+            "minLength": 26,
+            "maxLength": 41
         },
         "dataPartitionId": {
             "type": "string",
             "defaultValue": "opendes",
             "metadata": {
                 "description": "The data partition ID to use."
-            }
+            },
+            "minLength": 1,
+            "maxLength": 31
         },
         "loggingLevel": {
             "type": "string",
