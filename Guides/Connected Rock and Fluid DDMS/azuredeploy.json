@@ -12,7 +12,7 @@
         "name": {
             "type": "string",
             "metadata": {
-                "description": "The base name of the services."
+                "description": "The base name of the services. Most services will be appended with a service name (i.e. -redis)."
             }
         },
         "containerImage": {

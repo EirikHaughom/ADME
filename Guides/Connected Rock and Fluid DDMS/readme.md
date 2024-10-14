@@ -26,10 +26,14 @@ There are two deployment options available for the RAFS DDMS service:
 
 | Parameter | Description | Required |
 | --- | --- | --- |
-| `name` | The base name of the services. | Yes |
+| `region` | The Azure region to deploy the services. Will match the region of the selected resource group. | Yes |
+| `name` | The base name of the services. Most services will be appended with a service name (i.e. -redis). | Yes |
 | `containerImage` | The container image to use for the RAFS service. Check the [OSDU Forum RAFS Container Registry](https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/rock-and-fluid-sample/rafs-ddms-services/container_registry) for newer images. | Yes |
-| `workloadProfile` | The workload profile to use for the Container App service. Learn more. | Yes |
-| `dataPartition` | The data partition of the ADME instance. I.e. `opendes` | Yes |
+| `workloadProfile` | The workload profile to use for the container app. Consumption uses the `Consumption` profile, while Premium uses the `D4` profile. [Learn more](https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview#profile-types). | Yes |
+| `osduEndpoint` | The endpoint of the ADME instance. I.e. `https://contoso.energy.azure.com/`. | Yes |
+| `dataPartitionId` | The data partition of the ADME instance. I.e. `opendes` | Yes |
+| loggingLevel` | The logging level of the RAFS service. Choose between `Debug` and `Info`. | Yes |
+| `redisCacheEnabled` | Choose whether or not to deploy and use Azure Cache for Redis. | Yes |
 
 ### Option 2: Azure Kubernetes Service (AKS) deployment
 
