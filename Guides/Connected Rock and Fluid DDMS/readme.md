@@ -24,7 +24,7 @@ There are two deployment options available for the RAFS DDMS service:
 
 1. Fill in the required parameters and click `Review + create`.
 1. After the deployment is complete, click the `Outputs` tab to find the swagger endpoint of the RAFS service.
-1. Optional: Deploy [monitoring](#monitoring).
+1. **Optional**: Deploy [monitoring](#monitoring).
 
 See [next steps](#next-steps) for more information on how to use the RAFS service.
 
