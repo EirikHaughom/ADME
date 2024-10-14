@@ -20,7 +20,7 @@ There are two deployment options available for the RAFS DDMS service:
 
     [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FEirikHaughom%2FADME%2Frefs%2Fheads%2Fmain%2FGuides%2FConnected%2520Rock%2520and%2520Fluid%2520DDMS%2Fazuredeploy.json)
 
-> **Note**: This deployment currently only support public endpoints. If you require private network support, please modify the [azuredeploy.json](azuredeploy.json) file, or use the AKS deployment option.
+    > **Note**: This deployment currently only support public endpoints. If you require private network support, please modify the [azuredeploy.json](azuredeploy.json) file, or use the AKS deployment option.
 
 1. Fill in the required parameters and click `Review + create`.
 1. After the deployment is complete, click the `Outputs` tab to find the swagger endpoint of the RAFS service.
