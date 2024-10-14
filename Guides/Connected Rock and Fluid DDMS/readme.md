@@ -22,6 +22,9 @@ There are two deployment options available for the RAFS DDMS service:
 
 > **Note**: This deployment currently only support public endpoints. If you require private network support, please modify the [azuredeploy.json](azuredeploy.json) file, or use the AKS deployment option.
 
+1. Fill in the required parameters and click `Review + create`.
+1. After the deployment is complete, click the `Outputs` tab to find the swagger endpoint of the RAFS service.
+
 #### Parameters for the Azure Container Apps deployment
 
 | Parameter | Description | Required |
