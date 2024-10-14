@@ -24,6 +24,9 @@ There are two deployment options available for the RAFS DDMS service:
 
 1. Fill in the required parameters and click `Review + create`.
 1. After the deployment is complete, click the `Outputs` tab to find the swagger endpoint of the RAFS service.
+1. Optional: Deploy [monitoring](#monitoring).
+
+See [next steps](#next-steps) for more information on how to use the RAFS service.
 
 #### Parameters for the Azure Container Apps deployment
 
@@ -158,7 +161,7 @@ There are some additional prerequisites for the AKS deployment option:
 
     The output should show the IP address of the RAFS DDMS service.
 
-## Publish the RAFS DDMS service publicly
+### Publish the RAFS DDMS service publicly
 
 To publish the RAFS DDMS service, you will need to use an ingress controller, such as [Azure API Management](https://learn.microsoft.com/en-us/azure/api-management/import-and-publish), [Azure Application Gateway](https://learn.microsoft.com/en-us/azure/application-gateway/ingress-controller-expose-service-over-http-https), [Azure Front Door](https://learn.microsoft.com/en-us/azure/architecture/example-scenario/aks-front-door/aks-front-door), [NGINX Ingress Controller](https://learn.microsoft.com/en-us/azure/aks/app-routing) or [Istio](https://learn.microsoft.com/en-us/azure/aks/istio-deploy-ingress).
 
