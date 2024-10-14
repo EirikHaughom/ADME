@@ -62,7 +62,7 @@
                 "description": "The logging level to use. 'Debug' for detailed logs, 'Info' for standard logs."
             }
         },
-        "redisCacheEnable": {
+        "enableRedisCache": {
             "type": "bool",
             "defaultValue": false,
             "metadata": {
@@ -164,11 +164,11 @@
                                 },
                                 {
                                     "name": "CACHE_ENABLE",
-                                    "value": "[if(parameters('redisCacheEnable'), 'True', 'False')]"
+                                    "value": "[if(parameters('enableRedisCache'), 'True', 'False')]"
                                 },
                                 {
                                     "name": "CACHE_BACKEND",
-                                    "value": "[if(parameters('redisCacheEnable'), 'app.core.helpers.cache.backends.redis_cache.RedisCacheBackend', '')]"
+                                    "value": "[if(parameters('enableRedisCache'), 'app.core.helpers.cache.backends.redis_cache.RedisCacheBackend', '')]"
                                 },
                                 {
                                     "name": "PARTITION",
@@ -214,7 +214,7 @@
         },
         {
             "apiVersion": "2024-03-01",
-            "condition": "[parameters('redisCacheEnable')]",
+            "condition": "[parameters('enableRedisCache')]",
             "name": "[variables('redisName')]",
             "type": "Microsoft.Cache/Redis",
             "location": "[resourceGroup().location]",
@@ -233,7 +233,7 @@
             }
         },
         {
-            "condition": "[parameters('redisCacheEnable')]",
+            "condition": "[parameters('enableRedisCache')]",
             "type": "Microsoft.ServiceLinker/linkers",
             "apiVersion": "2024-07-01-preview",
             "scope": "[concat('Microsoft.App/containerApps/', variables('containerAppName'))]",
