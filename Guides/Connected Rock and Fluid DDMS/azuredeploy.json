@@ -67,28 +67,30 @@
         }
     },
     "variables": {
-        "containerAppName": "[concat(parameters('name'), '-containerapp')]",
+        "containerAppName": "[parameters('name')]",
         "containerName": "[concat(parameters('name'), '-container')]",
         "environmentName": "[concat(parameters('name'), '-env')]",
         "redisName": "[concat(parameters('name'), '-redis')]",
         "environmentResourceID": "[resourceId('Microsoft.App/managedEnvironments', variables('environmentName'))]",
-        "redisResourceID": "[resourceId('Microsoft.Cache/Redis', variables('redisName'))]"
+        "redisResourceID": "[resourceId('Microsoft.Cache/Redis', variables('redisName'))]",
+        "containerResourceID": "[resourceId('Microsoft.App/containerApps', variables('containerAppName'))]"
     },
     "resources": [
         {
             "apiVersion": "2023-05-01",
             "name": "[variables('containerAppName')]",
-            "type": "Microsoft.App/containerapps",
-            "kind": "containerapps",
+            "type": "Microsoft.App/containerApps",
             "location": "[resourceGroup().location]",
-            "dependsOn": ["[variables('environmentResourceID')]", "[if(parameters('redisCacheEnable'), variables('redisResourceID'), json('null'))]" ],
+            "dependsOn": [
+                "[variables('environmentResourceID')]"
+            ],
             "properties": {
                 "environmentId": "[variables('environmentResourceID')]",
                 "configuration": {
                     "activeRevisionsMode": "Single",
                     "ingress": {
                         "external": true,
-                        "transport": "Auto",
+                        "transport": "auto",
                         "targetPort": 8080,
                         "allowInsecure": false
                     }
@@ -160,27 +162,6 @@
                                     "value": "[if(parameters('redisCacheEnable'), 'True', 'False')]"
                                 },
                                 {
-                                    "name": "REDIS_HOSTNAME",
-                                    "value": "[if(parameters('redisCacheEnable'), reference(concat(parameters('name'), '-redis'), '2023-08-01').hostName, '')]"
-                                },
-                                {
-                                    "name": "REDIS_PASSWORD",
-                                    "value": "[if(parameters('redisCacheEnable'), reference(concat(parameters('name'), '-redis'), '2023-08-01').accessKeys.primaryKey, '')]",
-                                    "secure": true
-                                },
-                                {
-                                    "name": "REDIS_PORT",
-                                    "value": "[if(parameters('redisCacheEnable'), '6380', '')]"
-                                },
-                                {
-                                    "name": "REDIS_DATABASE",
-                                    "value": "[if(parameters('redisCacheEnable'), '0', '')]"
-                                },
-                                {
-                                    "name": "REDIS_SSL",
-                                    "value": "[if(parameters('redisCacheEnable'), 'True', '')]"
-                                },
-                                {
                                     "name": "PARTITION",
                                     "value": "[parameters('dataPartitionId')]"
                                 },
@@ -192,9 +173,7 @@
                                     "name": "PYTHONUNBUFFERED",
                                     "value": "1"
                                 }
-
                             ]
-
                         }
                     ],
                     "scale": {
@@ -211,7 +190,7 @@
             "type": "Microsoft.App/managedEnvironments",
             "location": "[resourceGroup().location]",
             "properties": {
-                "zoneRedundant": true,
+                "zoneRedundant": false,
                 "workloadProfiles": [
                     {
                         "workloadProfileType": "Consumption",
@@ -221,7 +200,7 @@
             }
         },
         {
-            "apiVersion": "2023-08-01",
+            "apiVersion": "2024-03-01",
             "condition": "[parameters('redisCacheEnable')]",
             "name": "[variables('redisName')]",
             "type": "Microsoft.Cache/Redis",
@@ -239,6 +218,48 @@
                 "redisVersion": "6",
                 "disableAccessKeyAuthentication": false
             }
+        },
+        {
+            "condition": "[parameters('redisCacheEnable')]",
+            "type": "Microsoft.ServiceLinker/linkers",
+            "apiVersion": "2024-07-01-preview",
+            "scope": "[concat('Microsoft.App/containerApps/', variables('containerAppName'))]",
+            "name": "rediscache",
+            "properties": {
+                "clientType": "none",
+                "targetService": {
+                    "type": "AzureResource",
+                    "id": "[concat(variables('redisResourceID'), '/databases/0')]"
+                },
+                "authInfo": {
+                    "authType": "secret",
+                    "name": "key",
+                    "secretInfo": {
+                        "secretType": "rawValue",
+                        "value": "[listKeys(variables('redisResourceID'), '2023-08-01').primaryKey]"
+                    }
+                },
+                "scope": "[variables('containerAppName')]",
+                "configurationInfo": {
+                    "customizedKeys": {
+                        "AZURE_REDIS_HOST": "REDIS_HOSTNAME",
+                        "AZURE_REDIS_PORT": "REDIS_PORT",
+                        "AZURE_REDIS_DATABASE": "REDIS_DATABASE",
+                        "AZURE_REDIS_SSL": "REDIS_SSL",
+                        "AZURE_REDIS_PASSWORD": "REDIS_PASSWORD"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[variables('containerResourceID')]",
+                "[variables('redisResourceID')]"
+            ]
         }
-    ]
+    ],
+    "outputs": {
+        "swaggerEndpoint": {
+            "type": "string",
+            "value": "[concat(reference(variables('containerResourceID')).hostNames[0], '/api/rafs-ddms/docs')]"
+        }
+    }
 }

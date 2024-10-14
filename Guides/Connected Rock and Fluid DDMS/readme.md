@@ -1,17 +1,36 @@
-# Deploying a Connected Rock and Fluid DDMS on Azure Data Manager for Energy (ADME)
+# Deploying a Connected Rock and Fluid Sample DDMS on Azure Data Manager for Energy (ADME)
 
-This guide will walk you through deploying a Rock and Fluid DDMS (RAFS) service connected to an Azure Data Manager for Energy (ADME) instance using Azure Kubernetes Service (AKS).
+This guide will walk you through deploying a Rock and Fluid Sample (RAFS) DDMS connected to an Azure Data Manager for Energy (ADME) instance using Azure Kubernetes Service (AKS).
 
 ## Prerequisites
 
 - An Azure subscription. If you don't have an Azure subscription, create a [free account](https://azure.microsoft.com/free/) before you begin.
 - An Azure Data Manager for Energy (ADME) instance. If you don't have an ADME instance, [follow the ADME deployment guide](https://learn.microsoft.com/azure/energy-data-services/quickstart-create-microsoft-energy-data-services-instance).
+
+## Deployment options
+
+There are two deployment options available for the RAFS DDMS service:
+
+1. [**Quick-deploy with Azure Container Apps**](#quick-deploy-with-azure-container-apps): Deploy the RAFS service using Azure Container Apps. This is the quickest way to deploy the RAFS service. This option provides a public endpoint, secured with SSL (HTTPS) out of the box.
+1. [**Azure Kubernetes Service (AKS) deployment**](#azure-kubernetes-service-aks-deployment): Deploy the RAFS service using Azure Kubernetes Service (AKS). This option provides more control over the deployment.
+
+### Quick-deploy with Azure Container Apps
+
+1. Click the button below to deploy the RAFS service using Azure Container Apps:
+
+    [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FEirikHaughom%2FADME%2Frefs%2Fheads%2Fmain%2FGuides%2FConnected%2520Rock%2520and%2520Fluid%2520DDMS%2Fazuredeploy.json)
+
+> **Note**: This deployment currently only support public endpoints. If you require private network support, please modify the [azuredeploy.json](azuredeploy.json) file, or use the AKS deployment option.
+
+### Azure Kubernetes Service (AKS) deployment
+
+There are some additional prerequisites for the AKS deployment option:
 - An Azure Kubernetes Service (AKS) cluster. If you don't have an AKS cluster, [follow the AKS deployment guide](https://learn.microsoft.com/azure/aks/learn/quick-kubernetes-deploy-portal?tabs=azure-cli).
 - **\*OPTIONAL\*** An Azure Redis Cache instance. If you don't have an Azure Redis Cache instance, [follow the Azure Redis Cache deployment guide](https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/quickstart-create-redis).
 
 > The redis cache is optional. It is used for caching the data from the ADME instance to improve performance.
 
-## Deploy the RAFS service
+#### Deploy RAFS DDMS on AKS
 
 1. Launch the Azure Cloud Shell by clicking the Cloud Shell icon in the Azure portal, or navigate to [shell.azure.com](https://shell.azure.com/).
 
