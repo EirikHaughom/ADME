@@ -73,7 +73,8 @@
         "redisName": "[concat(parameters('name'), '-redis')]",
         "environmentResourceID": "[resourceId('Microsoft.App/managedEnvironments', variables('environmentName'))]",
         "redisResourceID": "[resourceId('Microsoft.Cache/Redis', variables('redisName'))]",
-        "containerResourceID": "[resourceId('Microsoft.App/containerApps', variables('containerAppName'))]"
+        "containerResourceID": "[resourceId('Microsoft.App/containerApps', variables('containerAppName'))]",
+        "osduEndpoint": "[if(endsWith(parameters('osduEndpoint'), '/'), parameters('osduEndpoint'), concat(parameters('osduEndpoint'), '/'))]"
     },
     "resources": [
         {
@@ -127,27 +128,27 @@
                                 },
                                 {
                                     "name": "SERVICE_HOST_STORAGE",
-                                    "value": "[concat(parameters('osduEndpoint'), 'api/storage/v2')]"
+                                    "value": "[concat(variables('osduEndpoint'), 'api/storage/v2')]"
                                 },
                                 {
                                     "name": "SERVICE_HOST_SCHEMA",
-                                    "value": "[concat(parameters('osduEndpoint'), 'api/schema-service/v1')]"
+                                    "value": "[concat(variables('osduEndpoint'), 'api/schema-service/v1')]"
                                 },
                                 {
                                     "name": "SERVICE_HOST_PARTITION",
-                                    "value": "[concat(parameters('osduEndpoint'), 'api/partition/v1')]"
+                                    "value": "[concat(variables('osduEndpoint'), 'api/partition/v1')]"
                                 },
                                 {
                                     "name": "SERVICE_HOST_DATASET",
-                                    "value": "[concat(parameters('osduEndpoint'), 'api/dataset/v1')]"
+                                    "value": "[concat(variables('osduEndpoint'), 'api/dataset/v1')]"
                                 },
                                 {
                                     "name": "SERVICE_HOST_LEGAL",
-                                    "value": "[concat(parameters('osduEndpoint'), 'api/legal/v1')]"
+                                    "value": "[concat(variables('osduEndpoint'), 'api/legal/v1')]"
                                 },
                                 {
                                     "name": "SERVICE_HOST_SEARCH",
-                                    "value": "[concat(parameters('osduEndpoint'), 'api/search/v2')]"
+                                    "value": "[concat(variables('osduEndpoint'), 'api/search/v2')]"
                                 },
                                 {
                                     "name": "REQUEST_TIMEOUT",
@@ -155,7 +156,7 @@
                                 },
                                 {
                                     "name": "SERVICE_READINESS_URLS",
-                                    "value": "[concat(parameters('osduEndpoint'), 'api/storage/v2/liveness_check', ',', parameters('osduEndpoint'), 'api/schema-service/v1/liveness_check')]"
+                                    "value": "[concat(variables('osduEndpoint'), 'api/storage/v2/liveness_check', ',', variables('osduEndpoint'), 'api/schema-service/v1/liveness_check')]"
                                 },
                                 {
                                     "name": "CACHE_ENABLE",
@@ -223,7 +224,7 @@
             "condition": "[parameters('redisCacheEnable')]",
             "type": "Microsoft.ServiceLinker/linkers",
             "apiVersion": "2024-07-01-preview",
-            "scope": "[concat('Microsoft.App/containerApps/', variables('containerAppName'))]",
+            "scope": "[concat('Microsoft.App/containerApps/', variables('containerName'))]",
             "name": "rediscache",
             "properties": {
                 "clientType": "none",

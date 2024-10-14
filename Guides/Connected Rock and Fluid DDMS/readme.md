@@ -14,7 +14,7 @@ There are two deployment options available for the RAFS DDMS service:
 1. [**Quick-deploy with Azure Container Apps**](#quick-deploy-with-azure-container-apps): Deploy the RAFS service using Azure Container Apps. This is the quickest way to deploy the RAFS service. This option provides a public endpoint, secured with SSL (HTTPS) out of the box.
 1. [**Azure Kubernetes Service (AKS) deployment**](#azure-kubernetes-service-aks-deployment): Deploy the RAFS service using Azure Kubernetes Service (AKS). This option provides more control over the deployment.
 
-### Quick-deploy with Azure Container Apps
+### Option 1: Quick-deploy with Azure Container Apps
 
 1. Click the button below to deploy the RAFS service using Azure Container Apps:
 
@@ -22,7 +22,14 @@ There are two deployment options available for the RAFS DDMS service:
 
 > **Note**: This deployment currently only support public endpoints. If you require private network support, please modify the [azuredeploy.json](azuredeploy.json) file, or use the AKS deployment option.
 
-### Azure Kubernetes Service (AKS) deployment
+#### Parameters for the Azure Container Apps deployment
+
+| Parameter | Description | Required |
+| --- | --- | --- |
+| `osduEndpoint` | The endpoint of the OSDU/ADME instance. I.e. `https://contoso.energy.azure.com/`. IMPORTANT: Note the trailing / which is required. | Yes |
+| `ADME_DATA_PARTITION` | The data partition of the ADME instance. I.e. `opendes` | Yes |
+
+### Option 2: Azure Kubernetes Service (AKS) deployment
 
 There are some additional prerequisites for the AKS deployment option:
 - An Azure Kubernetes Service (AKS) cluster. If you don't have an AKS cluster, [follow the AKS deployment guide](https://learn.microsoft.com/azure/aks/learn/quick-kubernetes-deploy-portal?tabs=azure-cli).
