@@ -32,7 +32,7 @@ There are two deployment options available for the RAFS DDMS service:
 | `workloadProfile` | The workload profile to use for the container app. Consumption uses the `Consumption` profile, while Premium uses the `D4` profile. [Learn more](https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview#profile-types). | Yes |
 | `osduEndpoint` | The endpoint of the ADME instance. I.e. `https://contoso.energy.azure.com/`. | Yes |
 | `dataPartitionId` | The data partition of the ADME instance. I.e. `opendes` | Yes |
-| loggingLevel` | The logging level of the RAFS service. Choose between `Debug` and `Info`. | Yes |
+| `loggingLevel` | The logging level of the RAFS service. Choose between `Debug` and `Info`. | Yes |
 | `redisCacheEnabled` | Choose whether or not to deploy and use Azure Cache for Redis. | Yes |
 
 ### Option 2: Azure Kubernetes Service (AKS) deployment
