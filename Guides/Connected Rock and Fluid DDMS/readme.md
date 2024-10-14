@@ -11,8 +11,8 @@ This guide will walk you through deploying a Rock and Fluid Sample (RAFS) DDMS c
 
 There are two deployment options available for the RAFS DDMS service:
 
-1. [**Quick-deploy with Azure Container Apps**](#quick-deploy-with-azure-container-apps): Deploy the RAFS service using Azure Container Apps. This is the quickest way to deploy the RAFS service. This option provides a public endpoint, secured with SSL (HTTPS) out of the box.
-1. [**Azure Kubernetes Service (AKS) deployment**](#azure-kubernetes-service-aks-deployment): Deploy the RAFS service using Azure Kubernetes Service (AKS). This option provides more control over the deployment.
+1. [**Quick-deploy with Azure Container Apps**](#option-1-quick-deploy-with-azure-container-apps): Deploy the RAFS service using Azure Container Apps. This is the quickest way to deploy the RAFS service. This option provides a public endpoint, secured with SSL (HTTPS) out of the box.
+1. [**Azure Kubernetes Service (AKS) deployment**](#option-2-azure-kubernetes-service-aks-deployment): Deploy the RAFS service using Azure Kubernetes Service (AKS). This option provides more control over the deployment.
 
 ### Option 1: Quick-deploy with Azure Container Apps
 

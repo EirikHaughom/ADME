@@ -222,7 +222,7 @@
                 "sku": {
                     "name": "Standard",
                     "family": "C",
-                    "capacity": 3
+                    "capacity": 2
                 },
                 "enableNonSslPort": false,
                 "redisConfiguration": {
