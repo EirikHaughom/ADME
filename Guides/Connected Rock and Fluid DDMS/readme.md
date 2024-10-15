@@ -1,6 +1,8 @@
 # Deploying a Connected Rock and Fluid Sample DDMS on Azure Data Manager for Energy (ADME)
 
-This guide will walk you through deploying a Rock and Fluid Sample (RAFS) DDMS connected to an Azure Data Manager for Energy (ADME) instance using Azure Kubernetes Service (AKS).
+This guide will walk you through deploying a Rock and Fluid Sample (RAFS) DDMS connected to an Azure Data Manager for Energy (ADME) instance using Azure Container Apps (Quick-deploy) or Azure Kubernetes Service (AKS).
+
+> **DISCLAIMER**: The RAFS DDMS is provided as a sample only. meant for functional testing. The RAFS DDMS is an integration of the OSDU Forum RAFS DDMS release with ADME. This RAFS DDMS is not intended for production use or performance testing, and has not undergone additional security testing apart from what's done in the OSDU Forum as part of their releases. The RAFS DDMS is provided as-is and is not supported by Microsoft. For more information, see the [OSDU Forum](https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/rock-and-fluid-sample/rafs-ddms-services).
 
 ## Prerequisites
 
