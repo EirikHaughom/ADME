@@ -22,6 +22,7 @@ There are two deployment options available for the RAFS DDMS service:
 
     [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FEirikHaughom%2FADME%2Frefs%2Fheads%2Fmain%2FGuides%2FConnected%2520Rock%2520and%2520Fluid%2520DDMS%2Fazuredeploy.json)
 
+    > **Note**: If you deploy without the Azure Cache for Redis, the deployment will report failure due to lack of the Redis Cache resource. This is due to a bug in the Azure Resource Manager, an I am working with the Product Group to resolve this issue. You can ignore this error.
     > **Note**: This deployment currently only support public endpoints. If you require private network support, please modify the [azuredeploy.json](azuredeploy.json) file, or use the AKS deployment option.
 
 1. Fill in the required parameters and click `Review + create`.
