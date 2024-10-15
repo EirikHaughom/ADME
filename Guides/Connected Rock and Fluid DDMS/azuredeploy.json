@@ -202,12 +202,10 @@
                 "zoneRedundant": false,
                 "workloadProfiles": [
                     {
-                        "workloadProfileType": "Consumption",
-                        "name": "Consumption"
-                    },
-                    {
-                        "workloadProfileType": "D4",
-                        "name": "Premium"
+                        "workloadProfileType": "[if(equals(parameters('workloadProfile'), 'Consumption'), 'Consumption', 'D4')]",
+                        "name": "[parameters('workloadProfile')]",
+                        "minimumCount": "[if(equals(parameters('workloadProfile'), 'Consumption'), json('null'), 1)]",
+                        "maximumCount": "[if(equals(parameters('workloadProfile'), 'Consumption'), json('null'), 3)]"
                     }
                 ]
             }
