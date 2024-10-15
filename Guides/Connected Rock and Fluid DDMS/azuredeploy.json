@@ -231,8 +231,8 @@
             }
         },
         {
-            "condition": "[parameters('enableRedisCache')]",
             "type": "Microsoft.ServiceLinker/linkers",
+            "condition": "[parameters('enableRedisCache')]",
             "apiVersion": "2024-07-01-preview",
             "scope": "[concat('Microsoft.App/containerApps/', variables('containerAppName'))]",
             "name": "rediscache",
