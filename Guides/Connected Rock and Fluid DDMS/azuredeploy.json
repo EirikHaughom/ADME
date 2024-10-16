@@ -240,14 +240,14 @@
                 "clientType": "none",
                 "targetService": {
                     "type": "AzureResource",
-                    "id": "[concat(variables('redisResourceID'), '/databases/0')]"
+                    "id": "[if(parameters('enableRedisCache'), concat(variables('redisResourceID'), '/databases/0'), json('null'))]"
                 },
                 "authInfo": {
                     "authType": "secret",
                     "name": "key",
                     "secretInfo": {
                         "secretType": "rawValue",
-                        "value": "[listKeys(variables('redisResourceID'), '2023-08-01').primaryKey]"
+                        "value": "[if(parameters('enableRedisCache'), listKeys(variables('redisResourceID'), '2023-08-01').primaryKey, json('null'))]"
                     }
                 },
                 "scope": "[variables('containerName')]",

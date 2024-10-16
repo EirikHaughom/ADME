@@ -14,6 +14,7 @@ This guide will walk you through deploying a Rock and Fluid Sample (RAFS) DDMS c
 There are two deployment options available for the RAFS DDMS service:
 
 1. [**Quick-deploy with Azure Container Apps**](#option-1-quick-deploy-with-azure-container-apps): Deploy the RAFS service using Azure Container Apps. This is the quickest way to deploy the RAFS service. This option provides a public endpoint, secured with SSL (HTTPS) out of the box. If you need private endpoint connectivity, either modify the [azuredeploy.json](./azuredeploy.json) template or use the AKS deployment option.
+
 1. [**Azure Kubernetes Service (AKS) deployment**](#option-2-azure-kubernetes-service-aks-deployment): Deploy the RAFS service using Azure Kubernetes Service (AKS). This option provides more control over the deployment.
 
 ### Option 1: Quick-deploy with Azure Container Apps
@@ -21,8 +22,6 @@ There are two deployment options available for the RAFS DDMS service:
 1. Click the button below to deploy the RAFS service using Azure Container Apps:
 
     [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FEirikHaughom%2FADME%2Frefs%2Fheads%2Fmain%2FGuides%2FConnected%2520Rock%2520and%2520Fluid%2520DDMS%2Fazuredeploy.json)
-
-    > **Note**: If you deploy without the Azure Cache for Redis, the deployment will report failure due to lack of the Redis Cache resource. This is due to a bug in the Azure Resource Manager. I am working with the Product Group to resolve this issue. You can ignore this error as the solution will work as expected.
 
 1. Fill in the required parameters and click `Review + create`.
 1. After the deployment is complete, click the `Outputs` tab to find the swagger endpoint of the RAFS service.
