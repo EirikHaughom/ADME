@@ -13,7 +13,7 @@ This guide will walk you through deploying a Rock and Fluid Sample (RAFS) DDMS c
 
 There are two deployment options available for the RAFS DDMS service:
 
-1. [**Quick-deploy with Azure Container Apps**](#option-1-quick-deploy-with-azure-container-apps): Deploy the RAFS service using Azure Container Apps. This is the quickest way to deploy the RAFS service. This option provides a public endpoint, secured with SSL (HTTPS) out of the box. If you need private endpoint connectivity, either modify the [azuredeploy.json](./azuredeploy.json) template or use the AKS deployment option.
+1. [**Quick-deploy with Azure Container Apps**](#option-1-quick-deploy-with-azure-container-apps): Deploy the RAFS service using Azure Container Apps. This is the quickest way to deploy the RAFS service. This option provides a public endpoint by default, secured with SSL (HTTPS) out of the box. You may choose to deploy the service privately as well.
 
 1. [**Azure Kubernetes Service (AKS) deployment**](#option-2-azure-kubernetes-service-aks-deployment): Deploy the RAFS service using Azure Kubernetes Service (AKS). This option provides more control over the deployment.
 
@@ -41,6 +41,9 @@ See [next steps](#next-steps) for more information on how to use the RAFS servic
 | `Data Partition Id` | The data partition of the ADME instance. I.e. `opendes` | Yes |
 | `Logging Level` | The logging level of the RAFS service. Choose between `Debug` and `Info`. | Yes |
 | `Enable Redis Cache` | Choose whether or not to deploy and use Azure Cache for Redis. | Yes |
+| `Enable Private Network` | Setting this to `true` will deploy the service in a private network, using private endpoints. | Yes |
+
+> **Note**: If you choose to deploy the service in a private network using `Enable Private Network`, you will need to either connect to the service using internal VNET routing, or deploy an ingress controller to access the service. See [Publish the RAFS DDMS service publicly](#publish-the-rafs-ddms-service-publicly) for more information regarding ingress controller options.
 
 ### Option 2: Azure Kubernetes Service (AKS) deployment
 

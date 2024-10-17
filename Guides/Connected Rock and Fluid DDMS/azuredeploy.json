@@ -68,26 +68,148 @@
             "metadata": {
                 "description": "Enable Redis cache for the service. This improves reliability and performance, but the deployment will take longer time."
             }
+        },
+        "enablePrivateNetwork": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Enable private network for the service. This will deploy a virtual network which all resources are joined to."
+            }
         }
     },
     "variables": {
         "containerAppName": "[parameters('name')]",
         "containerName": "[concat(parameters('name'), '-container')]",
-        "environmentName": "[concat(parameters('name'), '-env')]",
-        "redisName": "[concat(parameters('name'), '-redis')]",
-        "environmentResourceID": "[resourceId('Microsoft.App/managedEnvironments', variables('environmentName'))]",
-        "redisResourceID": "[resourceId('Microsoft.Cache/Redis', variables('redisName'))]",
         "containerResourceID": "[resourceId('Microsoft.App/containerApps', variables('containerAppName'))]",
-        "osduEndpoint": "[if(endsWith(parameters('osduEndpoint'), '/'), parameters('osduEndpoint'), concat(parameters('osduEndpoint'), '/'))]"
+        "environmentName": "[concat(parameters('name'), '-env')]",
+        "environmentResourceID": "[resourceId('Microsoft.App/managedEnvironments', variables('environmentName'))]",
+        "vnetName": "[concat(parameters('name'), '-vnet')]",
+        "nsgName": "[concat(parameters('name'), '-nsg')]",
+        "nsgContainerAppName": "[concat(parameters('name'), '-container-nsg')]",
+        "osduEndpoint": "[if(endsWith(parameters('osduEndpoint'), '/'), parameters('osduEndpoint'), concat(parameters('osduEndpoint'), '/'))]",
+        "privateEndpointName": "[concat(parameters('name'), '-pe')]",
+        "privateEndpointConnectionName": "[concat(parameters('name'), '-pe-connetion')]",
+        "redisName": "[concat(parameters('name'), '-redis')]",
+        "redisResourceID": "[resourceId('Microsoft.Cache/Redis', variables('redisName'))]",
+        "snetSharedAddressPrefix": "10.0.0.0/24",
+        "snetContainerAppAddressPrefix": "10.0.2.0/23",
+        "snetContainerAppName": "[concat(parameters('name'), '-container-snet')]",
+        "snetContainerAppResourceID": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetName'), variables('snetContainerAppName'))]",
+        "snetSharedName": "[concat(parameters('name'), '-shared-snet')]",
+        "snetSharedResourceID": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetName'), variables('snetSharedName'))]",
+        "vnetAddressPrefix": "10.0.0.0/16"
     },
     "resources": [
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "condition": "[parameters('enablePrivateNetwork')]",
+            "apiVersion": "2021-02-01",
+            "name": "[variables('vnetName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[variables('vnetAddressPrefix')]"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2021-02-01",
+            "condition": "[parameters('enablePrivateNetwork')]",
+            "name": "[concat(variables('vnetName'), '/', variables('snetSharedName'))]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgName'))]"
+            ],
+            "properties": {
+                "addressPrefix": "[variables('snetSharedAddressPrefix')]",
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgName'))]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2021-02-01",
+            "condition": "[parameters('enablePrivateNetwork')]",
+            "name": "[concat(variables('vnetName'), '/', variables('snetContainerAppName'))]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgContainerAppName'))]"
+            ],
+            "properties": {
+                "addressPrefix": "[variables('snetContainerAppAddressPrefix')]",
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgContainerAppName'))]"
+                },
+                "delegations": [
+                    {
+                        "name": "Microsoft.App/environments",
+                        "id": "[variables('environmentResourceID')]",
+                        "type": "Microsoft.Network/availableDelegations",
+                        "properties": {
+                            "serviceName": "Microsoft.App/environments"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2021-02-01",
+            "condition": "[parameters('enablePrivateNetwork')]",
+            "name": "[variables('nsgName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "securityRules": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2021-02-01",
+            "condition": "[parameters('enablePrivateNetwork')]",
+            "name": "[variables('nsgContainerAppName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "securityRules": []
+            }
+        },
+        {
+            "apiVersion": "2023-05-01",
+            "name": "[variables('environmentName')]",
+            "type": "Microsoft.App/managedEnvironments",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[variables('snetContainerAppResourceID')]"
+            ],
+            "properties": {
+                "zoneRedundant": false,
+                "workloadProfiles": [
+                    {
+                        "workloadProfileType": "[if(equals(parameters('workloadProfile'), 'Consumption'), 'Consumption', 'D4')]",
+                        "name": "[parameters('workloadProfile')]",
+                        "minimumCount": "[if(equals(parameters('workloadProfile'), 'Consumption'), null(), 1)]",
+                        "maximumCount": "[if(equals(parameters('workloadProfile'), 'Consumption'), null(), 3)]"
+                    }
+                ],
+                "vnetConfiguration": {
+                    "infrastructureSubnetId": "[if(parameters('enablePrivateNetwork'), variables('snetContainerAppResourceID'), null())]",
+                    "internal": "[if(parameters('enablePrivateNetwork'), true(), false() )]"
+                }
+            }
+        },
         {
             "apiVersion": "2023-05-01",
             "name": "[variables('containerAppName')]",
             "type": "Microsoft.App/containerApps",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[variables('environmentResourceID')]"
+                "[variables('environmentResourceID')]",
+                "[variables('snetSharedResourceID')]"
             ],
             "properties": {
                 "environmentId": "[variables('environmentResourceID')]",
@@ -194,41 +316,95 @@
             }
         },
         {
-            "apiVersion": "2023-05-01",
-            "name": "[variables('environmentName')]",
-            "type": "Microsoft.App/managedEnvironments",
-            "location": "[resourceGroup().location]",
-            "properties": {
-                "zoneRedundant": false,
-                "workloadProfiles": [
-                    {
-                        "workloadProfileType": "[if(equals(parameters('workloadProfile'), 'Consumption'), 'Consumption', 'D4')]",
-                        "name": "[parameters('workloadProfile')]",
-                        "minimumCount": "[if(equals(parameters('workloadProfile'), 'Consumption'), json('null'), 1)]",
-                        "maximumCount": "[if(equals(parameters('workloadProfile'), 'Consumption'), json('null'), 3)]"
-                    }
-                ]
-            }
-        },
-        {
             "apiVersion": "2024-03-01",
             "condition": "[parameters('enableRedisCache')]",
             "name": "[variables('redisName')]",
             "type": "Microsoft.Cache/Redis",
             "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[variables('snetSharedResourceID')]"
+            ],
             "properties": {
                 "sku": {
-                    "name": "Standard",
-                    "family": "C",
-                    "capacity": 2
+                    "name": "[if(parameters('enablePrivateNetwork'), 'Premium', 'Standard')]",
+                    "family": "[if(parameters('enablePrivateNetwork'), 'P', 'C')]",
+                    "capacity": "[if(parameters('enablePrivateNetwork'), '1', '2')]"
                 },
                 "enableNonSslPort": false,
                 "redisConfiguration": {
                     "aad-enabled": "true"
                 },
+                "publicNetworkAccess": "[if(parameters('enablePrivateNetwork'), 'Disabled', 'Enabled')]",
                 "redisVersion": "6",
                 "disableAccessKeyAuthentication": false
             }
+        },
+        {
+            "apiVersion": "2019-04-01",
+            "condition": "[and(parameters('enablePrivateNetwork'), parameters('enableRedisCache'))]",
+            "name": "[variables('privateEndpointName')]",
+            "type": "Microsoft.Network/privateEndpoints",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[variables('redisResourceID')]",
+                "[variables('snetSharedResourceID')]"
+            ],
+            "properties": {
+                "privateLinkServiceConnections": [
+                    {
+                        "id": "[variables('redisResourceID')]",
+                        "name": "[variables('privateEndpointConnectionName')]",
+                        "properties": {
+                            "privateLinkServiceId": "[variables('redisResourceID')]",
+                            "groupIds": [
+                                "redisCache"
+                            ]
+                        }
+                    }
+                ],
+                "subnet": {
+                    "id": "[variables('snetSharedResourceID')]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.ServiceLinker/linkers",
+            "condition": "[and(parameters('enableRedisCache'), parameters('enablePrivateNetwork'))]",
+            "apiVersion": "2024-07-01-preview",
+            "scope": "[concat('Microsoft.App/containerApps/', variables('containerAppName'))]",
+            "name": "rediscache",
+            "properties": {
+                "clientType": "none",
+                "targetService": {
+                    "type": "AzureResource",
+                    "id": "[if(parameters('enableRedisCache'), concat(variables('redisResourceID'), '/databases/0'), null())]"
+                },
+                "authInfo": {
+                    "authType": "secret",
+                    "name": "key",
+                    "secretInfo": {
+                        "secretType": "rawValue",
+                        "value": "[if(parameters('enableRedisCache'), listKeys(variables('redisResourceID'), '2023-08-01').primaryKey, null())]"
+                    }
+                },
+                "vNetSolution": {
+                    "type": "privateLink"
+                },
+                "scope": "[variables('containerName')]",
+                "configurationInfo": {
+                    "customizedKeys": {
+                        "AZURE_REDIS_HOST": "REDIS_HOSTNAME",
+                        "AZURE_REDIS_PORT": "REDIS_PORT",
+                        "AZURE_REDIS_DATABASE": "REDIS_DATABASE",
+                        "AZURE_REDIS_SSL": "REDIS_SSL",
+                        "AZURE_REDIS_PASSWORD": "REDIS_PASSWORD"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[variables('containerResourceID')]",
+                "[variables('redisResourceID')]"
+            ]
         },
         {
             "type": "Microsoft.ServiceLinker/linkers",
@@ -240,14 +416,14 @@
                 "clientType": "none",
                 "targetService": {
                     "type": "AzureResource",
-                    "id": "[if(parameters('enableRedisCache'), concat(variables('redisResourceID'), '/databases/0'), json('null'))]"
+                    "id": "[if(parameters('enableRedisCache'), concat(variables('redisResourceID'), '/databases/0'), null())]"
                 },
                 "authInfo": {
                     "authType": "secret",
                     "name": "key",
                     "secretInfo": {
                         "secretType": "rawValue",
-                        "value": "[if(parameters('enableRedisCache'), listKeys(variables('redisResourceID'), '2023-08-01').primaryKey, json('null'))]"
+                        "value": "[if(parameters('enableRedisCache'), listKeys(variables('redisResourceID'), '2023-08-01').primaryKey, null())]"
                     }
                 },
                 "scope": "[variables('containerName')]",
@@ -271,6 +447,10 @@
         "swaggerEndpoint": {
             "type": "string",
             "value": "[concat('https://', reference(variables('containerResourceID')).configuration.ingress.fqdn, '/api/rafs-ddms/docs')]"
+        },
+        "publiclyAccessible?": {
+            "type": "string",
+            "value": "[if(parameters('enablePrivateNetwork'), 'No, you will need to connect through a routable virtual network or an ingress controller.', 'Yes, you can access the endpoints over internet.')]"
         }
     }
 }
