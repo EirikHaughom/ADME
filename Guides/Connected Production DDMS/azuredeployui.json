@@ -194,6 +194,23 @@
                     ]
                 }
             ]
-        }
+        },
+        "outputs": {
+            "parameters": {
+                "admeEndpoint": "[steps('admeDetails').admeEndpoint]",
+                "admeDataPartition": "[steps('admeDetails').admeDataPartition]",
+                "admeClientId": "[steps('admeDetails').admeClientId]",
+                "admeClientSecret": "[steps('admeDetails').admeClientSecret]",
+                "adminUsername": "[steps('postgreSqlDetails').adminUsername]",
+                "adminPassword": "[steps('postgreSqlDetails').adminPassword]",
+                "modelDatabaseName": "[steps('postgreSqlDetails').modelDatabaseName]",
+                "serviceDatabaseName": "[steps('postgreSqlDetails').serviceDatabaseName]",
+                "containerAppsConsumptionPlan": "[steps('containerAppsDetails').containerAppsConsumptionPlan]",
+                "containerImage": "[steps('containerAppsDetails').containerImage]"
+            },
+            "kind": "ResourceGroup",
+            "location": "[steps('basics').resourceScope.location.name]",
+            "resourceGroupId": "[steps('basics').resourceScope.resourceGroup.id]"
+        }  
     }
 }
