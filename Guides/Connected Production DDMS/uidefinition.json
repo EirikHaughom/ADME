@@ -5,16 +5,26 @@
     "parameters": {
         "basics": [
             {
-                "name": "baseName",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Base resource name",
-                "toolTip": "The base name of the services. Most services will be appended with a service name (i.e. -postgres).",
-                "constraints": {
-                    "required": true,
-                    "regex": "^[a-z0-9A-Z]{1,30}$",
-                    "validationMessage": "Only alphanumeric characters are allowed, and the value must be 1-30 characters long."
-                },
-                "visible": true
+                "name": "basics",
+                "label": "Deployment location",
+                "elements": [
+                    {
+                        "name": "resourceScope",
+                        "type": "Microsoft.Common.ResourceScope"
+                    },
+                    {
+                        "name": "baseName",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Base resource name",
+                        "toolTip": "The base name of the services. Most services will be appended with a service name (i.e. -postgres).",
+                        "constraints": {
+                            "required": true,
+                            "regex": "^[a-z0-9A-Z]{1,30}$",
+                            "validationMessage": "Only alphanumeric characters are allowed, and the value must be 1-30 characters long."
+                        },
+                        "visible": true
+                    }
+                ]
             }
         ],
         "steps": [
@@ -439,7 +449,7 @@
             }
         ],
         "outputs": {
-			"parameters": {
+            "parameters": {
                 "name": "[basics('baseName')]",
                 "privateEndpointEnabled": "[steps('networking').enablePrivateEndpoint]",
                 "admeEndpoint": "[steps('admeDetails').admeInstanceDetails.admeEndpoint]",
@@ -459,10 +469,10 @@
                 "vnet": "[steps('networking').privateEndpointSection.vnet]",
                 "databaseSubnet": "[steps('networking').privateEndpointSection.vnet.subnets.databaseSubnet]",
                 "containerSubnet": "[steps('networking').privateEndpointSection.vnet.subnets.containerSubnet]"
-        	},
-			"kind": "ResourceGroup",
-			"location": "[steps('basics').resourceScope.location.name]",
-			"resourceGroupId": "[steps('basics').resourceScope.resourceGroup.id]"
-    	}
-	}
+            },
+            "kind": "ResourceGroup",
+            "location": "[steps('basics').resourceScope.location.name]",
+            "resourceGroupId": "[steps('basics').resourceScope.resourceGroup.id]"
+        }
+    }
 }
