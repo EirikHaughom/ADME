@@ -439,7 +439,7 @@
             }
         ],
         "outputs": {
-            "outputs": {
+			"parameters": {
                 "name": "[basics('baseName')]",
                 "privateEndpointEnabled": "[steps('networking').enablePrivateEndpoint]",
                 "admeEndpoint": "[steps('admeDetails').admeInstanceDetails.admeEndpoint]",
@@ -459,7 +459,10 @@
                 "vnet": "[steps('networking').privateEndpointSection.vnet]",
                 "databaseSubnet": "[steps('networking').privateEndpointSection.vnet.subnets.databaseSubnet]",
                 "containerSubnet": "[steps('networking').privateEndpointSection.vnet.subnets.containerSubnet]"
-            }
-        }
-    }
+        	},
+			"kind": "ResourceGroup",
+			"location": "[steps('basics').resourceScope.location.name]",
+			"resourceGroupId": "[steps('basics').resourceScope.resourceGroup.id]"
+    	}
+	}
 }
