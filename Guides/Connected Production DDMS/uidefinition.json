@@ -170,8 +170,7 @@
 								"name": "containerImageService",
 								"type": "Microsoft.Common.TextBox",
 								"label": "Service",
-								"placeholder": "",
-								"defaultValue": "community.opengroup.org:5555/osdu/platform/domain-data-mgmt-services/production/core/dspdm-services/az-dspdm-master",
+								"defaultValue": "community.opengroup.org:5555/osdu/platform/domain-data-mgmt-services/production/core/dspdm-services/gc-dspdm-master:latest",
 								"toolTip": "Service container image URL",
 								"constraints": {
 									"required": true,
@@ -185,7 +184,7 @@
 								"type": "Microsoft.Common.TextBox",
 								"label": "Init",
 								"placeholder": "",
-								"defaultValue": "community.opengroup.org:5555/osdu/platform/domain-data-mgmt-services/production/core/dspdm-services/az-dspdm-init",
+								"defaultValue": "community.opengroup.org:5555/osdu/platform/domain-data-mgmt-services/production/core/dspdm-services/gc-bootstrap-dspdm-master:latest",
 								"toolTip": "Init container image URL",
 								"constraints": {
 									"required": true,
@@ -196,7 +195,8 @@
 							}
 						],
 						"visible": true
-					},{
+					},
+					{
 						"name": "containerSection2",
 						"type": "Microsoft.Common.Section",
 						"label": "Container configuration",

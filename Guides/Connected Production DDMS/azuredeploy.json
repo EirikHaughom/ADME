@@ -18,13 +18,13 @@
         "containerImageService": {
             "type": "string",
             "metadata": {
-                "description": "The container image to use. See [OSDU Forum RAFS Container Registry](https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/rock-and-fluid-sample/rafs-ddms-services/container_registry) for available images."
+                "description": "The container image to use. See [OSDU Forum Production DMS Container Registry](https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/production/core/dspdm-services/container_registry) for available images."
             }
         },
         "containerImageInit": {
             "type": "string",
             "metadata": {
-                "description": "The container image to use for the init container. See [OSDU Forum RAFS Container Registry](https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/rock-and-fluid-sample/rafs-ddms-services/container_registry) for available images."
+                "description": "The container image to use for the init container. See [OSDU Forum Production DMS Container Registry](https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/production/core/dspdm-services/container_registry) for available images."
             }
         },
         "modelDatabaseName": {
@@ -308,6 +308,16 @@
                                 "cpu": 2,
                                 "memory": "4Gi"
                             },
+                            "command": [
+                                "/bin/sh"
+                            ],
+                            "args": [
+                                "-c",
+                                "./restore.sh",
+                                "&&",
+                                "touch", 
+                                "/tmp/bootstrap_ready"
+                            ],
                             "env": [
                                 {
                                     "name": "POSTGRES_HOST",
