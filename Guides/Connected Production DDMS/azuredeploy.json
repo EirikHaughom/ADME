@@ -53,18 +53,27 @@
         },
         "vnet": {
             "type": "object",
+            "defaultValue": {
+                "name": "vnet"
+            },
             "metadata": {
                 "description": "The virtual network to use for the service."
             }
         },
         "databaseSubnet": {
             "type": "object",
+            "defaultValue": {
+                "name": "databaseSubnet"
+            },
             "metadata": {
                 "description": "The subnet to use for the database."
             }
         },
         "containerSubnet": {
             "type": "object",
+            "defaultValue": {
+                "name": "containerSubnet"
+            },
             "metadata": {
                 "description": "The subnet to use for the container."
             }
