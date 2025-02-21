@@ -455,7 +455,7 @@
                                 },
                                 {
                                     "name": "osdu_azure_auth_url",
-                                    "value": "[concat('https://login.microsoftonline.com/', tenant().id, '/oauth2/v2.0/token')]"
+                                    "value": "[concat('https://login.microsoftonline.com/', tenant().tenantId, '/oauth2/v2.0/token')]"
                                 },
                                 {
                                     "name": "osdu_azure_auth_client_id",
@@ -614,7 +614,16 @@
                 "vNetSolution": {
                     "type": "privateLink"
                 },
-                "scope": "[variables('containerName')]"
+                "scope": "[variables('containerName')]",
+                "configurationInfo": {
+                    "customizedKeys": {
+                        "AZURE_POSTGRESQL_HOST": "POSTGRES_MODEL_HOST",
+                        "AZURE_POSTGRESQL_PORT": "POSTGRES_MODEL_PORT",
+                        "AZURE_POSTGRESQL_DATABASE": "POSTGRES_MODEL_DB",
+                        "AZURE_POSTGRESQL_SSL": "POSTGRES_MODEL_SSL",
+                        "AZURE_POSTGRESQL_PASSWORD": "POSTGRES_MODEL_PASSWORD"
+                    }
+                }
             },
             "scope": "[concat('Microsoft.App/containerApps/', variables('containerAppName'))]",
             "condition": "[parameters('privateEndpointEnabled')]"
@@ -641,7 +650,16 @@
                         "value": "[parameters('databasePassword')]"
                     }
                 },
-                "scope": "[variables('containerName')]"
+                "scope": "[variables('containerName')]",
+                "configurationInfo": {
+                    "customizedKeys": {
+                        "AZURE_POSTGRESQL_HOST": "POSTGRES_MODEL_HOST",
+                        "AZURE_POSTGRESQL_PORT": "POSTGRES_MODEL_PORT",
+                        "AZURE_POSTGRESQL_DATABASE": "POSTGRES_MODEL_DB",
+                        "AZURE_POSTGRESQL_SSL": "POSTGRES_MODEL_SSL",
+                        "AZURE_POSTGRESQL_PASSWORD": "POSTGRES_MODEL_PASSWORD"
+                    }
+                }
             },
             "scope": "[concat('Microsoft.App/containerApps/', variables('containerAppName'))]",
             "condition": "[not(parameters('privateEndpointEnabled'))]"
@@ -671,7 +689,16 @@
                 "vNetSolution": {
                     "type": "privateLink"
                 },
-                "scope": "[variables('containerName')]"
+                "scope": "[variables('containerName')]",
+                "configurationInfo": {
+                    "customizedKeys": {
+                        "AZURE_POSTGRESQL_HOST": "POSTGRES_SERVICE_HOST",
+                        "AZURE_POSTGRESQL_PORT": "POSTGRES_SERVICE_PORT",
+                        "AZURE_POSTGRESQL_DATABASE": "POSTGRES_SERVICE_DB",
+                        "AZURE_POSTGRESQL_SSL": "POSTGRES_SERVICE_SSL",
+                        "AZURE_POSTGRESQL_PASSWORD": "POSTGRES_SERVICE_PASSWORD"
+                    }
+                }
             },
             "scope": "[concat('Microsoft.App/containerApps/', variables('containerAppName'))]",
             "condition": "[parameters('privateEndpointEnabled')]"
@@ -698,7 +725,16 @@
                         "value": "[parameters('databasePassword')]"
                     }
                 },
-                "scope": "[variables('containerName')]"
+                "scope": "[variables('containerName')]",
+                "configurationInfo": {
+                    "customizedKeys": {
+                        "AZURE_POSTGRESQL_HOST": "POSTGRES_SERVICE_HOST",
+                        "AZURE_POSTGRESQL_PORT": "POSTGRES_SERVICE_PORT",
+                        "AZURE_POSTGRESQL_DATABASE": "POSTGRES_SERVICE_DB",
+                        "AZURE_POSTGRESQL_SSL": "POSTGRES_SERVICE_SSL",
+                        "AZURE_POSTGRESQL_PASSWORD": "POSTGRES_SERVICE_PASSWORD"
+                    }
+                }
             },
             "scope": "[concat('Microsoft.App/containerApps/', variables('containerAppName'))]",
             "condition": "[not(parameters('privateEndpointEnabled'))]"
