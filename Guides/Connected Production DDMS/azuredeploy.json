@@ -155,7 +155,9 @@
         "containerName": "[concat(variables('uniqueName'), '-container')]",
         "containerResourceID": "[resourceId('Microsoft.App/containerApps', variables('containerAppName'))]",
         "databaseModelPassword": "[concat('P', uniqueString(resourceGroup().id, subscription().id), uniqueString(parameters('guid1')), 'z', '!')]",
+        "databaseModelResourceID": "[resourceId('Microsoft.DBforPostgreSQL/flexibleservers/databases', variables('postgresResourceName'), parameters('modelDatabaseName'))]",
         "databaseServicePassword": "[concat('P', uniqueString(tenant().id, subscription().id), uniqueString(parameters('guid2')), 'x', '!')]",
+        "databaseServiceResourceID": "[resourceId('Microsoft.DBforPostgreSQL/flexibleservers/databases', variables('postgresResourceName'), parameters('serviceDatabaseName'))]",
         "environmentName": "[concat(variables('uniqueName'), '-env')]",
         "environmentResourceID": "[resourceId('Microsoft.App/managedEnvironments', variables('environmentName'))]",
         "nsgName": "[concat(variables('uniqueName'), '-nsg')]",
@@ -586,6 +588,120 @@
                 "charset": "UTF8",
                 "collation": "en_US.utf8"
             }
+        },
+        {
+            "type": "Microsoft.ServiceLinker/linkers",
+            "apiVersion": "2024-07-01-preview",
+            "name": "postgresmodeldb",
+            "dependsOn": [
+                "[variables('containerResourceID')]",
+                "[variables('databaseModelResourceID')]"
+            ],
+            "properties": {
+                "clientType": "none",
+                "targetService": {
+                    "type": "AzureResource",
+                    "id": "[concat(variables('postgresResourceID'), '/databases/', parameters('modelDatabaseName'))]"
+                },
+                "authInfo": {
+                    "authType": "secret",
+                    "name": "[parameters('databaseUsername')]",
+                    "secretInfo": {
+                        "secretType": "rawValue",
+                        "value": "[parameters('databasePassword')]"
+                    }
+                },
+                "vNetSolution": {
+                    "type": "privateLink"
+                },
+                "scope": "[variables('containerName')]"
+            },
+            "scope": "[concat('Microsoft.App/containerApps/', variables('containerAppName'))]",
+            "condition": "[parameters('privateEndpointEnabled')]"
+        },
+        {
+            "type": "Microsoft.ServiceLinker/linkers",
+            "apiVersion": "2024-07-01-preview",
+            "name": "postgresmodeldb",
+            "dependsOn": [
+                "[variables('containerResourceID')]",
+                "[variables('databaseModelResourceID')]"
+            ],
+            "properties": {
+                "clientType": "none",
+                "targetService": {
+                    "type": "AzureResource",
+                    "id": "[concat(variables('postgresResourceID'), '/databases/', parameters('modelDatabaseName'))]"
+                },
+                "authInfo": {
+                    "authType": "secret",
+                    "name": "[parameters('databaseUsername')]",
+                    "secretInfo": {
+                        "secretType": "rawValue",
+                        "value": "[parameters('databasePassword')]"
+                    }
+                },
+                "scope": "[variables('containerName')]"
+            },
+            "scope": "[concat('Microsoft.App/containerApps/', variables('containerAppName'))]",
+            "condition": "[not(parameters('privateEndpointEnabled'))]"
+        },
+        {
+            "type": "Microsoft.ServiceLinker/linkers",
+            "apiVersion": "2024-07-01-preview",
+            "name": "postgresservicedb",
+            "dependsOn": [
+                "[variables('containerResourceID')]",
+                "[variables('databaseServiceResourceID')]"
+            ],
+            "properties": {
+                "clientType": "none",
+                "targetService": {
+                    "type": "AzureResource",
+                    "id": "[concat(variables('postgresResourceID'), '/databases/', parameters('serviceDatabaseName'))]"
+                },
+                "authInfo": {
+                    "authType": "secret",
+                    "name": "[parameters('databaseUsername')]",
+                    "secretInfo": {
+                        "secretType": "rawValue",
+                        "value": "[parameters('databasePassword')]"
+                    }
+                },
+                "vNetSolution": {
+                    "type": "privateLink"
+                },
+                "scope": "[variables('containerName')]"
+            },
+            "scope": "[concat('Microsoft.App/containerApps/', variables('containerAppName'))]",
+            "condition": "[parameters('privateEndpointEnabled')]"
+        },
+        {
+            "type": "Microsoft.ServiceLinker/linkers",
+            "apiVersion": "2024-07-01-preview",
+            "name": "postgresservicedb",
+            "dependsOn": [
+                "[variables('containerResourceID')]",
+                "[variables('databaseServiceResourceID')]"
+            ],
+            "properties": {
+                "clientType": "none",
+                "targetService": {
+                    "type": "AzureResource",
+                    "id": "[concat(variables('postgresResourceID'), '/databases/', parameters('serviceDatabaseName'))]"
+                },
+                "authInfo": {
+                    "authType": "secret",
+                    "name": "[parameters('databaseUsername')]",
+                    "secretInfo": {
+                        "secretType": "rawValue",
+                        "value": "[parameters('databasePassword')]"
+                    }
+                },
+                "scope": "[variables('containerName')]"
+            },
+            "scope": "[concat('Microsoft.App/containerApps/', variables('containerAppName'))]",
+            "condition": "[not(parameters('privateEndpointEnabled'))]"
         }
     ],
     "outputs": {
