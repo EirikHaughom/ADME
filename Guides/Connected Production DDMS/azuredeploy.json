@@ -241,7 +241,7 @@
             }
         },
         {
-            "apiVersion": "2023-05-01",
+            "apiVersion": "2024-10-02-preview",
             "name": "[variables('environmentName')]",
             "type": "Microsoft.App/managedEnvironments",
             "location": "[resourceGroup().location]",
