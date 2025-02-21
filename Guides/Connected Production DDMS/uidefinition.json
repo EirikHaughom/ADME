@@ -362,10 +362,6 @@
                             "constraints": {
                                 "allowedValues": [
                                     {
-                                        "label": "Yes",
-                                        "value": "true"
-                                    },
-                                    {
                                         "label": "No",
                                         "value": "false"
                                     }
