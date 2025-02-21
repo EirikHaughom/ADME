@@ -446,32 +446,27 @@
             "kind": "ResourceGroup",
             "location": "[steps('basics').resourceScope.location.name]",
             "resourceGroupId": "[steps('basics').resourceScope.resourceGroup.id]",
-            "parameters": {
-                "parameters": {
-                    "name": "[steps('basics').baseName]",
-                    "privateEndpointEnabled": "[steps('networking').enablePrivateEndpoint]",
-                    "admeEndpoint": "[steps('admeDetails').admeInstanceDetails.admeEndpoint]",
-                    "admeDataPartition": "[steps('admeDetails').admeInstanceDetails.admeDataPartition]",
-                    "admeScope": "[steps('admeDetails').admeInstanceDetails.admeScope]",
-                    "admeLegalTag": "[steps('admeDetails').admeInstanceDetails.admeLegalTag]",
-                    "admeClientId": "[steps('admeDetails').admeConnectionDetails.admeClientId]",
-                    "admeClientSecret": "[steps('admeDetails').admeConnectionDetails.admeClientSecret]",
-                    "containerImageService": "[steps('container').containerSection1.containerImageService]",
-                    "containerImageInit": "[steps('container').containerSection1.containerImageInit]",
-                    "containerWorkloadProfile": "[steps('container').containerSection2.containerWorkloadProfile]",
-                    "databaseUsername": "[steps('database').databaseAuthSection.databaseUsername]",
-                    "databasePassword": "[steps('database').databaseAuthSection.databasePassword]",
-                    "modelDatabaseName": "[steps('database').databaseSection.modelDataseName]",
-                    "serviceDatabaseName": "[steps('database').databaseSection.serviceDatabaseName]",
-                    "enablePrivateEndpoint": "[steps('networking').enablePrivateEndpoint]",
-                    "vnet": "[steps('networking').privateEndpointSection.vnet]",
-                    "databaseSubnet": "[steps('networking').privateEndpointSection.vnet.subnets.databaseSubnet]",
-                    "containerSubnet": "[steps('networking').privateEndpointSection.vnet.subnets.containerSubnet]"
-                },
-                "kind": "ResourceGroup",
-                "location": "[steps('basics').resourceScope.location.name]",
-                "resourceGroupId": "[steps('basics').resourceScope.resourceGroup.id]"
-            }
+			"parameters": {
+				"name": "[steps('basics').baseName]",
+				"privateEndpointEnabled": "[steps('networking').enablePrivateEndpoint]",
+				"admeEndpoint": "[steps('admeDetails').admeInstanceDetails.admeEndpoint]",
+				"admeDataPartition": "[steps('admeDetails').admeInstanceDetails.admeDataPartition]",
+				"admeScope": "[steps('admeDetails').admeInstanceDetails.admeScope]",
+				"admeLegalTag": "[steps('admeDetails').admeInstanceDetails.admeLegalTag]",
+				"admeClientId": "[steps('admeDetails').admeConnectionDetails.admeClientId]",
+				"admeClientSecret": "[steps('admeDetails').admeConnectionDetails.admeClientSecret]",
+				"containerImageService": "[steps('container').containerSection1.containerImageService]",
+				"containerImageInit": "[steps('container').containerSection1.containerImageInit]",
+				"containerWorkloadProfile": "[steps('container').containerSection2.containerWorkloadProfile]",
+				"databaseUsername": "[steps('database').databaseAuthSection.databaseUsername]",
+				"databasePassword": "[steps('database').databaseAuthSection.databasePassword]",
+				"modelDatabaseName": "[steps('database').databaseSection.modelDataseName]",
+				"serviceDatabaseName": "[steps('database').databaseSection.serviceDatabaseName]",
+				"enablePrivateEndpoint": "[steps('networking').enablePrivateEndpoint]",
+				"vnet": "[steps('networking').privateEndpointSection.vnet]",
+				"databaseSubnet": "[steps('networking').privateEndpointSection.vnet.subnets.databaseSubnet]",
+				"containerSubnet": "[steps('networking').privateEndpointSection.vnet.subnets.containerSubnet]"
+			}
         }
     }
 }
