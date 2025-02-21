@@ -466,9 +466,7 @@
                 "serviceDatabaseName": "[steps('database').databaseSection.serviceDatabaseName]",
                 "vnet": "[steps('networking').privateEndpointSection.vnet]",
                 "databaseSubnet": "[steps('networking').privateEndpointSection.vnet.subnets.databaseSubnet]",
-                "containerSubnet": "[steps('networking').privateEndpointSection.vnet.subnets.containerSubnet]",
-				"guid1": "test",
-				"guid2": "test"
+                "containerSubnet": "[steps('networking').privateEndpointSection.vnet.subnets.containerSubnet]"
             }
         }
     }

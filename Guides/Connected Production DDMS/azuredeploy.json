@@ -118,20 +118,6 @@
             "metadata": {
                 "description": "Enable private network for the service. This will deploy a virtual network which all resources are joined to."
             }
-        },
-        "guid1": {
-            "type": "string",
-            "defaultValue": "[newGuid()]",
-            "metadata": {
-                "description": "A unique identifier."
-            }
-        },
-        "guid2": {
-            "type": "string",
-            "defaultValue": "[newGuid()]",
-            "metadata": {
-                "description": "A unique identifier."
-            }
         }
     },
     "variables": {
@@ -139,9 +125,9 @@
         "containerAppName": "[variables('uniqueName')]",
         "containerName": "[concat(variables('uniqueName'), '-container')]",
         "containerResourceID": "[resourceId('Microsoft.App/containerApps', variables('containerAppName'))]",
-        "databaseModelPassword": "[concat('P', uniqueString(resourceGroup().id, subscription().id), uniqueString(parameters('guid1')), 'z', '!')]",
+        "databaseModelPassword": "[concat('P', uniqueString(resourceGroup().id, subscription().id), 'z', '!')]",
         "databaseModelResourceID": "[resourceId('Microsoft.DBforPostgreSQL/flexibleservers/databases', variables('postgresResourceName'), parameters('modelDatabaseName'))]",
-        "databaseServicePassword": "[concat('P', uniqueString(tenant().id, subscription().id), uniqueString(parameters('guid2')), 'x', '!')]",
+        "databaseServicePassword": "[concat('P', uniqueString(tenant().id, subscription().id), 'x', '!')]",
         "databaseServiceResourceID": "[resourceId('Microsoft.DBforPostgreSQL/flexibleservers/databases', variables('postgresResourceName'), parameters('serviceDatabaseName'))]",
         "environmentName": "[concat(variables('uniqueName'), '-env')]",
         "environmentResourceID": "[resourceId('Microsoft.App/managedEnvironments', variables('environmentName'))]",
