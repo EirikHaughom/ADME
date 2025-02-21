@@ -257,11 +257,7 @@
                         "minimumCount": "[if(equals(parameters('workloadProfile'), 'Consumption'), null(), 1)]",
                         "maximumCount": "[if(equals(parameters('workloadProfile'), 'Consumption'), null(), 3)]"
                     }
-                ],
-                "vnetConfiguration": {
-                    "infrastructureSubnetId": "[if(parameters('privateEndpointEnabled'), variables('snetContainerAppResourceID'), null())]",
-                    "internal": "[if(parameters('privateEndpointEnabled'), true(), false() )]"
-                }
+                ]
             }
         },
         {
