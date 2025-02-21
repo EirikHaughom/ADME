@@ -3,7 +3,7 @@
     "view": {
         "kind": "Form",
         "properties": {
-            "title": "Test Form View",
+            "title": "Deploy Production Core DMS",
             "steps": [
                 {
                     "name": "basics",
@@ -39,7 +39,14 @@
                             },
                             "infoMessages": [],
                             "visible": true
-                        },
+                        }
+                    ]
+                },
+                {
+                    "name": "details",
+                    "label": "Details",
+                    "elements": [
+                        
                         {
                             "name": "containerImageService",
                             "type": "Microsoft.Common.TextBox",
