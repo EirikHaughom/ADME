@@ -464,9 +464,9 @@
 				"databasePassword": "[steps('database').databaseAuthSection.databasePassword]",
 				"modelDatabaseName": "[steps('database').databaseSection.modelDatabaseName]",
 				"serviceDatabaseName": "[steps('database').databaseSection.serviceDatabaseName]",
-				"vnet": "[if(steps('networking').enablePrivateEndpoint, steps('networking').privateEndpointSection.vnet, '{ }')]",
-				"databaseSubnet": "[if(steps('networking').enablePrivateEndpoint, steps('networking').privateEndpointSection.vnet.subnets.databaseSubnet, '{ }')]",
-				"containerSubnet": "[if(steps('networking').enablePrivateEndpoint, steps('networking').privateEndpointSection.vnet.subnets.containerSubnet, '{ }')]"
+				"vnet": "[steps('networking').privateEndpointSection.vnet]",
+				"databaseSubnet": "[steps('networking').privateEndpointSection.vnet.subnets.databaseSubnet]",
+				"containerSubnet": "[steps('networking').privateEndpointSection.vnet.subnets.containerSubnet]"
 			}
         }
     }
