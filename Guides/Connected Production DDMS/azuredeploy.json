@@ -217,17 +217,7 @@
                 "addressPrefix": "[parameters('containerSubnet').addressPrefix]",
                 "networkSecurityGroup": {
                     "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgContainerAppName'))]"
-                },
-                "delegations": [
-                    {
-                        "name": "Microsoft.App/environments",
-                        "id": "[variables('environmentResourceID')]",
-                        "type": "Microsoft.Network/availableDelegations",
-                        "properties": {
-                            "serviceName": "Microsoft.App/environments"
-                        }
-                    }
-                ]
+                }
             }
         },
         {
