@@ -370,6 +370,15 @@
                             },
                             "visible": true
                         },
+						{
+							"name": "privateEndpointInfobox",
+							"type": "Microsoft.Common.InfoBox",
+							"visible": true,
+							"options": {
+								"text": "Private endpoint is not supported yet. Development in progress.",
+								"style": "Warn"
+							}
+						}
                         {
                             "name": "privateEndpointSection",
                             "type": "Microsoft.Common.Section",
