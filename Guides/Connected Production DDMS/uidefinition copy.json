@@ -5,27 +5,27 @@
     "parameters": {
         "basics": [
             {
-                "name": "baseName",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Base resource name",
-                "toolTip": "The base name of the services. Most services will be appended with a service name (i.e. -postgres).",
-                "constraints": {
-                    
-                    "regex": "^[a-z0-9A-Z]{1,30}$",
-                    "validationMessage": "Only alphanumeric characters are allowed, and the value must be 1-30 characters long."
-                },
-                "visible": true
-            },
-			{
-				"name" : "basics",
-				"label": "Deployment location",
-				"elements": [
-					{
-						"name": "resourceScope",
-						"type": "Microsoft.Common.ResourceScope"
-					}
-				]
-			}		
+                "name": "basics",
+                "label": "Deployment location",
+                "elements": [
+                    {
+                        "name": "resourceScope",
+                        "type": "Microsoft.Common.ResourceScope"
+                    },
+                    {
+                        "name": "baseName",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Base resource name",
+                        "toolTip": "The base name of the services. Most services will be appended with a service name (i.e. -postgres).",
+                        "constraints": {
+                            "required": true,
+                            "regex": "^[a-z0-9A-Z]{1,30}$",
+                            "validationMessage": "Only alphanumeric characters are allowed, and the value must be 1-30 characters long."
+                        },
+                        "visible": true
+                    }
+                ]
+            }
         ],
         "steps": [
             {
@@ -52,6 +52,7 @@
                                 "toolTip": "The base URL of the ADME instance",
                                 "defaultValue": "https://<contoso>.energy.azure.com",
                                 "constraints": {
+                                    "required": true,
                                     "regex": "^https://[a-zA-Z0-9-]{1,31}\\.energy\\.azure\\.com$",
                                     "validationMessage": "The ADME endpoint must be a valid URL"
                                 },
@@ -64,6 +65,7 @@
                                 "toolTip": "The data partition ID for the ADME instance",
                                 "defaultValue": "data",
                                 "constraints": {
+                                    "required": true,
                                     "regex": "^[a-zA-Z0-9-]{1,31}$",
                                     "validationMessage": "The ADME data partition must be a valid string"
                                 },
@@ -76,6 +78,7 @@
                                 "toolTip": "The scope used by the ADME instance",
                                 "placeholder": "00000000-0000-0000-0000-000000000000/.default",
                                 "constraints": {
+                                    "required": true,
                                     "regex": "^[A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12}/.*$",
                                     "validationMessage": "The ADME data partition must be a valid GUID followed by a /"
                                 },
@@ -88,6 +91,7 @@
                                 "toolTip": "The legal tag used by the file ingestion through Production DMS",
                                 "defaultValue": "",
                                 "constraints": {
+                                    "required": true,
                                     "regex": "^[a-zA-Z0-9-]+$",
                                     "validationMessage": "The ADME legal tag must be a valid string"
                                 },
@@ -125,6 +129,7 @@
                                 "toolTip": "The client ID used to access the ADME Partition API",
                                 "placeholder": "00000000-0000-0000-0000-000000000000",
                                 "constraints": {
+                                    "required": true,
                                     "regex": "^[A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12}$",
                                     "validationMessage": "Must be a valid client ID"
                                 },
@@ -139,6 +144,7 @@
                                 },
                                 "toolTip": "The client secret for the ADME deployment",
                                 "constraints": {
+                                    "required": true,
                                     "regex": "^[a-zA-Z0-9-_.~]{40,40}$",
                                     "validationMessage": "Must be a valid secret"
                                 },
@@ -180,6 +186,7 @@
                                 "defaultValue": "community.opengroup.org:5555/osdu/platform/domain-data-mgmt-services/production/core/dspdm-services/gc-dspdm-master:latest",
                                 "toolTip": "Service container image URL",
                                 "constraints": {
+                                    "required": true,
                                     "regex": "^(?:[a-z0-9]+(?:[._-][a-z0-9]+)*)(?::[0-9]+)?(?:/[a-z0-9]+(?:[._-][a-z0-9]+)*)*(?:/[a-zA-Z0-9._-]+)*(:[a-zA-Z0-9._-]+)?$",
                                     "validationMessage": "Only alphanumeric characters are allowed."
                                 },
@@ -193,6 +200,7 @@
                                 "defaultValue": "community.opengroup.org:5555/osdu/platform/domain-data-mgmt-services/production/core/dspdm-services/gc-bootstrap-dspdm-master:latest",
                                 "toolTip": "Init container image URL",
                                 "constraints": {
+                                    "required": true,
                                     "regex": "^(?:[a-z0-9]+(?:[._-][a-z0-9]+)*)(?::[0-9]+)?(?:/[a-z0-9]+(?:[._-][a-z0-9]+)*)*(?:/[a-zA-Z0-9._-]+)*(:[a-zA-Z0-9._-]+)?$",
                                     "validationMessage": "Only alphanumeric characters are allowed."
                                 },
@@ -305,6 +313,7 @@
                                 "defaultValue": "postgres",
                                 "toolTip": "The username of the admin for the Postgres Flexible Server",
                                 "constraints": {
+                                    "required": true,
                                     "regex": "^[a-z0-9A-Z]{1,30}$",
                                     "validationMessage": "Only alphanumeric characters are allowed, and the value must be 1-30 characters long."
                                 },
@@ -320,6 +329,7 @@
                                 },
                                 "toolTip": "The password of the admin for the Postgres Flexible Server",
                                 "constraints": {
+                                    "required": true,
                                     "regex": "^[a-zA-Z0-9]{8,}$",
                                     "validationMessage": "Password must be at least 8 characters long, contain only numbers and letters"
                                 },
@@ -438,31 +448,31 @@
                 ]
             }
         ],
-        "outputs": {
+		"outputs": {
 			"parameters": {
-                "name": "[basics('baseName')]",
-                "privateEndpointEnabled": "[steps('networking').enablePrivateEndpoint]",
-                "admeEndpoint": "[steps('admeDetails').admeInstanceDetails.admeEndpoint]",
-                "admeDataPartition": "[steps('admeDetails').admeInstanceDetails.admeDataPartition]",
-                "admeScope": "[steps('admeDetails').admeInstanceDetails.admeScope]",
-                "admeLegalTag": "[steps('admeDetails').admeInstanceDetails.admeLegalTag]",
-                "admeClientId": "[steps('admeDetails').admeConnectionDetails.admeClientId]",
-                "admeClientSecret": "[steps('admeDetails').admeConnectionDetails.admeClientSecret]",
-                "containerImageService": "[steps('container').containerSection1.containerImageService]",
-                "containerImageInit": "[steps('container').containerSection1.containerImageInit]",
-                "containerWorkloadProfile": "[steps('container').containerSection2.containerWorkloadProfile]",
-                "databaseUsername": "[steps('database').databaseAuthSection.databaseUsername]",
-                "databasePassword": "[steps('database').databaseAuthSection.databasePassword]",
-                "modelDatabaseName": "[steps('database').databaseSection.modelDataseName]",
-                "serviceDatabaseName": "[steps('database').databaseSection.serviceDatabaseName]",
-                "enablePrivateEndpoint": "[steps('networking').enablePrivateEndpoint]",
-                "vnet": "[steps('networking').privateEndpointSection.vnet]",
-                "databaseSubnet": "[steps('networking').privateEndpointSection.vnet.subnets.databaseSubnet]",
-                "containerSubnet": "[steps('networking').privateEndpointSection.vnet.subnets.containerSubnet]"
-        	},
+				"name": "[basics('basics').baseName]",
+				"privateEndpointEnabled": "[steps('networking').enablePrivateEndpoint]",
+				"admeEndpoint": "[steps('admeDetails').admeInstanceDetails.admeEndpoint]",
+				"admeDataPartition": "[steps('admeDetails').admeInstanceDetails.admeDataPartition]",
+				"admeScope": "[steps('admeDetails').admeInstanceDetails.admeScope]",
+				"admeLegalTag": "[steps('admeDetails').admeInstanceDetails.admeLegalTag]",
+				"admeClientId": "[steps('admeDetails').admeConnectionDetails.admeClientId]",
+				"admeClientSecret": "[steps('admeDetails').admeConnectionDetails.admeClientSecret]",
+				"containerImageService": "[steps('container').containerSection1.containerImageService]",
+				"containerImageInit": "[steps('container').containerSection1.containerImageInit]",
+				"containerWorkloadProfile": "[steps('container').containerSection2.containerWorkloadProfile]",
+				"databaseUsername": "[steps('database').databaseAuthSection.databaseUsername]",
+				"databasePassword": "[steps('database').databaseAuthSection.databasePassword]",
+				"modelDatabaseName": "[steps('database').databaseSection.modelDataseName]",
+				"serviceDatabaseName": "[steps('database').databaseSection.serviceDatabaseName]",
+				"enablePrivateEndpoint": "[steps('networking').enablePrivateEndpoint]",
+				"vnet": "[steps('networking').privateEndpointSection.vnet]",
+				"databaseSubnet": "[steps('networking').privateEndpointSection.vnet.subnets.databaseSubnet]",
+				"containerSubnet": "[steps('networking').privateEndpointSection.vnet.subnets.containerSubnet]"
+			},
 			"kind": "ResourceGroup",
-			"location": "[steps('basics').resourceScope.location.name]",
-			"resourceGroupId": "[steps('basics').resourceScope.resourceGroup.id]"
-    	}
-	}
+			"location": "[basics('basics').resourceScope.location.name]",
+			"resourceGroupId": "[basics('basics').resourceScope.resourceGroup.id]"
+		}
+    }
 }
