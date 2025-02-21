@@ -376,7 +376,7 @@
 							"visible": true,
 							"options": {
 								"text": "Private endpoint is not supported yet. Development in progress.",
-								"style": "Warn"
+								"style": "Warning"
 							}
 						},
                         {
