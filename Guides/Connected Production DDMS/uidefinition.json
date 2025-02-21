@@ -16,9 +16,10 @@
                         {
                             "name": "baseName",
                             "type": "Microsoft.Common.TextBox",
-                            "label": "Base resource name",
+                            "label": "Name prefix",
                             "toolTip": "The base name of the services. Most services will be appended with a service name (i.e. -postgres).",
                             "constraints": {
+								"required": true,
                                 "regex": "^[a-z0-9A-Z]{1,30}$",
                                 "validationMessage": "Only alphanumeric characters are allowed, and the value must be 1-30 characters long."
                             },
@@ -39,6 +40,9 @@
                                     "name": "admeInstanceDetailsDescription",
                                     "type": "Microsoft.Common.TextBlock",
                                     "visible": true,
+									"constraints": {
+										"required": true
+									},
                                     "options": {
                                         "text": "Please provide the configuration values for your Azure Data Manager for Energy (ADME) instance."
                                     }
@@ -48,8 +52,9 @@
                                     "type": "Microsoft.Common.TextBox",
                                     "label": "Endpoint",
                                     "toolTip": "The base URL of the ADME instance",
-                                    "defaultValue": "https://<contoso>.energy.azure.com",
+                                    "placeholder": "https://contoso.energy.azure.com",
                                     "constraints": {
+										"required": true,
                                         "regex": "^https://[a-zA-Z0-9-]{1,31}\\.energy\\.azure\\.com$",
                                         "validationMessage": "The ADME endpoint must be a valid URL"
                                     },
@@ -60,8 +65,9 @@
                                     "type": "Microsoft.Common.TextBox",
                                     "label": "Data Partition",
                                     "toolTip": "The data partition ID for the ADME instance",
-                                    "defaultValue": "data",
+                                    "placeholder": "data",
                                     "constraints": {
+										"required": true,
                                         "regex": "^[a-zA-Z0-9-]{1,31}$",
                                         "validationMessage": "The ADME data partition must be a valid string"
                                     },
