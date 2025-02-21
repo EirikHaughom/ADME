@@ -576,11 +576,11 @@
         }
     ],
     "outputs": {
-        "swaggerEndpoint": {
+        "Swagger Endpoint": {
             "type": "string",
             "value": "[concat('https://', reference(variables('containerResourceID')).configuration.ingress.fqdn, '/swagger-ui/')]"
         },
-        "publiclyAccessible?": {
+        "Is it publicly accessible?": {
             "type": "string",
             "value": "[if(parameters('privateEndpointEnabled'), 'No, you will need to connect through a routable virtual network or an ingress controller.', 'Yes, you can access the endpoints over internet.')]"
         }
