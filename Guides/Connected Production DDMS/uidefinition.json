@@ -467,8 +467,8 @@
                 "vnet": "[steps('networking').privateEndpointSection.vnet]",
                 "databaseSubnet": "[steps('networking').privateEndpointSection.vnet.subnets.databaseSubnet]",
                 "containerSubnet": "[steps('networking').privateEndpointSection.vnet.subnets.containerSubnet]",
-				"guid1": "[newguid()]",
-				"guid2": "[newguid()]"
+				"guid1": "test",
+				"guid2": "test"
             }
         }
     }
