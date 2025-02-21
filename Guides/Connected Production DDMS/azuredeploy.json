@@ -257,7 +257,8 @@
                         "minimumCount": "[if(equals(parameters('workloadProfile'), 'Consumption'), null(), 1)]",
                         "maximumCount": "[if(equals(parameters('workloadProfile'), 'Consumption'), null(), 3)]"
                     }
-                ]
+                ],
+                "publicNetworkAccess": "[if(not(parameters('privateEndpointEnabled')), 'Enabled', 'Disabled')]"
             }
         },
         {
