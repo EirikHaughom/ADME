@@ -109,6 +109,12 @@
                 "description": "The ADME scope to use."
             }
         },
+        "admeLegalTag": {
+            "type": "string",
+            "metadata": {
+                "description": "The ADME legal tag to use."
+            }
+        },
         "clientID": {
             "type": "string",
             "metadata": {
@@ -446,7 +452,7 @@
                                 },
                                 {
                                     "name": "osdu_file_service_legal_tags",
-                                    "value": "[concat('[\"data-osdu-reference-default\"]')]"
+                                    "value": "[parameters('admeLegalTag')]"
                                 },
                                 {
                                     "name": "osdu_file_service_legal_relevant_countries",
