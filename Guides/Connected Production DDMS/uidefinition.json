@@ -378,7 +378,7 @@
 								"text": "Private endpoint is not supported yet. Development in progress.",
 								"style": "Warn"
 							}
-						}
+						},
                         {
                             "name": "privateEndpointSection",
                             "type": "Microsoft.Common.Section",
