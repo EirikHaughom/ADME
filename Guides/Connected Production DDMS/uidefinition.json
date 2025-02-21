@@ -340,6 +340,7 @@
                 {
                     "name": "networking",
                     "label": "Networking",
+					"visible": false,
                     "elements": [
                         {
                             "name": "networkingDescription",
@@ -362,6 +363,10 @@
                             "constraints": {
                                 "allowedValues": [
                                     {
+                                        "label": "Yes",
+                                        "value": "true"
+                                    },
+                                    {
                                         "label": "No",
                                         "value": "false"
                                     }
@@ -370,15 +375,6 @@
                             },
                             "visible": true
                         },
-						{
-							"name": "privateEndpointInfobox",
-							"type": "Microsoft.Common.InfoBox",
-							"visible": true,
-							"options": {
-								"text": "Private endpoint is not supported yet. Development in progress.",
-								"style": "Warning"
-							}
-						},
                         {
                             "name": "privateEndpointSection",
                             "type": "Microsoft.Common.Section",
