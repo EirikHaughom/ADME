@@ -265,7 +265,7 @@
                                     }
                                 },
                                 {
-                                    "name": "modelDataseName",
+                                    "name": "modelDatabaseName",
                                     "defaultValue": "dspdm_model",
                                     "type": "Microsoft.Common.TextBox",
                                     "label": "Model database name"
@@ -460,9 +460,8 @@
                 "containerWorkloadProfile": "[steps('container').containerSection2.containerWorkloadProfile]",
                 "databaseUsername": "[steps('database').databaseAuthSection.databaseUsername]",
                 "databasePassword": "[steps('database').databaseAuthSection.databasePassword]",
-                "modelDatabaseName": "[steps('database').databaseSection.modelDataseName]",
+                "modelDatabaseName": "[steps('database').databaseSection.modelDatabaseName]",
                 "serviceDatabaseName": "[steps('database').databaseSection.serviceDatabaseName]",
-                "enablePrivateEndpoint": "[steps('networking').enablePrivateEndpoint]",
                 "vnet": "[steps('networking').privateEndpointSection.vnet]",
                 "databaseSubnet": "[steps('networking').privateEndpointSection.vnet.subnets.databaseSubnet]",
                 "containerSubnet": "[steps('networking').privateEndpointSection.vnet.subnets.containerSubnet]"
