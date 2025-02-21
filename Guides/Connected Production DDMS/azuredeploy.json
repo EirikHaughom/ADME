@@ -53,18 +53,50 @@
         },
         "vnet": {
             "type": "object",
+            "defaultValue": {
+                "value": {
+                    "addressPrefixes": [
+                    ],
+                    "subnets": {
+                    "databaseSubnet": {
+                    },
+                    "containerSubnet": {
+                    }
+                    }
+                }
+            },
             "metadata": {
                 "description": "The virtual network to use for the service."
             }
         },
         "databaseSubnet": {
             "type": "object",
+            "defaultValue": {
+                "value": {
+                    "name": "database-subnet",
+                    "addressPrefix": "0.0.0.0/24",
+                    "startAddress": "0.0.0.0"
+                }
+            },
             "metadata": {
                 "description": "The subnet to use for the database."
             }
         },
         "containerSubnet": {
             "type": "object",
+            "defaultValue": {
+                "type": "object",
+                "defaultValue": {
+                    "value": {
+                        "name": "container-subnet",
+                        "addressPrefix": "0.0.0.0/24",
+                        "startAddress": "0.0.0.0"
+                    }
+                },
+                "metadata": {
+                    "description": "The subnet to use for the database."
+                }
+            },
             "metadata": {
                 "description": "The subnet to use for the container."
             }
