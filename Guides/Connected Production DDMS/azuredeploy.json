@@ -9,13 +9,6 @@
         }
     },
     "parameters": {
-        "privateEndpointEnabled": {
-            "type": "bool",
-            "defaultValue": false,
-            "metadata": {
-                "description": "Enable private network for the service. This will deploy a virtual network which all resources are joined to."
-            }
-        },
         "name": {
             "type": "string",
             "metadata": {
@@ -60,50 +53,18 @@
         },
         "vnet": {
             "type": "object",
-            "defaultValue": {
-                "value": {
-                    "addressPrefixes": [
-                    ],
-                    "subnets": {
-                    "databaseSubnet": {
-                    },
-                    "containerSubnet": {
-                    }
-                    }
-                }
-            },
             "metadata": {
                 "description": "The virtual network to use for the service."
             }
         },
         "databaseSubnet": {
             "type": "object",
-            "defaultValue": {
-                "value": {
-                    "name": "database-subnet",
-                    "addressPrefix": "0.0.0.0/24",
-                    "startAddress": "0.0.0.0"
-                }
-            },
             "metadata": {
                 "description": "The subnet to use for the database."
             }
         },
         "containerSubnet": {
             "type": "object",
-            "defaultValue": {
-                "type": "object",
-                "defaultValue": {
-                    "value": {
-                        "name": "container-subnet",
-                        "addressPrefix": "0.0.0.0/24",
-                        "startAddress": "0.0.0.0"
-                    }
-                },
-                "metadata": {
-                    "description": "The subnet to use for the database."
-                }
-            },
             "metadata": {
                 "description": "The subnet to use for the container."
             }
@@ -149,6 +110,13 @@
             "type": "securestring",
             "metadata": {
                 "description": "The client secret to use for the service."
+            }
+        },
+        "privateEndpointEnabled": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Enable private network for the service. This will deploy a virtual network which all resources are joined to."
             }
         },
         "guid1": {
