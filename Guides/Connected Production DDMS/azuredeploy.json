@@ -155,9 +155,7 @@
         "containerName": "[concat(variables('uniqueName'), '-container')]",
         "containerResourceID": "[resourceId('Microsoft.App/containerApps', variables('containerAppName'))]",
         "databaseModelPassword": "[concat('P', uniqueString(resourceGroup().id, subscription().id), uniqueString(parameters('guid1')), 'z', '!')]",
-        "databaseModelResourceID": "[resourceId('Microsoft.DBforPostgreSQL/flexibleservers/databases', variables('postgresResourceName'), parameters('modelDatabaseName'))]",
         "databaseServicePassword": "[concat('P', uniqueString(tenant().id, subscription().id), uniqueString(parameters('guid2')), 'x', '!')]",
-        "databaseServiceResourceID": "[resourceId('Microsoft.DBforPostgreSQL/flexibleservers/databases', variables('postgresResourceName'), parameters('serviceDatabaseName'))]",
         "environmentName": "[concat(variables('uniqueName'), '-env')]",
         "environmentResourceID": "[resourceId('Microsoft.App/managedEnvironments', variables('environmentName'))]",
         "nsgName": "[concat(variables('uniqueName'), '-nsg')]",
@@ -518,6 +516,34 @@
                 ],
                 "subnet": {
                     "id": "[variables('snetSharedResourceID')]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/privateEndpoints",
+            "apiVersion": "2019-04-01",
+            "condition": "[parameters('privateEndpointEnabled')]",
+            "name": "[concat(variables('privateEndpointName'),'-container')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[variables('environmentResourceID')]",
+                "[variables('snetContainerAppResourceID')]"
+            ],
+            "properties": {
+                "privateLinkServiceConnections": [
+                    {
+                        "id": "[variables('snetContainerAppResourceID')]",
+                        "name": "[concat(variables('privateEndpointConnectionName'),'-container')]",
+                        "properties": {
+                            "privateLinkServiceId": "[variables('environmentResourceID')]",
+                            "groupIds": [
+                                "managedEnvironments"
+                            ]
+                        }
+                    }
+                ],
+                "subnet": {
+                    "id": "[variables('snetContainerAppResourceID')]"
                 }
             }
         },
