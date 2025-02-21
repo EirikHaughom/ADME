@@ -2,7 +2,6 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "metadata": {
-        "template": "Production DMS Deployment",
         "_generator": {
             "name": "bicep",
             "version": "0.17.1.54307",
