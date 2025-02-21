@@ -500,13 +500,13 @@
             "name": "[variables('privateEndpointName')]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[variables('postgresResourceName')]",
+                "[variables('postgresResourceID')]",
                 "[variables('snetSharedResourceID')]"
             ],
             "properties": {
                 "privateLinkServiceConnections": [
                     {
-                        "id": "[variables('postgresResourceName')]",
+                        "id": "[variables('snetSharedResourceID')]",
                         "name": "[variables('privateEndpointConnectionName')]",
                         "properties": {
                             "privateLinkServiceId": "[variables('postgresResourceID')]",
