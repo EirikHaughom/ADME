@@ -509,7 +509,7 @@
                         "id": "[variables('postgresResourceName')]",
                         "name": "[variables('privateEndpointConnectionName')]",
                         "properties": {
-                            "privateLinkServiceId": "[variables('postgresResourceName')]",
+                            "privateLinkServiceId": "[variables('postgresResourceID')]",
                             "groupIds": [
                                 "postgres"
                             ]
