@@ -451,22 +451,24 @@
 				"subscriptionId": "[steps('basics').resourceScope.subscription.subscriptionId]",
 				"resourceGroupName": "[steps('basics').resourceScope.resourceGroup.name]",
                 "privateEndpointEnabled": "[steps('networking').enablePrivateEndpoint]",
-                "admeEndpoint": "[steps('admeDetails').admeInstanceDetails.admeEndpoint]",
-                "admeDataPartition": "[steps('admeDetails').admeInstanceDetails.admeDataPartition]",
+                "osduEndpoint": "[steps('admeDetails').admeInstanceDetails.admeEndpoint]",
+                "dataPartitionId": "[steps('admeDetails').admeInstanceDetails.admeDataPartition]",
                 "admeScope": "[steps('admeDetails').admeInstanceDetails.admeScope]",
                 "admeLegalTag": "[steps('admeDetails').admeInstanceDetails.admeLegalTag]",
-                "admeClientId": "[steps('admeDetails').admeConnectionDetails.admeClientId]",
-                "admeClientSecret": "[steps('admeDetails').admeConnectionDetails.admeClientSecret]",
+                "clientID": "[steps('admeDetails').admeConnectionDetails.admeClientId]",
+                "clientSecret": "[steps('admeDetails').admeConnectionDetails.admeClientSecret]",
                 "containerImageService": "[steps('container').containerSection1.containerImageService]",
                 "containerImageInit": "[steps('container').containerSection1.containerImageInit]",
-                "containerWorkloadProfile": "[steps('container').containerSection2.containerWorkloadProfile]",
+                "workloadProfile": "[steps('container').containerSection2.containerWorkloadProfile]",
                 "databaseUsername": "[steps('database').databaseAuthSection.databaseUsername]",
                 "databasePassword": "[steps('database').databaseAuthSection.databasePassword]",
                 "modelDatabaseName": "[steps('database').databaseSection.modelDatabaseName]",
                 "serviceDatabaseName": "[steps('database').databaseSection.serviceDatabaseName]",
                 "vnet": "[steps('networking').privateEndpointSection.vnet]",
                 "databaseSubnet": "[steps('networking').privateEndpointSection.vnet.subnets.databaseSubnet]",
-                "containerSubnet": "[steps('networking').privateEndpointSection.vnet.subnets.containerSubnet]"
+                "containerSubnet": "[steps('networking').privateEndpointSection.vnet.subnets.containerSubnet]",
+				"guid1": "[newguid()]",
+				"guid2": "[newguid()]"
             }
         }
     }
