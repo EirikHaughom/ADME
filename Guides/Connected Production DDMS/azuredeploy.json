@@ -445,11 +445,11 @@
                                 },
                                 {
                                     "name": "osdu_file_service_acl_owner_group",
-                                    "value": "data.default.viewers@data.dataservices.energy"
+                                    "value": "[concat('data.default.owners@', parameters('dataPartitionId'), '.dataservices.energy')]"
                                 },
                                 {
                                     "name": "osdu_file_service_acl_viewer_group",
-                                    "value": "data.default.owners@data.dataservices.energy"
+                                    "value": "[concat('data.default.viewers@', parameters('dataPartitionId'), '.dataservices.energy')]"
                                 },
                                 {
                                     "name": "osdu_azure_auth_url",
