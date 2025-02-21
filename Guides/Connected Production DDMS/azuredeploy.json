@@ -511,7 +511,7 @@
                         "properties": {
                             "privateLinkServiceId": "[variables('postgresResourceID')]",
                             "groupIds": [
-                                "postgres"
+                                "postgresqlServer"
                             ]
                         }
                     }
