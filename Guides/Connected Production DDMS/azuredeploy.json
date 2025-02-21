@@ -9,6 +9,13 @@
         }
     },
     "parameters": {
+        "privateEndpointEnabled": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Enable private network for the service. This will deploy a virtual network which all resources are joined to."
+            }
+        },
         "name": {
             "type": "string",
             "metadata": {
@@ -142,13 +149,6 @@
             "type": "securestring",
             "metadata": {
                 "description": "The client secret to use for the service."
-            }
-        },
-        "privateEndpointEnabled": {
-            "type": "bool",
-            "defaultValue": false,
-            "metadata": {
-                "description": "Enable private network for the service. This will deploy a virtual network which all resources are joined to."
             }
         },
         "guid1": {
