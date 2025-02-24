@@ -182,8 +182,8 @@
         "privateEndpointConnectionName": "[concat(variables('uniqueName'), '-pe-connection')]",
         "postgresResourceName": "[concat(variables('uniqueName'), '-postgres')]",
         "postgresResourceID": "[resourceId('Microsoft.DBforPostgreSQL/flexibleservers', variables('postgresResourceName'))]",
-        "snetContainerAppResourceID": "[concat(variables('vnetResourceID')[parameters('virtualNetworkNewOrExisting')],'/subnets/', parameters('containerSubnet').name)]",
-        "snetSharedResourceID": "[concat(variables('vnetResourceID')[parameters('virtualNetworkNewOrExisting')],'/subnets/', parameters('databaseSubnet').name)]",
+        "snetContainerAppResourceID": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnet').name, parameters('containerSubnet').name)]",
+        "snetSharedResourceID": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnet').name, parameters('databaseSubnet').name)]",
         "vnetResourceID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnet').name)]"
 
     },
