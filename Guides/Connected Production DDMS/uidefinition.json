@@ -408,7 +408,7 @@
                                         "minAddressPrefixSize": "/23"
                                     },
                                     "options": {
-                                        "hideExisting": false
+                                        "hideExisting": true
                                     },
                                     "subnets": {
                                         "databaseSubnet": {

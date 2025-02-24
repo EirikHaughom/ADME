@@ -207,7 +207,7 @@
         {
             "type": "Microsoft.Network/virtualNetworks/subnets",
             "apiVersion": "2021-02-01",
-            "condition": "[and(parameters('privateEndpointEnabled'),equals(parameters('virtualNetworkNewOrExisting'),'new'))]",
+            "condition": "[parameters('privateEndpointEnabled')]",
             "name": "[concat(parameters('vnet').name, '/', parameters('databaseSubnet').name)]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
