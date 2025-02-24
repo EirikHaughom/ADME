@@ -171,7 +171,8 @@
         "postgresResourceName": "[concat(variables('uniqueName'), '-postgres')]",
         "postgresResourceID": "[resourceId('Microsoft.DBforPostgreSQL/flexibleservers', variables('postgresResourceName'))]",
         "snetContainerAppResourceID": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnet').name, parameters('containerSubnet').name)]",
-        "snetSharedResourceID": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnet').name, parameters('databaseSubnet').name)]"
+        "snetSharedResourceID": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnet').name, parameters('databaseSubnet').name)]",
+        "vnetResourceID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnet').name)]"
     },
     "resources": [
         {
@@ -213,13 +214,22 @@
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnet').name)]",
-                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgContainerAppName'))]"
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgContainerAppName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnet').name, parameters('databaseSubnet').name)]"
             ],
             "properties": {
                 "addressPrefix": "[parameters('containerSubnet').addressPrefix]",
                 "networkSecurityGroup": {
                     "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgContainerAppName'))]"
-                }
+                },
+                "delegations": [
+                    {
+                        "name": "delegation",
+                        "properties": {
+                            "serviceName": "Microsoft.App/environments"
+                        }
+                    }
+                ]
             }
         },
         {
@@ -260,7 +270,10 @@
                         "maximumCount": "[if(equals(parameters('workloadProfile'), 'Consumption'), null(), 3)]"
                     }
                 ],
-                "publicNetworkAccess": "[if(not(parameters('privateEndpointEnabled')), 'Enabled', 'Disabled')]"
+                "publicNetworkAccess": "[if(not(parameters('privateEndpointEnabled')), 'Enabled', 'Disabled')]",
+                "vnetConfiguration": {
+                    "infrastructureSubnetId": "[variables('snetContainerAppResourceID')]"
+                }
             }
         },
         {
@@ -270,7 +283,10 @@
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[variables('environmentResourceID')]",
-                "[variables('snetSharedResourceID')]"
+                "[variables('snetSharedResourceID')]",
+                "[variables('postgresResourceID')]",
+                "[variables('databaseModelResourceID')]",
+                "[variables('databaseServiceResourceID')]"
             ],
             "properties": {
                 "environmentId": "[variables('environmentResourceID')]",
@@ -317,8 +333,11 @@
                                 "-c",
                                 "./restore.sh",
                                 "&&",
-                                "touch", 
-                                "/tmp/bootstrap_ready"
+                                "touch",
+                                "/tmp/bootstrap_ready",
+                                "&&",
+                                "exit",
+                                "0"
                             ],
                             "env": [
                                 {
@@ -484,7 +503,7 @@
             "type": "Microsoft.Network/privateEndpoints",
             "apiVersion": "2019-04-01",
             "condition": "[parameters('privateEndpointEnabled')]",
-            "name": "[variables('privateEndpointName')]",
+            "name": "[concat(variables('privateEndpointName'), '-postgres')]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[variables('postgresResourceID')]",
@@ -494,7 +513,7 @@
                 "privateLinkServiceConnections": [
                     {
                         "id": "[variables('snetSharedResourceID')]",
-                        "name": "[variables('privateEndpointConnectionName')]",
+                        "name": "[concat(variables('privateEndpointName'), '-postgres')]",
                         "properties": {
                             "privateLinkServiceId": "[variables('postgresResourceID')]",
                             "groupIds": [
@@ -516,12 +535,12 @@
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[variables('environmentResourceID')]",
-                "[variables('snetContainerAppResourceID')]"
+                "[variables('snetSharedResourceID')]"
             ],
             "properties": {
                 "privateLinkServiceConnections": [
                     {
-                        "id": "[variables('snetContainerAppResourceID')]",
+                        "id": "[variables('snetSharedResourceID')]",
                         "name": "[concat(variables('privateEndpointConnectionName'),'-container')]",
                         "properties": {
                             "privateLinkServiceId": "[variables('environmentResourceID')]",
@@ -532,7 +551,7 @@
                     }
                 ],
                 "subnet": {
-                    "id": "[variables('snetContainerAppResourceID')]"
+                    "id": "[variables('snetSharedResourceID')]"
                 }
             }
         },
@@ -590,6 +609,50 @@
             }
         },
         {
+            "type": "Microsoft.Network/privateDnsZones",
+            "apiVersion": "2020-06-01",
+            "condition": "[parameters('privateEndpointEnabled')]",
+            "name": "privatelink.postgres.database.azure.com",
+            "location": "global"
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+            "apiVersion": "2020-06-01",
+            "condition": "[parameters('privateEndpointEnabled')]",
+            "name": "[concat('privatelink.postgres.database.azure.com/privatelink.postgres.database.azure.com-link')]",
+            "location": "global",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/privateDnsZones', 'privatelink.postgres.database.azure.com')]",
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnet').name)]"
+            ],
+            "properties": {
+                "virtualNetwork": {
+                    "id": "[variables('vnetResourceID')]"
+                },
+                "registrationEnabled": false
+            }
+        },
+        {
+            "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+            "apiVersion": "2020-06-01",
+            "condition": "[parameters('privateEndpointEnabled')]",
+            "name": "[concat(variables('privateEndpointName'), '-postgres', '/dns')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/privateEndpoints', concat(variables('privateEndpointName'), '-postgres'))]",
+                "[resourceId('Microsoft.Network/privateDnsZones', 'privatelink.postgres.database.azure.com')]"
+            ],
+            "properties": {
+                "privateDnsZoneConfigs": [
+                    {
+                        "name": "privatelink.postgres.database.azure.com",
+                        "properties": {
+                            "privateDnsZoneId": "[resourceId('Microsoft.Network/privateDnsZones', 'privatelink.postgres.database.azure.com')]"
+                        }
+                    }
+                ]
+            }
+        },
+        {
             "type": "Microsoft.ServiceLinker/linkers",
             "apiVersion": "2024-07-01-preview",
             "name": "postgresmodeldb",
@@ -610,9 +673,6 @@
                         "secretType": "rawValue",
                         "value": "[parameters('databasePassword')]"
                     }
-                },
-                "vNetSolution": {
-                    "type": "privateLink"
                 },
                 "scope": "[variables('containerName')]",
                 "configurationInfo": {
@@ -685,9 +745,6 @@
                         "secretType": "rawValue",
                         "value": "[parameters('databasePassword')]"
                     }
-                },
-                "vNetSolution": {
-                    "type": "privateLink"
                 },
                 "scope": "[variables('containerName')]",
                 "configurationInfo": {
