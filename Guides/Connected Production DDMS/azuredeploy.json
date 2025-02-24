@@ -184,10 +184,8 @@
         "postgresResourceID": "[resourceId('Microsoft.DBforPostgreSQL/flexibleservers', variables('postgresResourceName'))]",
         "snetContainerAppResourceID": "[concat(variables('vnetResourceID')[parameters('virtualNetworkNewOrExisting')],'/subnets/', parameters('containerSubnet').name)]",
         "snetSharedResourceID": "[concat(variables('vnetResourceID')[parameters('virtualNetworkNewOrExisting')],'/subnets/', parameters('databaseSubnet').name)]",
-        "vnetResourceID": {
-            "new": "[resourceId('Microsoft.Network/virtualNetworks',parameters('vnet').name)]",
-            "existing": "[resourceId(parameters('virtualNetworkResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('vnet').name)]"
-        }
+        "vnetResourceID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnet').name)]"
+
     },
     "resources": [
         {

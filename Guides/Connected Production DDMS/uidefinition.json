@@ -374,15 +374,6 @@
                             },
                             "visible": true
                         },
-						{
-							"name": "privateEndpointInfobox",
-							"type": "Microsoft.Common.InfoBox",
-							"visible": true,
-							"options": {
-								"text": "Private endpoint is currently disabled due to a bug that has been discovered.",
-								"style": "Warning"
-							}
-						},
                         {
                             "name": "privateEndpointSection",
                             "type": "Microsoft.Common.Section",
