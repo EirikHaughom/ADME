@@ -185,7 +185,6 @@
         "snetContainerAppResourceID": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnet').name, parameters('containerSubnet').name)]",
         "snetSharedResourceID": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnet').name, parameters('databaseSubnet').name)]",
         "vnetResourceID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnet').name)]"
-
     },
     "resources": [
         {
