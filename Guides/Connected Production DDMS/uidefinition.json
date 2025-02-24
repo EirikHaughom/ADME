@@ -80,6 +80,7 @@
                                     "toolTip": "The scope used by the ADME instance",
                                     "placeholder": "00000000-0000-0000-0000-000000000000/.default",
                                     "constraints": {
+										"required": true,
                                         "regex": "^[A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12}/.*$",
                                         "validationMessage": "The ADME data partition must be a valid GUID followed by a /"
                                     },
@@ -92,6 +93,7 @@
                                     "toolTip": "The legal tag used by the file ingestion through Production DMS",
                                     "defaultValue": "",
                                     "constraints": {
+										"required": true,
                                         "regex": "^[a-zA-Z0-9-]+$",
                                         "validationMessage": "The ADME legal tag must be a valid string"
                                     },
@@ -119,6 +121,7 @@
                                     "type": "Microsoft.Common.TextBlock",
                                     "visible": true,
                                     "options": {
+										"required": true,
                                         "text": "Please provide credentials for an App Registration with permission to read the ADME Partition API."
                                     }
                                 },
@@ -129,6 +132,7 @@
                                     "toolTip": "The client ID used to access the ADME Partition API",
                                     "placeholder": "00000000-0000-0000-0000-000000000000",
                                     "constraints": {
+										"required": true,
                                         "regex": "^[A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12}$",
                                         "validationMessage": "Must be a valid client ID"
                                     },
@@ -143,6 +147,7 @@
                                     },
                                     "toolTip": "The client secret for the ADME deployment",
                                     "constraints": {
+										"required": true,
                                         "regex": "^[a-zA-Z0-9-_.~]{40,40}$",
                                         "validationMessage": "Must be a valid secret"
                                     },
@@ -184,6 +189,7 @@
                                     "defaultValue": "community.opengroup.org:5555/osdu/platform/domain-data-mgmt-services/production/core/dspdm-services/gc-dspdm-master:latest",
                                     "toolTip": "Service container image URL",
                                     "constraints": {
+										"required": true,
                                         "regex": "^(?:[a-z0-9]+(?:[._-][a-z0-9]+)*)(?::[0-9]+)?(?:/[a-z0-9]+(?:[._-][a-z0-9]+)*)*(?:/[a-zA-Z0-9._-]+)*(:[a-zA-Z0-9._-]+)?$",
                                         "validationMessage": "Only alphanumeric characters are allowed."
                                     },
@@ -197,6 +203,7 @@
                                     "defaultValue": "community.opengroup.org:5555/osdu/platform/domain-data-mgmt-services/production/core/dspdm-services/gc-bootstrap-dspdm-master:latest",
                                     "toolTip": "Init container image URL",
                                     "constraints": {
+										"required": true,
                                         "regex": "^(?:[a-z0-9]+(?:[._-][a-z0-9]+)*)(?::[0-9]+)?(?:/[a-z0-9]+(?:[._-][a-z0-9]+)*)*(?:/[a-zA-Z0-9._-]+)*(:[a-zA-Z0-9._-]+)?$",
                                         "validationMessage": "Only alphanumeric characters are allowed."
                                     },
@@ -230,6 +237,7 @@
                                     "defaultValue": "Consumption",
                                     "toolTip": "",
                                     "constraints": {
+										"required": true,
                                         "allowedValues": [
                                             {
                                                 "label": "Consumption",
@@ -274,13 +282,25 @@
                                     "name": "modelDatabaseName",
                                     "defaultValue": "dspdm_model",
                                     "type": "Microsoft.Common.TextBox",
-                                    "label": "Model database name"
+                                    "label": "Model database name",
+                                    "toolTip": "The name of the model database",
+                                    "constraints": {
+										"required": true,
+                                        "regex": "^[a-zA-Z_][a-zA-Z0-9_]*$",
+                                        "validationMessage": "Only alphanumeric characters and underscores are allowed."
+                                    }
                                 },
                                 {
                                     "name": "serviceDatabaseName",
                                     "defaultValue": "dspdm_service",
                                     "type": "Microsoft.Common.TextBox",
-                                    "label": "Service database name"
+                                    "label": "Service database name",
+                                    "toolTip": "The name of the model database",
+                                    "constraints": {
+										"required": true,
+                                        "regex": "^[a-zA-Z_][a-zA-Z0-9_]*$",
+                                        "validationMessage": "Only alphanumeric characters and underscores are allowed."
+                                    }
                                 }
                             ],
                             "visible": true
@@ -309,8 +329,9 @@
                                     "defaultValue": "postgres",
                                     "toolTip": "The username of the admin for the Postgres Flexible Server",
                                     "constraints": {
-                                        "regex": "^[a-z0-9A-Z]{1,30}$",
-                                        "validationMessage": "Only alphanumeric characters are allowed, and the value must be 1-30 characters long."
+										"required": true,
+                                        "regex": "^[a-zA-Z_][a-zA-Z0-9_]{0,62}$",
+                                        "validationMessage": "Only alphanumeric characters and underscores are allowed. Must be 1-63 characters long."
                                     },
                                     "osPlatform": "Windows",
                                     "visible": true
@@ -324,8 +345,9 @@
                                     },
                                     "toolTip": "The password of the admin for the Postgres Flexible Server",
                                     "constraints": {
+                                        "required": true,
                                         "regex": "^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).{12,}$",
-                                        "validationMessage": "Password must be at least 8 characters long, contain only numbers and letters"
+                                        "validationMessage": "Password must be at least 12 characters long, and contain at least one uppercase letter, one lowercase letter, and one special character."
                                     },
                                     "options": {
                                         "hideConfirmation": false
