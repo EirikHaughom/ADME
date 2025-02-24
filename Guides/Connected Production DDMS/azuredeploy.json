@@ -179,7 +179,7 @@
         "osduPartitionApiEndpoint": "[concat(variables('osduEndpoint'), 'api/partition/v1/')]",
         "osduFileApiEndpoint": "[concat(variables('osduEndpoint'), 'api/file/v2/')]",
         "privateEndpointName": "[concat(variables('uniqueName'), '-pe')]",
-        "privateEndpointConnectionName": "[concat(variables('uniqueName'), '-pe-connetion')]",
+        "privateEndpointConnectionName": "[concat(variables('uniqueName'), '-pe-connection')]",
         "postgresResourceName": "[concat(variables('uniqueName'), '-postgres')]",
         "postgresResourceID": "[resourceId('Microsoft.DBforPostgreSQL/flexibleservers', variables('postgresResourceName'))]",
         "snetContainerAppResourceID": "[concat(variables('vnetResourceID')[parameters('virtualNetworkNewOrExisting')],'/subnets/', parameters('containerSubnet').name)]",
@@ -224,7 +224,7 @@
         {
             "type": "Microsoft.Network/virtualNetworks/subnets",
             "apiVersion": "2021-02-01",
-            "condition": "[and(parameters('privateEndpointEnabled'),equals(parameters('virtualNetworkNewOrExisting'),'new'))]",
+            "condition": "[parameters('privateEndpointEnabled')]",
             "name": "[concat(parameters('vnet').name, '/', parameters('containerSubnet').name)]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
