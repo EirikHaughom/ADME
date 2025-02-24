@@ -1,0 +1,822 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "metadata": {
+        "_generator": {
+            "name": "bicep",
+            "version": "0.17.1.54307",
+            "templateHash": "1543618559284229187"
+        }
+    },
+    "parameters": {
+        "name": {
+            "type": "string",
+            "metadata": {
+                "description": "The base name of the services. Most services will be appended with a service name (i.e. -postgres)."
+            }
+        },
+        "containerImageService": {
+            "type": "string",
+            "metadata": {
+                "description": "The container image to use. See [OSDU Forum Production DMS Container Registry](https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/production/core/dspdm-services/container_registry) for available images."
+            }
+        },
+        "containerImageInit": {
+            "type": "string",
+            "metadata": {
+                "description": "The container image to use for the init container. See [OSDU Forum Production DMS Container Registry](https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/production/core/dspdm-services/container_registry) for available images."
+            }
+        },
+        "modelDatabaseName": {
+            "type": "string",
+            "metadata": {
+                "description": "The database to use for the model."
+            }
+        },
+        "serviceDatabaseName": {
+            "type": "string",
+            "metadata": {
+                "description": "The database to use for the service."
+            }
+        },
+        "databaseUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "The username to use for the database."
+            }
+        },
+        "databasePassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The password to use for the database."
+            }
+        },
+        "vnet": {
+            "type": "object",
+            "defaultValue": {
+                "name": "vnet"
+            },
+            "metadata": {
+                "description": "The virtual network to use for the service."
+            }
+        },
+        "virtualNetworkResourceGroup": {
+            "type": "string",
+            "metadata": {
+                "description": "Resource group of the VNet"
+            }
+        },
+        "virtualNetworkNewOrExisting": {
+            "type": "string",
+            "metadata": {
+                "description": "Boolean indicating whether the VNet is new or existing"
+            }
+        },
+        "databaseSubnet": {
+            "type": "object",
+            "defaultValue": {
+                "name": "databaseSubnet"
+            },
+            "metadata": {
+                "description": "The subnet to use for the database."
+            }
+        },
+        "containerSubnet": {
+            "type": "object",
+            "defaultValue": {
+                "name": "containerSubnet"
+            },
+            "metadata": {
+                "description": "The subnet to use for the container."
+            }
+        },
+        "workloadProfile": {
+            "type": "string",
+            "defaultValue": "Consumption",
+            "metadata": {
+                "description": "The workload profile to use for the container app. Consumption uses the `Consumption` profile, while Premium uses the `D4` profile. [Learn more](https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview#profile-types)."
+            }
+        },
+        "osduEndpoint": {
+            "type": "string",
+            "defaultValue": "https://<your-adme-instance>.energy.azure.com/",
+            "metadata": {
+                "description": "The ADME endpoint to connect to."
+            },
+            "minLength": 26,
+            "maxLength": 41
+        },
+        "dataPartitionId": {
+            "type": "string",
+            "defaultValue": "data",
+            "metadata": {
+                "description": "The data partition ID to use."
+            },
+            "minLength": 1,
+            "maxLength": 31
+        },
+        "admeScope": {
+            "type": "string",
+            "metadata": {
+                "description": "The ADME scope to use."
+            }
+        },
+        "admeLegalTag": {
+            "type": "string",
+            "metadata": {
+                "description": "The ADME legal tag to use."
+            }
+        },
+        "clientID": {
+            "type": "string",
+            "metadata": {
+                "description": "The client ID to use for the service."
+            }
+        },
+        "clientSecret": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The client secret to use for the service."
+            }
+        },
+        "privateEndpointEnabled": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Enable private network for the service. This will deploy a virtual network which all resources are joined to."
+            }
+        },
+        "guid1": {
+            "type": "string",
+            "defaultValue": "[newGuid()]",
+            "metadata": {
+                "description": "A unique identifier."
+            }
+        },
+        "guid2": {
+            "type": "string",
+            "defaultValue": "[newGuid()]",
+            "metadata": {
+                "description": "A unique identifier."
+            }
+        }
+    },
+    "variables": {
+        "uniqueName": "[concat(parameters('name'), '-', uniqueString(resourceGroup().id, subscription().id))]",
+        "containerAppName": "[variables('uniqueName')]",
+        "containerName": "[concat(variables('uniqueName'), '-container')]",
+        "containerResourceID": "[resourceId('Microsoft.App/containerApps', variables('containerAppName'))]",
+        "databaseModelPassword": "[concat('P', uniqueString(resourceGroup().id, subscription().id), uniqueString(parameters('guid1')), 'z', '!')]",
+        "databaseModelResourceID": "[resourceId('Microsoft.DBforPostgreSQL/flexibleservers/databases', variables('postgresResourceName'), parameters('modelDatabaseName'))]",
+        "databaseServicePassword": "[concat('P', uniqueString(tenant().id, subscription().id), uniqueString(parameters('guid2')), 'x', '!')]",
+        "databaseServiceResourceID": "[resourceId('Microsoft.DBforPostgreSQL/flexibleservers/databases', variables('postgresResourceName'), parameters('serviceDatabaseName'))]",
+        "environmentName": "[concat(variables('uniqueName'), '-env')]",
+        "environmentResourceID": "[resourceId('Microsoft.App/managedEnvironments', variables('environmentName'))]",
+        "nsgName": "[concat(variables('uniqueName'), '-nsg')]",
+        "nsgContainerAppName": "[concat(variables('uniqueName'), '-container-nsg')]",
+        "osduEndpoint": "[if(endsWith(parameters('osduEndpoint'), '/'), parameters('osduEndpoint'), concat(parameters('osduEndpoint'), '/'))]",
+        "osduEntitlementsApiEndpoint": "[concat(variables('osduEndpoint'), 'api/entitlements/v2/')]",
+        "osduPartitionApiEndpoint": "[concat(variables('osduEndpoint'), 'api/partition/v1/')]",
+        "osduFileApiEndpoint": "[concat(variables('osduEndpoint'), 'api/file/v2/')]",
+        "privateEndpointName": "[concat(variables('uniqueName'), '-pe')]",
+        "privateEndpointConnectionName": "[concat(variables('uniqueName'), '-pe-connection')]",
+        "postgresResourceName": "[concat(variables('uniqueName'), '-postgres')]",
+        "postgresResourceID": "[resourceId('Microsoft.DBforPostgreSQL/flexibleservers', variables('postgresResourceName'))]",
+        "snetContainerAppResourceID": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnet').name, parameters('containerSubnet').name)]",
+        "snetSharedResourceID": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnet').name, parameters('databaseSubnet').name)]",
+        "vnetResourceID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnet').name)]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "condition": "[and(parameters('privateEndpointEnabled'),equals(parameters('virtualNetworkNewOrExisting'),'new'))]",
+            "apiVersion": "2021-02-01",
+            "name": "[parameters('vnet').name]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('vnet').addressPrefix]"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2021-02-01",
+            "condition": "[parameters('privateEndpointEnabled')]",
+            "name": "[concat(parameters('vnet').name, '/', parameters('databaseSubnet').name)]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnet').name)]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgName'))]"
+            ],
+            "properties": {
+                "addressPrefix": "[parameters('databaseSubnet').addressPrefix]",
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgName'))]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2021-02-01",
+            "condition": "[parameters('privateEndpointEnabled')]",
+            "name": "[concat(parameters('vnet').name, '/', parameters('containerSubnet').name)]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnet').name)]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgContainerAppName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnet').name, parameters('databaseSubnet').name)]"
+            ],
+            "properties": {
+                "addressPrefix": "[parameters('containerSubnet').addressPrefix]",
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgContainerAppName'))]"
+                },
+                "delegations": [
+                    {
+                        "name": "delegation",
+                        "properties": {
+                            "serviceName": "Microsoft.App/environments"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2021-02-01",
+            "condition": "[parameters('privateEndpointEnabled')]",
+            "name": "[variables('nsgName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "securityRules": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2021-02-01",
+            "condition": "[parameters('privateEndpointEnabled')]",
+            "name": "[variables('nsgContainerAppName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "securityRules": []
+            }
+        },
+        {
+            "apiVersion": "2024-10-02-preview",
+            "name": "[variables('environmentName')]",
+            "type": "Microsoft.App/managedEnvironments",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[variables('snetContainerAppResourceID')]"
+            ],
+            "properties": {
+                "zoneRedundant": false,
+                "workloadProfiles": [
+                    {
+                        "workloadProfileType": "[if(equals(parameters('workloadProfile'), 'Consumption'), 'Consumption', 'D4')]",
+                        "name": "[parameters('workloadProfile')]",
+                        "minimumCount": "[if(equals(parameters('workloadProfile'), 'Consumption'), null(), 1)]",
+                        "maximumCount": "[if(equals(parameters('workloadProfile'), 'Consumption'), null(), 3)]"
+                    }
+                ],
+                "publicNetworkAccess": "[if(not(parameters('privateEndpointEnabled')), 'Enabled', 'Disabled')]",
+                "vnetConfiguration": {
+                    "infrastructureSubnetId": "[variables('snetContainerAppResourceID')]"
+                }
+            }
+        },
+        {
+            "apiVersion": "2023-05-01",
+            "name": "[variables('containerAppName')]",
+            "type": "Microsoft.App/containerApps",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[variables('environmentResourceID')]",
+                "[variables('snetSharedResourceID')]",
+                "[variables('postgresResourceID')]",
+                "[variables('databaseModelResourceID')]",
+                "[variables('databaseServiceResourceID')]"
+            ],
+            "properties": {
+                "environmentId": "[variables('environmentResourceID')]",
+                "configuration": {
+                    "activeRevisionsMode": "Single",
+                    "ingress": {
+                        "external": true,
+                        "transport": "auto",
+                        "targetPort": 8080,
+                        "allowInsecure": false
+                    },
+                    "secrets": [
+                        {
+                            "name": "database-password",
+                            "value": "[parameters('databasePassword')]"
+                        },
+                        {
+                            "name": "client-secret",
+                            "value": "[parameters('clientSecret')]"
+                        },
+                        {
+                            "name": "database-model-password",
+                            "value": "[variables('databaseModelPassword')]"
+                        },
+                        {
+                            "name": "database-service-password",
+                            "value": "[variables('databaseServicePassword')]"
+                        }
+                    ]
+                },
+                "template": {
+                    "initContainers": [
+                        {
+                            "name": "init",
+                            "image": "[parameters('containerImageInit')]",
+                            "resources": {
+                                "cpu": 2,
+                                "memory": "4Gi"
+                            },
+                            "command": [
+                                "/bin/sh"
+                            ],
+                            "args": [
+                                "-c",
+                                "./restore.sh",
+                                "&&",
+                                "touch",
+                                "/tmp/bootstrap_ready",
+                                "&&",
+                                "exit",
+                                "0"
+                            ],
+                            "env": [
+                                {
+                                    "name": "POSTGRES_HOST",
+                                    "value": "[reference(resourceId('Microsoft.DBforPostgreSQL/flexibleservers', variables('postgresResourceName'))).fullyQualifiedDomainName]"
+                                },
+                                {
+                                    "name": "POSTGRES_PORT",
+                                    "value": "5432"
+                                },
+                                {
+                                    "name": "PG_USERNAME",
+                                    "value": "[parameters('databaseUsername')]"
+                                },
+                                {
+                                    "name": "PGPASSWORD",
+                                    "secretRef": "database-password"
+                                },
+                                {
+                                    "name": "DB_INSTALL_MODE",
+                                    "value": "pdm-demo"
+                                },
+                                {
+                                    "name": "DB_MODEL_NAME",
+                                    "value": "[parameters('modelDatabaseName')]"
+                                },
+                                {
+                                    "name": "DB_SERVICE_NAME",
+                                    "value": "[parameters('serviceDatabaseName')]"
+                                },
+                                {
+                                    "name": "DB_MAIN_USER",
+                                    "value": "pdm_osdu"
+                                },
+                                {
+                                    "name": "DB_MAIN_USER_PASS",
+                                    "secretRef": "database-model-password"
+                                },
+                                {
+                                    "name": "DB_TENANT_USER",
+                                    "value": "pdm_tenant_osdu"
+                                },
+                                {
+                                    "name": "DB_TENANT_USER_PASS",
+                                    "secretRef": "database-service-password"
+                                },
+                                {
+                                    "name": "DB_DEMO_TENANT_ID",
+                                    "value": "[parameters('dataPartitionId')]"
+                                },
+                                {
+                                    "name": "OVERRIDE",
+                                    "value": "false"
+                                }
+                            ]
+                        }
+                    ],
+                    "containers": [
+                        {
+                            "name": "[variables('containerName')]",
+                            "image": "[parameters('containerImageService')]",
+                            "resources": {
+                                "cpu": 2,
+                                "memory": "4Gi"
+                            },
+                            "env": [
+                                {
+                                    "name": "data_model_db_sql_dialect",
+                                    "value": "postgres"
+                                },
+                                {
+                                    "name": "data_model_db_jdbc_url",
+                                    "value": "[concat('jdbc:postgresql://', reference(resourceId('Microsoft.DBforPostgreSQL/flexibleservers', variables('postgresResourceName'))).fullyQualifiedDomainName, '/', parameters('modelDatabaseName'))]"
+                                },
+                                {
+                                    "name": "data_model_db_jdbc_user",
+                                    "value": "pdm_osdu"
+                                },
+                                {
+                                    "name": "data_model_db_jdbc_psword",
+                                    "secretRef": "database-model-password"
+                                },
+                                {
+                                    "name": "data_model_db_jdbc_tenant_user",
+                                    "value": "pdm_tenant_osdu"
+                                },
+                                {
+                                    "name": "data_model_db_jdbc_tenant_psword",
+                                    "secretRef": "database-service-password"
+                                },
+                                {
+                                    "name": "service_db_jdbc_url",
+                                    "value": "[concat('jdbc:postgresql://', reference(resourceId('Microsoft.DBforPostgreSQL/flexibleservers', variables('postgresResourceName'))).fullyQualifiedDomainName, '/', parameters('serviceDatabaseName'))]"
+                                },
+                                {
+                                    "name": "service_db_jdbc_tenant_user",
+                                    "value": "pdm_tenant_osdu"
+                                },
+                                {
+                                    "name": "service_db_jdbc_tenant_psword",
+                                    "secretRef": "database-service-password"
+                                },
+                                {
+                                    "name": "osdu_entitlements_service_root_path",
+                                    "value": "[variables('osduEntitlementsApiEndpoint')]"
+                                },
+                                {
+                                    "name": "osdu_partition_service_root_path",
+                                    "value": "[variables('osduPartitionApiEndpoint')]"
+                                },
+                                {
+                                    "name": "osdu_file_service_root_path",
+                                    "value": "[variables('osduFileApiEndpoint')]"
+                                },
+                                {
+                                    "name": "osdu_file_service_meta_kind",
+                                    "value": "osdu:wks:dataset--File.Generic:1.0.0"
+                                },
+                                {
+                                    "name": "osdu_file_service_legal_tags",
+                                    "value": "[parameters('admeLegalTag')]"
+                                },
+                                {
+                                    "name": "osdu_file_service_legal_relevant_countries",
+                                    "value": "[concat('[\"US\"]')]"
+                                },
+                                {
+                                    "name": "osdu_file_service_acl_owner_group",
+                                    "value": "[concat('data.default.owners@', parameters('dataPartitionId'), '.dataservices.energy')]"
+                                },
+                                {
+                                    "name": "osdu_file_service_acl_viewer_group",
+                                    "value": "[concat('data.default.viewers@', parameters('dataPartitionId'), '.dataservices.energy')]"
+                                },
+                                {
+                                    "name": "osdu_azure_auth_url",
+                                    "value": "[concat('https://login.microsoftonline.com/', tenant().tenantId, '/oauth2/v2.0/token')]"
+                                },
+                                {
+                                    "name": "osdu_azure_auth_client_id",
+                                    "value": "[parameters('clientID')]"
+                                },
+                                {
+                                    "name": "osdu_azure_auth_client_secret",
+                                    "secretRef": "client-secret"
+                                },
+                                {
+                                    "name": "osdu_azure_auth_client_scope",
+                                    "value": "[parameters('admeScope')]"
+                                }
+                            ]
+                        }
+                    ],
+                    "scale": {
+                        "minReplicas": 1,
+                        "maxReplicas": 3
+                    }
+                },
+                "workloadProfileName": "[parameters('workloadProfile')]"
+            }
+        },
+        {
+            "type": "Microsoft.Network/privateEndpoints",
+            "apiVersion": "2019-04-01",
+            "condition": "[parameters('privateEndpointEnabled')]",
+            "name": "[concat(variables('privateEndpointName'), '-postgres')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[variables('postgresResourceID')]",
+                "[variables('snetSharedResourceID')]"
+            ],
+            "properties": {
+                "privateLinkServiceConnections": [
+                    {
+                        "id": "[variables('snetSharedResourceID')]",
+                        "name": "[concat(variables('privateEndpointName'), '-postgres')]",
+                        "properties": {
+                            "privateLinkServiceId": "[variables('postgresResourceID')]",
+                            "groupIds": [
+                                "postgresqlServer"
+                            ]
+                        }
+                    }
+                ],
+                "subnet": {
+                    "id": "[variables('snetSharedResourceID')]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/privateEndpoints",
+            "apiVersion": "2019-04-01",
+            "condition": "[parameters('privateEndpointEnabled')]",
+            "name": "[concat(variables('privateEndpointName'),'-container')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[variables('environmentResourceID')]",
+                "[variables('snetSharedResourceID')]"
+            ],
+            "properties": {
+                "privateLinkServiceConnections": [
+                    {
+                        "id": "[variables('snetSharedResourceID')]",
+                        "name": "[concat(variables('privateEndpointConnectionName'),'-container')]",
+                        "properties": {
+                            "privateLinkServiceId": "[variables('environmentResourceID')]",
+                            "groupIds": [
+                                "managedEnvironments"
+                            ]
+                        }
+                    }
+                ],
+                "subnet": {
+                    "id": "[variables('snetSharedResourceID')]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.DBforPostgreSQL/flexibleservers",
+            "apiVersion": "2024-08-01",
+            "name": "[variables('postgresResourceName')]",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "Standard_B2s",
+                "tier": "Burstable"
+            },
+            "properties": {
+                "administratorLogin": "[parameters('databaseUsername')]",
+                "administratorLoginPassword": "[parameters('databasePassword')]",
+                "storage": {
+                    "iops": 500,
+                    "tier": "P10",
+                    "storageSizeGB": 32,
+                    "autoGrow": "Disabled"
+                },
+                "version": "16",
+                "minorVersion": "4",
+                "backup": {
+                    "backupRetentionDays": 7,
+                    "geoRedundantBackup": "Disabled"
+                },
+                "network": {
+                    "publicNetworkAccess": "[if(not(parameters('privateEndpointEnabled')), 'Enabled', 'Disabled')]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.DBforPostgreSQL/flexibleservers/databases",
+            "apiVersion": "2024-08-01",
+            "name": "[concat(variables('postgresResourceName'), '/', parameters('modelDatabaseName'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforPostgreSQL/flexibleservers', variables('postgresResourceName'))]"
+            ],
+            "properties": {
+                "charset": "UTF8",
+                "collation": "en_US.utf8"
+            }
+        },
+        {
+            "type": "Microsoft.DBforPostgreSQL/flexibleservers/databases",
+            "apiVersion": "2024-08-01",
+            "name": "[concat(variables('postgresResourceName'), '/', parameters('serviceDatabaseName'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforPostgreSQL/flexibleservers', variables('postgresResourceName'))]"
+            ],
+            "properties": {
+                "charset": "UTF8",
+                "collation": "en_US.utf8"
+            }
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones",
+            "apiVersion": "2020-06-01",
+            "condition": "[parameters('privateEndpointEnabled')]",
+            "name": "privatelink.postgres.database.azure.com",
+            "location": "global"
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+            "apiVersion": "2020-06-01",
+            "condition": "[parameters('privateEndpointEnabled')]",
+            "name": "[concat('privatelink.postgres.database.azure.com/privatelink.postgres.database.azure.com-link')]",
+            "location": "global",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/privateDnsZones', 'privatelink.postgres.database.azure.com')]",
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnet').name)]"
+            ],
+            "properties": {
+                "virtualNetwork": {
+                    "id": "[variables('vnetResourceID')]"
+                },
+                "registrationEnabled": false
+            }
+        },
+        {
+            "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+            "apiVersion": "2020-06-01",
+            "condition": "[parameters('privateEndpointEnabled')]",
+            "name": "[concat(variables('privateEndpointName'), '-postgres', '/dns')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/privateEndpoints', concat(variables('privateEndpointName'), '-postgres'))]",
+                "[resourceId('Microsoft.Network/privateDnsZones', 'privatelink.postgres.database.azure.com')]"
+            ],
+            "properties": {
+                "privateDnsZoneConfigs": [
+                    {
+                        "name": "privatelink.postgres.database.azure.com",
+                        "properties": {
+                            "privateDnsZoneId": "[resourceId('Microsoft.Network/privateDnsZones', 'privatelink.postgres.database.azure.com')]"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.ServiceLinker/linkers",
+            "apiVersion": "2024-07-01-preview",
+            "name": "postgresmodeldb",
+            "dependsOn": [
+                "[variables('containerResourceID')]",
+                "[variables('databaseModelResourceID')]"
+            ],
+            "properties": {
+                "clientType": "none",
+                "targetService": {
+                    "type": "AzureResource",
+                    "id": "[concat(variables('postgresResourceID'), '/databases/', parameters('modelDatabaseName'))]"
+                },
+                "authInfo": {
+                    "authType": "secret",
+                    "name": "[parameters('databaseUsername')]",
+                    "secretInfo": {
+                        "secretType": "rawValue",
+                        "value": "[parameters('databasePassword')]"
+                    }
+                },
+                "scope": "[variables('containerName')]",
+                "configurationInfo": {
+                    "customizedKeys": {
+                        "AZURE_POSTGRESQL_HOST": "POSTGRES_MODEL_HOST",
+                        "AZURE_POSTGRESQL_PORT": "POSTGRES_MODEL_PORT",
+                        "AZURE_POSTGRESQL_DATABASE": "POSTGRES_MODEL_DB",
+                        "AZURE_POSTGRESQL_SSL": "POSTGRES_MODEL_SSL",
+                        "AZURE_POSTGRESQL_PASSWORD": "POSTGRES_MODEL_PASSWORD"
+                    }
+                }
+            },
+            "scope": "[concat('Microsoft.App/containerApps/', variables('containerAppName'))]",
+            "condition": "[parameters('privateEndpointEnabled')]"
+        },
+        {
+            "type": "Microsoft.ServiceLinker/linkers",
+            "apiVersion": "2024-07-01-preview",
+            "name": "postgresmodeldb",
+            "dependsOn": [
+                "[variables('containerResourceID')]",
+                "[variables('databaseModelResourceID')]"
+            ],
+            "properties": {
+                "clientType": "none",
+                "targetService": {
+                    "type": "AzureResource",
+                    "id": "[concat(variables('postgresResourceID'), '/databases/', parameters('modelDatabaseName'))]"
+                },
+                "authInfo": {
+                    "authType": "secret",
+                    "name": "[parameters('databaseUsername')]",
+                    "secretInfo": {
+                        "secretType": "rawValue",
+                        "value": "[parameters('databasePassword')]"
+                    }
+                },
+                "scope": "[variables('containerName')]",
+                "configurationInfo": {
+                    "customizedKeys": {
+                        "AZURE_POSTGRESQL_HOST": "POSTGRES_MODEL_HOST",
+                        "AZURE_POSTGRESQL_PORT": "POSTGRES_MODEL_PORT",
+                        "AZURE_POSTGRESQL_DATABASE": "POSTGRES_MODEL_DB",
+                        "AZURE_POSTGRESQL_SSL": "POSTGRES_MODEL_SSL",
+                        "AZURE_POSTGRESQL_PASSWORD": "POSTGRES_MODEL_PASSWORD"
+                    }
+                }
+            },
+            "scope": "[concat('Microsoft.App/containerApps/', variables('containerAppName'))]",
+            "condition": "[not(parameters('privateEndpointEnabled'))]"
+        },
+        {
+            "type": "Microsoft.ServiceLinker/linkers",
+            "apiVersion": "2024-07-01-preview",
+            "name": "postgresservicedb",
+            "dependsOn": [
+                "[variables('containerResourceID')]",
+                "[variables('databaseServiceResourceID')]"
+            ],
+            "properties": {
+                "clientType": "none",
+                "targetService": {
+                    "type": "AzureResource",
+                    "id": "[concat(variables('postgresResourceID'), '/databases/', parameters('serviceDatabaseName'))]"
+                },
+                "authInfo": {
+                    "authType": "secret",
+                    "name": "[parameters('databaseUsername')]",
+                    "secretInfo": {
+                        "secretType": "rawValue",
+                        "value": "[parameters('databasePassword')]"
+                    }
+                },
+                "scope": "[variables('containerName')]",
+                "configurationInfo": {
+                    "customizedKeys": {
+                        "AZURE_POSTGRESQL_HOST": "POSTGRES_SERVICE_HOST",
+                        "AZURE_POSTGRESQL_PORT": "POSTGRES_SERVICE_PORT",
+                        "AZURE_POSTGRESQL_DATABASE": "POSTGRES_SERVICE_DB",
+                        "AZURE_POSTGRESQL_SSL": "POSTGRES_SERVICE_SSL",
+                        "AZURE_POSTGRESQL_PASSWORD": "POSTGRES_SERVICE_PASSWORD"
+                    }
+                }
+            },
+            "scope": "[concat('Microsoft.App/containerApps/', variables('containerAppName'))]",
+            "condition": "[parameters('privateEndpointEnabled')]"
+        },
+        {
+            "type": "Microsoft.ServiceLinker/linkers",
+            "apiVersion": "2024-07-01-preview",
+            "name": "postgresservicedb",
+            "dependsOn": [
+                "[variables('containerResourceID')]",
+                "[variables('databaseServiceResourceID')]"
+            ],
+            "properties": {
+                "clientType": "none",
+                "targetService": {
+                    "type": "AzureResource",
+                    "id": "[concat(variables('postgresResourceID'), '/databases/', parameters('serviceDatabaseName'))]"
+                },
+                "authInfo": {
+                    "authType": "secret",
+                    "name": "[parameters('databaseUsername')]",
+                    "secretInfo": {
+                        "secretType": "rawValue",
+                        "value": "[parameters('databasePassword')]"
+                    }
+                },
+                "scope": "[variables('containerName')]",
+                "configurationInfo": {
+                    "customizedKeys": {
+                        "AZURE_POSTGRESQL_HOST": "POSTGRES_SERVICE_HOST",
+                        "AZURE_POSTGRESQL_PORT": "POSTGRES_SERVICE_PORT",
+                        "AZURE_POSTGRESQL_DATABASE": "POSTGRES_SERVICE_DB",
+                        "AZURE_POSTGRESQL_SSL": "POSTGRES_SERVICE_SSL",
+                        "AZURE_POSTGRESQL_PASSWORD": "POSTGRES_SERVICE_PASSWORD"
+                    }
+                }
+            },
+            "scope": "[concat('Microsoft.App/containerApps/', variables('containerAppName'))]",
+            "condition": "[not(parameters('privateEndpointEnabled'))]"
+        }
+    ],
+    "outputs": {
+        "Swagger Endpoint": {
+            "type": "string",
+            "value": "[concat('https://', reference(variables('containerResourceID')).configuration.ingress.fqdn, '/swagger-ui/')]"
+        },
+        "Is it publicly accessible?": {
+            "type": "string",
+            "value": "[if(parameters('privateEndpointEnabled'), 'No, you will need to connect through a routable virtual network or an ingress controller.', 'Yes, you can access the endpoints over internet.')]"
+        }
+    }
+}
