@@ -60,6 +60,18 @@
                 "description": "The virtual network to use for the service."
             }
         },
+        "virtualNetworkResourceGroup": {
+            "type": "string",
+            "metadata": {
+                "description": "Resource group of the VNet"
+            }
+        },
+        "virtualNetworkNewOrExisting": {
+            "type": "string",
+            "metadata": {
+                "description": "Boolean indicating whether the VNet is new or existing"
+            }
+        },
         "databaseSubnet": {
             "type": "object",
             "defaultValue": {
@@ -170,14 +182,17 @@
         "privateEndpointConnectionName": "[concat(variables('uniqueName'), '-pe-connetion')]",
         "postgresResourceName": "[concat(variables('uniqueName'), '-postgres')]",
         "postgresResourceID": "[resourceId('Microsoft.DBforPostgreSQL/flexibleservers', variables('postgresResourceName'))]",
-        "snetContainerAppResourceID": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnet').name, parameters('containerSubnet').name)]",
-        "snetSharedResourceID": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnet').name, parameters('databaseSubnet').name)]",
-        "vnetResourceID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnet').name)]"
+        "snetContainerAppResourceID": "[concat(variables('vnetResourceID')[parameters('virtualNetworkNewOrExisting')],'/subnets/', parameters('containerSubnet').name)]",
+        "snetSharedResourceID": "[concat(variables('vnetResourceID')[parameters('virtualNetworkNewOrExisting')],'/subnets/', parameters('databaseSubnet').name)]",
+        "vnetResourceID": {
+            "new": "[resourceId('Microsoft.Network/virtualNetworks',parameters('vnet').name)]",
+            "existing": "[resourceId(parameters('virtualNetworkResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('vnet').name)]"
+        }
     },
     "resources": [
         {
             "type": "Microsoft.Network/virtualNetworks",
-            "condition": "[parameters('privateEndpointEnabled')]",
+            "condition": "[and(parameters('privateEndpointEnabled'),equals(parameters('virtualNetworkNewOrExisting'),'new'))]",
             "apiVersion": "2021-02-01",
             "name": "[parameters('vnet').name]",
             "location": "[resourceGroup().location]",
@@ -192,7 +207,7 @@
         {
             "type": "Microsoft.Network/virtualNetworks/subnets",
             "apiVersion": "2021-02-01",
-            "condition": "[parameters('privateEndpointEnabled')]",
+            "condition": "[and(parameters('privateEndpointEnabled'),equals(parameters('virtualNetworkNewOrExisting'),'new'))]",
             "name": "[concat(parameters('vnet').name, '/', parameters('databaseSubnet').name)]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
@@ -209,7 +224,7 @@
         {
             "type": "Microsoft.Network/virtualNetworks/subnets",
             "apiVersion": "2021-02-01",
-            "condition": "[parameters('privateEndpointEnabled')]",
+            "condition": "[and(parameters('privateEndpointEnabled'),equals(parameters('virtualNetworkNewOrExisting'),'new'))]",
             "name": "[concat(parameters('vnet').name, '/', parameters('containerSubnet').name)]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
