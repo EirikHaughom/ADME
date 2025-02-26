@@ -6,7 +6,7 @@ Deploy the Production Core DMS integrated with Azure Data Manager for Energy (AD
 
 Click `Deploy to Azure` and follow the instructions to deploy and configure the Production Core DMS.
 
-[![Deploy To Azure](https://docs.microsoft.com/en-us/azure/templates/media/deploy-to-azure.svg)](https://portal.azure.com/#blade/Microsoft_Azure_CreateUIDef/CustomDeploymentBlade/uri/[https%3A%2F%2Fgithub.com%2FEirikHaughom%2FADME%2Fblob%2Fmain%2FGuides%2FConnected%2520Production%2520DDMS%2Fazuredeploy.json](https://raw.githubusercontent.com/EirikHaughom/ADME/refs/heads/main/Guides/Connected%20Production%20DDMS/azuredeploy.json)/uiFormDefinitionUri/https://raw.githubusercontent.com/EirikHaughom/ADME/refs/heads/main/Guides/Connected%20Production%20DDMS/uidefinition.json)
+[![Deploy To Azure](https://docs.microsoft.com/en-us/azure/templates/media/deploy-to-azure.svg)](https://portal.azure.com/#blade/Microsoft_Azure_CreateUIDef/CustomDeploymentBlade/uri/https%3A%2F%2Fraw.githubusercontent.com%2FEirikHaughom%2FADME%2Frefs%2Fheads%2Fmain%2FGuides%2FConnected%2520Production%2520DDMS%2Fazuredeploy.json/uiFormDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2FEirikHaughom%2FADME%2Frefs%2Fheads%2Fmain%2FGuides%2FConnected%2520Production%2520DDMS%2Fuidefinition.json)
 
 ## References
 
