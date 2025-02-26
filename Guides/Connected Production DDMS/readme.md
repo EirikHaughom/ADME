@@ -8,6 +8,12 @@ Click `Deploy to Azure` and follow the instructions to deploy and configure the 
 
 [![Deploy To Azure](https://docs.microsoft.com/en-us/azure/templates/media/deploy-to-azure.svg)](https://portal.azure.com/#blade/Microsoft_Azure_CreateUIDef/CustomDeploymentBlade/uri/https%3A%2F%2Fraw.githubusercontent.com%2FEirikHaughom%2FADME%2Frefs%2Fheads%2Fmain%2FGuides%2FConnected%2520Production%2520DDMS%2Fazuredeploy.json/uiFormDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2FEirikHaughom%2FADME%2Frefs%2Fheads%2Fmain%2FGuides%2FConnected%2520Production%2520DDMS%2Fuidefinition.json)
 
+## Test data
+
+The deployment will load the Production Core DDMS [test data](https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/production/core/dspdm-services/-/tree/main/database/database/data/dump). 
+
+> Currently a clean environment is not supported. Halliburton is working on providing this capability. This solution will be updated once it is available.
+
 ## References
 
 - [OSDU Forum Production Core DMS Repository](https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/production/core/dspdm-services/-/tree/main)
