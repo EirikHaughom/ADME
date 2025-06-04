@@ -97,7 +97,8 @@
                             "subnets": {
                                 "containerSubnet": {
                                     "label": "Container subnet",
-                                    "defaultValue": { "name": "containerSubnet", "addressPrefixSize": "/24" }
+                                    "defaultValue": { "name": "containerSubnet", "addressPrefixSize": "/24" },
+                                    "constraints": { "minAddressPrefixSize": "/30", "minAddressCount": 2 }
                                 }
                             }
                         }
