@@ -12,6 +12,7 @@ This is the personal repository for Eirik Haughom on Azure Data Manager for Ener
 - [Custom Domain Name](/Guides/Custom%20Domain/)
 - [Full Postman & Bruno API Collections for ADME](/Guides/Postman%20Collection/)
 - [Power BI connection from Power Query](/Guides/Power%20BI/)
+- [Schema Upgrade Tool](/Guides/Schema%20Upgrade%20Tool/)
 - [Separate token-privisioning App Registration](/Guides/Azure%20AD/Dedicated%20Token%20App%20Registration/)
 
 ## Contribution
