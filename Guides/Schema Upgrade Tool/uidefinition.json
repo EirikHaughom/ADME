@@ -220,7 +220,7 @@
         "name": "[steps('basics').name]",
         "containerImage": "[steps('ContainerAppSettings').containerImage]",
         "workloadProfile": "[steps('ContainerAppSettings').workloadProfile]",
-        "osduEndpoint": "[steps('admeDetails').osduEndpoint]",
+        "osduEndpoint": "[steps('admeDetails').admeInstanceDetails.osduEndpoint]",
         "privateEndpointEnabled": "[steps('networking').privateEndpointEnabled]",
         "vnet": "[steps('networking').vnet]",
         "virtualNetworkNewOrExisting": "[steps('networking').vnet.newOrExisting]",
