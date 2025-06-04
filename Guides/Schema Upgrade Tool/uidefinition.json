@@ -112,9 +112,16 @@
                     "elements": [
                         {
                             "name": "tags",
-                            "type": "Microsoft.Common.TagsEditor",
+                            "type": "Microsoft.Common.TagsByResource",
                             "label": "Resource tags",
-                            "toolTip": "Tags to apply to all resources"
+                            "toolTip": "Tags to apply to all resources",
+                            "resources": [
+                                "Microsoft.App/managedEnvironments",
+                                "Microsoft.App/containerApps",
+                                "Microsoft.Network/privateEndpoints",
+                                "Microsoft.Network/networkSecurityGroups",
+                                "Microsoft.Network/virtualNetworks"
+                              ]
                         }
                     ]
                 }

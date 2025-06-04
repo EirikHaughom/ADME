@@ -76,10 +76,9 @@
                 "description": "Enable private network for the service. This will deploy a virtual network which all resources are joined to."
             }
         },
-        "tags": {
+        "tagsByResource": {
             "type": "object",
-            "defaultValue": {},
-            "metadata": { "description": "Tags to apply to all resources." }
+            "defaultValue": {}
         }
     },
     "variables": {
@@ -100,7 +99,7 @@
             "condition": "[and(parameters('privateEndpointEnabled'),equals(parameters('virtualNetworkNewOrExisting'),'new'))]",
             "name": "[parameters('vnet').name]",
             "location": "[resourceGroup().location]",
-            "tags": "[parameters('tags')]",
+            "tags": "[ if(contains(parameters('tagsByResource'), 'Microsoft.Network/virtualNetworks'), parameters('tagsByResource')['Microsoft.Network/virtualNetworks'], json('{}')) ]",
             "properties": {
                 "addressSpace": {
                     "addressPrefixes": [
@@ -132,7 +131,7 @@
             "condition": "[and(parameters('privateEndpointEnabled'), equals(parameters('virtualNetworkNewOrExisting'), 'new'))]",
             "name": "[variables('nsgContainerAppName')]",
             "location": "[resourceGroup().location]",
-            "tags": "[parameters('tags')]",
+            "tags": "[ if(contains(parameters('tagsByResource'), 'Microsoft.Network/networkSecurityGroups'), parameters('tagsByResource')['Microsoft.Network/networkSecurityGroups'], json('{}')) ]",
             "properties": {
                 "securityRules": []
             }
@@ -145,6 +144,7 @@
             "dependsOn": [
                 "[variables('snetContainerAppResourceID')]"
             ],
+            "tags": "[ if(contains(parameters('tagsByResource'), 'Microsoft.App/managedEnvironments'), parameters('tagsByResource')['Microsoft.App/managedEnvironments'], json('{}')) ]",
             "properties": {
                 "zoneRedundant": false,
                 "workloadProfiles": [
@@ -163,7 +163,7 @@
             "name": "[variables('containerAppName')]",
             "type": "Microsoft.App/containerApps",
             "location": "[resourceGroup().location]",
-            "tags": "[parameters('tags')]",
+            "tags": "[ if(contains(parameters('tagsByResource'), 'Microsoft.App/containerApps'), parameters('tagsByResource')['Microsoft.App/containerApps'], json('{}')) ]",
             "dependsOn": [
                 "[variables('environmentResourceID')]"
             ],
@@ -240,6 +240,7 @@
                 "[variables('environmentResourceID')]",
                 "[variables('snetContainerAppResourceID')]"
             ],
+            "tags": "[ if(contains(parameters('tagsByResource'), 'Microsoft.Network/privateEndpoints'), parameters('tagsByResource')['Microsoft.Network/privateEndpoints'], json('{}')) ]",
             "properties": {
                 "privateLinkServiceConnections": [
                     {
