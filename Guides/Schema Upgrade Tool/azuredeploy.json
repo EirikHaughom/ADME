@@ -213,11 +213,11 @@
                             "env": [
                                 {
                                     "name": "search_service_endpoint",
-                                    "value": "[concat(variables('osduEndpoint'), 'api/search/v2')]"
+                                    "value": "[concat(variables('osduEndpoint'), '/api/search/v2')]"
                                 },
                                 {
                                     "name": "storage_service_endpoint",
-                                    "value": "[concat(variables('osduEndpoint'), 'api/storage/v2')]"
+                                    "value": "[concat(variables('osduEndpoint'), '/api/storage/v2')]"
                                 }
                             ]
                         }
