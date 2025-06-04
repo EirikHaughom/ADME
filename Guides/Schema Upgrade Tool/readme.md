@@ -85,7 +85,7 @@ If you enable `privateEndpointEnabled=true`, add parameters for `vnet.name`, `vi
 
 ## Troubleshooting
 
-- Ensure the `osduEndpoint` ends with a `/`.
+- Ensure the `osduEndpoint` doesn't end with a `/`.
 - Check Azure Container Apps logs:
 
 ```bash
