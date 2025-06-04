@@ -1,0 +1,272 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "metadata": {
+        "_generator": {
+            "name": "bicep",
+            "version": "0.17.1.54307",
+            "templateHash": "1543618559284229187"
+        }
+    },
+    "parameters": {
+        "name": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Container App."
+            },
+            "minLength": 3,
+            "maxLength": 24
+        },
+        "containerImage": {
+            "type": "string",
+            "defaultValue": "community.opengroup.org:5555/osdu/platform/system/reference/schema-upgrade/schema-upgrade-v0-27-1:latest",
+            "metadata": {
+                "description": "The container image to use. See [OSDU Forum Schema Upgrade Tool Container Registry](https://community.opengroup.org/osdu/platform/system/reference/schema-upgrade/container_registry/) for available images."
+            }
+        },
+        "vnet": {
+            "type": "object",
+            "defaultValue": {
+                "name": "vnet"
+            },
+            "metadata": {
+                "description": "The virtual network to use for the service."
+            }
+        },
+        "virtualNetworkNewOrExisting": {
+            "type": "string",
+            "defaultValue": "new",
+            "allowedValues": [ "new", "existing" ],
+            "metadata": { "description": "Whether to deploy a new VNet or use an existing one" }
+        },
+        "containerSubnet": {
+            "type": "object",
+            "defaultValue": {
+                "name": "containerSubnet",
+                "addressPrefix": "10.0.1.0/24"
+            },
+            "metadata": {
+                "description": "The subnet to use for the container."
+            }
+        },
+        "workloadProfile": {
+            "type": "string",
+            "defaultValue": "Consumption",
+            "metadata": {
+                "description": "The workload profile to use for the container app. Consumption uses the `Consumption` profile, while Premium uses the `D4` profile. [Learn more](https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview#profile-types)."
+            },
+            "allowedValues": [
+                "Consumption",
+                "Premium"
+            ]
+        },
+        "osduEndpoint": {
+            "type": "string",
+            "defaultValue": "https://<your-adme-instance>.energy.azure.com/",
+            "metadata": {
+                "description": "The ADME endpoint to connect to."
+            },
+            "minLength": 26,
+            "maxLength": 41
+        },
+        "privateEndpointEnabled": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Enable private network for the service. This will deploy a virtual network which all resources are joined to."
+            }
+        },
+        "tags": {
+            "type": "object",
+            "defaultValue": {},
+            "metadata": { "description": "Tags to apply to all resources." }
+        }
+    },
+    "variables": {
+        "uniqueName": "[concat(parameters('name'), '-', uniqueString(resourceGroup().id, subscription().id))]",
+        "containerAppName": "[variables('uniqueName')]",
+        "containerName": "[concat(variables('uniqueName'), '-container')]",
+        "containerResourceID": "[resourceId('Microsoft.App/containerApps', variables('containerAppName'))]",
+        "environmentName": "[concat(variables('uniqueName'), '-env')]",
+        "environmentResourceID": "[resourceId('Microsoft.App/managedEnvironments', variables('environmentName'))]",
+        "nsgContainerAppName": "[concat(variables('uniqueName'), '-container-nsg')]",
+        "osduEndpoint": "[if(endsWith(parameters('osduEndpoint'), '/'), parameters('osduEndpoint'), concat(parameters('osduEndpoint'), '/'))]",
+        "snetContainerAppResourceID": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnet').name, parameters('containerSubnet').name)]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2022-07-01",
+            "condition": "[and(parameters('privateEndpointEnabled'),equals(parameters('virtualNetworkNewOrExisting'),'new'))]",
+            "name": "[parameters('vnet').name]",
+            "location": "[resourceGroup().location]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('vnet').addressPrefix]"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2022-07-01",
+            "condition": "[and(parameters('privateEndpointEnabled'), equals(parameters('virtualNetworkNewOrExisting'), 'new'))]",
+            "name": "[concat(parameters('vnet').name, '/', parameters('containerSubnet').name)]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnet').name)]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgContainerAppName'))]"
+            ],
+            "properties": {
+                "addressPrefix": "[parameters('containerSubnet').addressPrefix]",
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgContainerAppName'))]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2022-07-01",
+            "condition": "[and(parameters('privateEndpointEnabled'), equals(parameters('virtualNetworkNewOrExisting'), 'new'))]",
+            "name": "[variables('nsgContainerAppName')]",
+            "location": "[resourceGroup().location]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "securityRules": []
+            }
+        },
+        {
+            "apiVersion": "2024-10-02-preview",
+            "name": "[variables('environmentName')]",
+            "type": "Microsoft.App/managedEnvironments",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[variables('snetContainerAppResourceID')]"
+            ],
+            "properties": {
+                "zoneRedundant": false,
+                "workloadProfiles": [
+                    {
+                        "workloadProfileType": "[if(equals(parameters('workloadProfile'), 'Consumption'), 'Consumption', 'D4')]",
+                        "name": "[parameters('workloadProfile')]",
+                        "minimumCount": "[if(equals(parameters('workloadProfile'), 'Consumption'), null(), 1)]",
+                        "maximumCount": "[if(equals(parameters('workloadProfile'), 'Consumption'), null(), 1)]"
+                    }
+                ],
+                "publicNetworkAccess": "[if(not(parameters('privateEndpointEnabled')), 'Enabled', 'Disabled')]"
+            }
+        },
+        {
+            "apiVersion": "2023-05-01",
+            "name": "[variables('containerAppName')]",
+            "type": "Microsoft.App/containerApps",
+            "location": "[resourceGroup().location]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[variables('environmentResourceID')]"
+            ],
+            "properties": {
+                "environmentId": "[variables('environmentResourceID')]",
+                "configuration": {
+                    "activeRevisionsMode": "Single",
+                    "ingress": {
+                        "external": true,
+                        "transport": "auto",
+                        "targetPort": 8080,
+                        "allowInsecure": false
+                    },
+                    "secrets": []
+                },
+                "template": {
+                    "containers": [
+                        {
+                            "name": "[variables('containerName')]",
+                            "image": "[parameters('containerImage')]",
+                            "probes": [
+                                {
+                                    "type": "Liveness",
+                                    "httpGet": {
+                                        "path": "/api/schemaupgrade/v2/liveness_check",
+                                        "port": 8080,
+                                        "scheme": "HTTP"
+                                    },
+                                    "initialDelaySeconds": 5,
+                                    "periodSeconds": 10
+                                },
+                                {
+                                    "type": "Readiness",
+                                    "httpGet": {
+                                        "path": "/api/schemaupgrade/v2/readiness_check",
+                                        "port": 8080,
+                                        "scheme": "HTTP"
+                                    },
+                                    "initialDelaySeconds": 5,
+                                    "periodSeconds": 10
+                                }
+                            ],
+                            "resources": {
+                                "cpu": 1,
+                                "memory": "2Gi"
+                            },
+                            "env": [
+                                {
+                                    "name": "search_service_endpoint",
+                                    "value": "[concat(variables('osduEndpoint'), 'api/search/v2')]"
+                                },
+                                {
+                                    "name": "storage_service_endpoint",
+                                    "value": "[concat(variables('osduEndpoint'), 'api/storage/v2')]"
+                                }
+                            ]
+                        }
+                    ],
+                    "scale": {
+                        "minReplicas": 1,
+                        "maxReplicas": 1
+                    }
+                },
+                "workloadProfileName": "[parameters('workloadProfile')]"
+            }
+        },
+        {
+            "type": "Microsoft.Network/privateEndpoints",
+            "apiVersion": "2019-04-01",
+            "condition": "[parameters('privateEndpointEnabled')]",
+            "name": "[concat(variables('containerAppName'), '-private-endpoint')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[variables('environmentResourceID')]",
+                "[variables('snetContainerAppResourceID')]"
+            ],
+            "properties": {
+                "privateLinkServiceConnections": [
+                    {
+                        "id": "[variables('snetContainerAppResourceID')]",
+                        "name": "[concat(variables('containerAppName'), '-pls')]",
+                        "properties": {
+                            "privateLinkServiceId": "[variables('environmentResourceID')]",
+                            "groupIds": [
+                                "managedEnvironments"
+                            ]
+                        }
+                    }
+                ],
+                "subnet": {
+                    "id": "[variables('snetContainerAppResourceID')]"
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "Swagger Endpoint": {
+            "type": "string",
+            "value": "[concat('https://', reference(variables('containerResourceID')).configuration.ingress.fqdn, '/api/schemaupgrade/v2/swagger-ui/index.html')]"
+        },
+        "Is it publicly accessible?": {
+            "type": "string",
+            "value": "[if(parameters('privateEndpointEnabled'), 'No, you will need to connect through a routable virtual network or an ingress controller.', 'Yes, you can access the endpoints over internet.')]"
+        }
+    }
+}
