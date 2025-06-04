@@ -94,6 +94,8 @@
                                 "location": "[steps('basics').resourceScope.location.name]"
                             },
                             "options": { "hideExisting": false },
+                            "defaultValue": { "addressPrefixSize": "/24" },
+                            "constraints": { "minAddressPrefixSize": "/30" },
                             "subnets": {
                                 "containerSubnet": {
                                     "label": "Container subnet",
