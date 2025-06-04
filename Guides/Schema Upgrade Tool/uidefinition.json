@@ -217,9 +217,9 @@
       "resourceGroupId": "[steps('basics').resourceScope.resourceGroup.id]",
       "parameters": {
         "name": "[steps('basics').name]",
-        "containerImage": "[steps('settings').containerImage]",
+        "containerImage": "[steps('ContainerAppSettings').containerImage]",
+        "workloadProfile": "[steps('ContainerAppSettings').workloadProfile]",
         "osduEndpoint": "[steps('settings').osduEndpoint]",
-        "workloadProfile": "[steps('settings').workloadProfile]",
         "privateEndpointEnabled": "[steps('networking').privateEndpointEnabled]",
         "vnet": "[steps('networking').vnet]",
         "virtualNetworkNewOrExisting": "[steps('networking').vnet.newOrExisting]",
