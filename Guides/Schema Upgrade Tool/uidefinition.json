@@ -222,8 +222,8 @@
         "workloadProfile": "[steps('ContainerAppSettings').workloadProfile]",
         "osduEndpoint": "[steps('admeDetails').admeInstanceDetails.osduEndpoint]",
         "privateEndpointEnabled": "[steps('networking').privateEndpointEnabled]",
-        "vnet": "[steps('networking').vnet]",
-        "virtualNetworkNewOrExisting": "[steps('networking').vnet.newOrExisting]",
+        "vnet": "[steps('networking').privateEndpointSection.vnet]",
+        "virtualNetworkNewOrExisting": "[steps('networking').privateEndpointSection.vnet.newOrExisting]",
         "containerSubnet": "[steps('networking').vnet.subnets.containerSubnet]",
         "tags": "[steps('tags').tags]"
       }
