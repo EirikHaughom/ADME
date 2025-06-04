@@ -67,7 +67,7 @@
           "label": "Container",
           "elements": [
             {
-              "name": "containerImage",
+              "name": "containerImageDescription",
               "type": "Microsoft.Common.TextBlock",
               "visible": true,
               "options": {
