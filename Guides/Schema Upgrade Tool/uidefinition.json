@@ -133,6 +133,7 @@
             },
             {
               "type": "Microsoft.Common.OptionsGroup",
+              "name": "privateEndpointEnabled",
               "label": "Use Private Endpoint?",
               "defaultValue": "No",
               "toolTip": "Setting to ''Yes'' will enable private networking to access the Production DMS APIs.",
@@ -219,7 +220,7 @@
         "name": "[steps('basics').name]",
         "containerImage": "[steps('ContainerAppSettings').containerImage]",
         "workloadProfile": "[steps('ContainerAppSettings').workloadProfile]",
-        "osduEndpoint": "[steps('settings').osduEndpoint]",
+        "osduEndpoint": "[steps('admeDetails').osduEndpoint]",
         "privateEndpointEnabled": "[steps('networking').privateEndpointEnabled]",
         "vnet": "[steps('networking').vnet]",
         "virtualNetworkNewOrExisting": "[steps('networking').vnet.newOrExisting]",
