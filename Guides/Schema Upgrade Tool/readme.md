@@ -1,6 +1,6 @@
 # Deploy Schema Upgrade Tool
 
-This guide describes how to deploy the Schema Upgrade Tool as an Azure Container App using the provided ARM template and UI form definition. The Schema Upgrade Tool automates version upgrades of OSDU schemas in your ADME (Azure Data Management Environment) instance.
+This guide describes how to deploy the Schema Upgrade Tool as an Azure Container App using the provided ARM template and UI form definition. The Schema Upgrade Tool automates version upgrades of OSDU schemas in your Azure Data Manager for Energy (ADME) instance.
 
 ## Overview
 
@@ -15,7 +15,7 @@ Upon deployment, you will have a running container instance hosting REST endpoin
 
 - An Azure subscription with Contributor or Resource Group Contributor rights.
 - [Azure CLI](https://docs.microsoft.com/cli/azure/install-azure-cli) installed and logged in.
-- (Optional) An existing virtual network and subnet if you enable private endpoint connectivity.
+- (Optional) A new or existing virtual network and subnet if you enable private endpoint connectivity.
 
 ## Deployment
 
