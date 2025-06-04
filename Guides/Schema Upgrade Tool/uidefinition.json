@@ -1,245 +1,244 @@
 {
-	"$schema": "https://schema.management.azure.com/schemas/0.1.2-preview/CreateUIDefinition.MultiVm.json#",
-	"handler": "Microsoft.Azure.CreateUIDef",
-	"version": "0.1.2-preview",
-	"parameters": {
-		"basics": [
-			{
-				"name": "name",
-				"type": "Microsoft.Common.TextBox",
-				"label": "Container App name",
-				"toolTip": "The name of the Container App",
-				"constraints": {
-					"required": true,
-					"minLength": 3,
-					"maxLength": 24
-				}
-			}
-		],
-		"steps": [
-			{
-				"name": "admeDetails",
-				"label": "Details",
-				"elements": [
-					{
-						"name": "admeInstanceDetails",
-						"type": "Microsoft.Common.Section",
-						"label": "Instance Details",
-						"elements": [
-							{
-								"name": "admeInstanceDetailsDescription",
-								"type": "Microsoft.Common.TextBlock",
-								"visible": true,
-								"constraints": {
-									"required": true
-								},
-								"options": {
-									"text": "Please provide the configuration values for your Azure Data Manager for Energy (ADME) instance."
-								}
-							},
-							{
-								"name": "osduEndpoint",
-								"type": "Microsoft.Common.TextBox",
-								"label": "ADME endpoint",
-								"placeholder": "https://<your-adme-instance>.energy.azure.com/",
-								"toolTip": "The ADME endpoint to connect to",
-								"constraints": {
-									"required": true,
-									"regex": "^https://[a-zA-Z0-9-]{1,31}\\.energy\\.azure\\.com$",
-									"validationMessage": "The ADME endpoint must be a valid URL"
-								}
-							}
-						]
-					}
-				]
-			},
-			{
-				"name": "ContainerAppSettings",
-				"label": "Container",
-				"elements": [
-					{
-						"name": "containerImageDescription",
-						"type": "Microsoft.Common.TextBlock",
-						"visible": true,
-						"options": {
-							"text": "Provide a URL to the container images to use.",
-							"link": {
-								"label": "Learn more",
-								"uri": "https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/production/core/dspdm-services/container_registry"
-							}
-						}
-					},
-					{
-						"name": "containerImage",
-						"type": "Microsoft.Common.TextBox",
-						"label": "Container image",
-						"defaultValue": "community.opengroup.org:5555/osdu/platform/system/reference/schema-upgrade/schema-upgrade-v0-27-1:latest",
-						"toolTip": "Provide a URL to the container images to use.",
-						"constraints": {
-							"required": true
-						}
-					},
-					{
-						"name": "containerTextblock",
-						"type": "Microsoft.Common.TextBlock",
-						"visible": true,
-						"options": {
-							"text": "The workload profile to use for the container app. Consumption uses the `Consumption` profile, while Premium uses the `D4` profile.",
-							"link": {
-								"label": "Learn more",
-								"uri": "https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview#profile-types"
-							}
-						}
-					},
-					{
-						"name": "workloadProfile",
-						"type": "Microsoft.Common.DropDown",
-						"label": "Workload profile",
-						"defaultValue": "Consumption",
-						"constraints": {
-							"required": true,
-							"allowedValues": [
-								{
-									"label": "Consumption",
-									"value": "Consumption"
-								},
-								{
-									"label": "Premium",
-									"value": "Premium"
-								}
-							]
-						}
-					}
-				]
-			},
-			{
-				"name": "networking",
-				"label": "Networking",
-				"elements": [
-					{
-						"name": "networkingDescription",
-						"type": "Microsoft.Common.TextBlock",
-						"visible": true,
-						"options": {
-							"text": "By default the deployment uses public endpoints to expose the Production DMS APIs.",
-							"link": {
-								"label": "Learn more",
-								"uri": ""
-							}
-						}
-					},
-					{
-						"type": "Microsoft.Common.OptionsGroup",
-						"name": "privateEndpointEnabled",
-						"label": "Use Private Endpoint?",
-						"defaultValue": "No",
-						"toolTip": "Setting to ''Yes'' will enable private networking to access the Production DMS APIs.",
-						"constraints": {
-							"allowedValues": [
-								{
-									"label": "No",
-									"value": false
-								},
-								{
-									"label": "Yes",
-									"value": true
-								}
-							]
-						}
-					},
-					{
-						"name": "privateEndpointSection",
-						"type": "Microsoft.Common.Section",
-						"label": "Network configuration",
-						"visible": "[equals(steps('networking').enablePrivateEndpoint,'true')]",
-						"elements": [
-							{
-								"name": "vnet",
-								"type": "Microsoft.Network.VirtualNetworkCombo",
-								"label": {
-									"virtualNetwork": "Virtual network",
-									"subnets": "Subnets"
-								},
-								"visible": "[equals(steps('networking').privateEndpointEnabled, true)]",
-								"scope": {
-									"subscriptionId": "[steps('basics').resourceScope.subscription.subscriptionId]",
-									"resourceGroupName": "[steps('basics').resourceScope.resourceGroup.name]",
-									"location": "[steps('basics').resourceScope.location.name]"
-								},
-								"options": {
-									"hideExisting": false
-								},
-								"defaultValue": {
-									"name": "vnet",
-									"addressPrefixSize": "/24"
-								},
-								"constraints": {
-									"minAddressPrefixSize": "/30"
-								},
-								"subnets": {
-									"containerSubnet": {
-										"label": "Container subnet",
-										"defaultValue": {
-											"name": "containerSubnet",
-											"addressPrefixSize": "/24"
-										},
-										"constraints": {
-											"minAddressPrefixSize": "/30",
-											"minAddressCount": 2
-										}
-									}
-								}
-							},
-							{
-								"name": "privateEndpointInfobox",
-								"type": "Microsoft.Common.InfoBox",
-								"visible": true,
-								"options": {
-									"text": "By enabling private networking, you will either need to be connected to the Virtual Network you deploy the service to, or expose it using other services.",
-									"uri": "https://learn.microsoft.com/en-us/azure/api-management/api-management-key-concepts",
-									"style": "Info"
-								}
-							}
-						]
-					}
-				]
-			},
-			{
-				"name": "tags",
-				"label": "Tags",
-				"elements": [
-					{
-						"name": "tags",
-						"type": "Microsoft.Common.TagsByResource",
-						"label": "Resource tags",
-						"toolTip": "Tags to apply to all resources",
-						"resources": [
-							"Microsoft.App/managedEnvironments",
-							"Microsoft.App/containerApps",
-							"Microsoft.Network/privateEndpoints",
-							"Microsoft.Network/networkSecurityGroups",
-							"Microsoft.Network/virtualNetworks"
-						]
-					}
-				]
-			}
-		]
-	},
-    "outputs": {
-        "kind": "ResourceGroup",
-        "location": "[steps('basics').resourceScope.location.name]",
-        "resourceGroupId": "[steps('basics').resourceScope.resourceGroup.id]",
-        "parameters": {
-          "name":                       "[steps('basics').name]",
-          "containerImage":             "[steps('ContainerAppSettings').containerImage]",
-          "workloadProfile":            "[steps('ContainerAppSettings').workloadProfile]",
-          "osduEndpoint":               "[steps('admeDetails').admeInstanceDetails.osduEndpoint]",
-          "privateEndpointEnabled":     "[steps('networking').privateEndpointEnabled]",
-          "vnet":                       "[steps('networking').privateEndpointSection.vnet]",
-          "virtualNetworkNewOrExisting":"[steps('networking').privateEndpointSection.vnet.newOrExisting]",
-          "containerSubnet":            "[steps('networking').privateEndpointSection.vnet.subnets.containerSubnet]",
-          "tags":                       "[steps('tags').tags]"
+  "$schema": "https://schema.management.azure.com/schemas/0.1.2-preview/CreateUIDefinition.MultiVm.json#",
+  "handler": "Microsoft.Azure.CreateUIDef",
+  "version": "0.1.2-preview",
+  "parameters": {
+    "basics": [
+      {
+        "name": "name",
+        "type": "Microsoft.Common.TextBox",
+        "label": "Container App name",
+        "toolTip": "The name of the Container App",
+        "constraints": {
+          "required": true,
+          "minLength": 3,
+          "maxLength": 24
         }
       }
-	}
+    ],
+    "steps": [
+      {
+        "name": "admeDetails",
+        "label": "Details",
+        "elements": [
+          {
+            "name": "admeInstanceDetails",
+            "type": "Microsoft.Common.Section",
+            "label": "Instance Details",
+            "elements": [
+              {
+                "name": "admeInstanceDetailsDescription",
+                "type": "Microsoft.Common.TextBlock",
+                "visible": true,
+                "constraints": {
+                  "required": true
+                },
+                "options": {
+                  "text": "Please provide the configuration values for your Azure Data Manager for Energy (ADME) instance."
+                }
+              },
+              {
+                "name": "osduEndpoint",
+                "type": "Microsoft.Common.TextBox",
+                "label": "ADME endpoint",
+                "placeholder": "https://<your-adme-instance>.energy.azure.com/",
+                "toolTip": "The ADME endpoint to connect to",
+                "constraints": {
+                  "required": true,
+                  "regex": "^https://[a-zA-Z0-9-]{1,31}\\.energy\\.azure\\.com$",
+                  "validationMessage": "The ADME endpoint must be a valid URL"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "ContainerAppSettings",
+        "label": "Container",
+        "elements": [
+          {
+            "name": "containerImageDescription",
+            "type": "Microsoft.Common.TextBlock",
+            "visible": true,
+            "options": {
+              "text": "Provide a URL to the container images to use.",
+              "link": {
+                "label": "Learn more",
+                "uri": "https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/production/core/dspdm-services/container_registry"
+              }
+            }
+          },
+          {
+            "name": "containerImage",
+            "type": "Microsoft.Common.TextBox",
+            "label": "Container image",
+            "defaultValue": "community.opengroup.org:5555/osdu/platform/system/reference/schema-upgrade/schema-upgrade-v0-27-1:latest",
+            "toolTip": "Provide a URL to the container images to use.",
+            "constraints": {
+              "required": true
+            }
+          },
+          {
+            "name": "containerTextblock",
+            "type": "Microsoft.Common.TextBlock",
+            "visible": true,
+            "options": {
+              "text": "The workload profile to use for the container app. Consumption uses the `Consumption` profile, while Premium uses the `D4` profile.",
+              "link": {
+                "label": "Learn more",
+                "uri": "https://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview#profile-types"
+              }
+            }
+          },
+          {
+            "name": "workloadProfile",
+            "type": "Microsoft.Common.DropDown",
+            "label": "Workload profile",
+            "defaultValue": "Consumption",
+            "constraints": {
+              "required": true,
+              "allowedValues": [
+                {
+                  "label": "Consumption",
+                  "value": "Consumption"
+                },
+                {
+                  "label": "Premium",
+                  "value": "Premium"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "networking",
+        "label": "Networking",
+        "elements": [
+          {
+            "name": "networkingDescription",
+            "type": "Microsoft.Common.TextBlock",
+            "visible": true,
+            "options": {
+              "text": "By default the deployment uses public endpoints to expose the Production DMS APIs.",
+              "link": {
+                "label": "Learn more",
+                "uri": ""
+              }
+            }
+          },
+          {
+            "type": "Microsoft.Common.OptionsGroup",
+            "name": "privateEndpointEnabled",
+            "label": "Use Private Endpoint?",
+            "defaultValue": "No",
+            "toolTip": "Setting to ''Yes'' will enable private networking to access the Production DMS APIs.",
+            "constraints": {
+              "allowedValues": [
+                {
+                  "label": "No",
+                  "value": false
+                },
+                {
+                  "label": "Yes",
+                  "value": true
+                }
+              ]
+            }
+          },
+          {
+            "name": "privateEndpointSection",
+            "type": "Microsoft.Common.Section",
+            "label": "Network configuration",
+            "visible": "[equals(steps('networking').enablePrivateEndpoint,'true')]",
+            "elements": [
+              {
+                "name": "vnet",
+                "type": "Microsoft.Network.VirtualNetworkCombo",
+                "label": {
+                  "virtualNetwork": "Virtual network",
+                  "subnets": "Subnets"
+                },
+                "visible": "[equals(steps('networking').privateEndpointEnabled, true)]",
+                "scope": {
+                  "subscriptionId": "[steps('basics').resourceScope.subscription.subscriptionId]",
+                  "resourceGroupName": "[steps('basics').resourceScope.resourceGroup.name]",
+                  "location": "[steps('basics').resourceScope.location.name]"
+                },
+                "options": {
+                  "hideExisting": false
+                },
+                "defaultValue": {
+                  "name": "vnet",
+                  "addressPrefixSize": "/24"
+                },
+                "constraints": {
+                  "minAddressPrefixSize": "/30"
+                },
+                "subnets": {
+                  "containerSubnet": {
+                    "label": "Container subnet",
+                    "defaultValue": {
+                      "name": "containerSubnet",
+                      "addressPrefixSize": "/24"
+                    },
+                    "constraints": {
+                      "minAddressPrefixSize": "/30",
+                      "minAddressCount": 2
+                    }
+                  }
+                }
+              },
+              {
+                "name": "privateEndpointInfobox",
+                "type": "Microsoft.Common.InfoBox",
+                "visible": true,
+                "options": {
+                  "text": "By enabling private networking, you will either need to be connected to the Virtual Network you deploy the service to, or expose it using other services.",
+                  "uri": "https://learn.microsoft.com/en-us/azure/api-management/api-management-key-concepts",
+                  "style": "Info"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "tags",
+        "label": "Tags",
+        "elements": [
+          {
+            "name": "tags",
+            "type": "Microsoft.Common.TagsByResource",
+            "label": "Resource tags",
+            "toolTip": "Tags to apply to all resources",
+            "resources": [
+              "Microsoft.App/managedEnvironments",
+              "Microsoft.App/containerApps",
+              "Microsoft.Network/privateEndpoints",
+              "Microsoft.Network/networkSecurityGroups",
+              "Microsoft.Network/virtualNetworks"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "outputs": {
+    "kind": "ResourceGroup",
+    "location": "[steps('basics').resourceScope.location.name]",
+    "resourceGroupId": "[steps('basics').resourceScope.resourceGroup.id]",
+    "parameters": {
+      "name": "[steps('basics').name]",
+      "containerImage": "[steps('ContainerAppSettings').containerImage]",
+      "workloadProfile": "[steps('ContainerAppSettings').workloadProfile]",
+      "osduEndpoint": "[steps('admeDetails').admeInstanceDetails.osduEndpoint]",
+      "privateEndpointEnabled": "[steps('networking').privateEndpointEnabled]",
+      "vnet": "[steps('networking').privateEndpointSection.vnet]",
+      "virtualNetworkNewOrExisting": "[steps('networking').privateEndpointSection.vnet.newOrExisting]",
+      "containerSubnet": "[steps('networking').privateEndpointSection.vnet.subnets.containerSubnet]",
+      "tags": "[steps('tags').tags]"
+    }
+  }
 }
