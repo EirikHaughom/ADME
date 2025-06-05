@@ -221,7 +221,19 @@
 												"minAddressPrefixSize": "/30",
 												"minAddressCount": 2
 											}
-										}
+										},
+                                        "sharedSubnet": {
+                                            "label": "Shared subnet",
+                                            "defaultValue": {
+                                                "name": "shared-subnet",
+                                                "addressPrefixSize": "/24"
+                                            },
+                                            "constraints": {
+                                                "minAddressPrefixSize": "/30",
+                                                "minAddressCount": 2
+                                                
+                                            }
+                                        }
 									},
 									"visible": true,
 									"scope": {
@@ -261,7 +273,8 @@
 				"vnet": "[steps('networking').privateEndpointSection.vnet]",
 				"virtualNetworkNewOrExisting": "[steps('networking').privateEndpointSection.vnet.newOrExisting]",
 				"virtualNetworkResourceGroup": "[steps('networking').privateEndpointSection.vnet.resourceGroup]",
-				"containerSubnet": "[steps('networking').privateEndpointSection.vnet.subnets.containerSubnet]"
+				"containerSubnet": "[steps('networking').privateEndpointSection.vnet.subnets.containerSubnet]",
+				"sharedSubnet": "[steps('networking').privateEndpointSection.vnet.subnets.sharedSubnet]"
 			}
 		}
 	}

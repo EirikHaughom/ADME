@@ -27,7 +27,8 @@
         "vnet": {
             "type": "object",
             "defaultValue": {
-                "name": "vnet"
+                "name": "vnet",
+                "addressPrefix": "10.0.0.0/16"
             },
             "metadata": {
                 "description": "The virtual network to use for the service."
@@ -47,6 +48,16 @@
             },
             "metadata": {
                 "description": "The subnet to use for the container."
+            }
+        },
+        "sharedSubnet": {
+            "type": "object",
+            "defaultValue": {
+                "name": "sharedSubnet",
+                "addressPrefix": "10.0.0.0/24"
+            },
+            "metadata": {
+                "description": "The subnet to use for shared resources."
             }
         },
         "workloadProfile": {
@@ -82,15 +93,17 @@
         }
     },
     "variables": {
-        "uniqueName": "[concat(parameters('name'), '-', uniqueString(resourceGroup().id, subscription().id))]",
+        "uniqueName": "[parameters('name')]",
         "containerAppName": "[variables('uniqueName')]",
         "containerName": "[concat(variables('uniqueName'), '-container')]",
         "containerResourceID": "[resourceId('Microsoft.App/containerApps', variables('containerAppName'))]",
         "environmentName": "[concat(variables('uniqueName'), '-env')]",
         "environmentResourceID": "[resourceId('Microsoft.App/managedEnvironments', variables('environmentName'))]",
+        "nsgName": "[concat(variables('uniqueName'), '-shared-nsg')]",
         "nsgContainerAppName": "[concat(variables('uniqueName'), '-container-nsg')]",
         "osduEndpoint": "[if(endsWith(parameters('osduEndpoint'), '/'), parameters('osduEndpoint'), concat(parameters('osduEndpoint'), '/'))]",
-        "snetContainerAppResourceID": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnet').name, parameters('containerSubnet').name)]"
+        "snetContainerAppResourceID": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnet').name, parameters('containerSubnet').name)]",
+        "snetSharedResourceID": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnet').name, parameters('sharedSubnet').name)]"
     },
     "resources": [
         {
@@ -126,6 +139,31 @@
             }
         },
         {
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2021-02-01",
+            "condition": "[and(parameters('privateEndpointEnabled'), equals(parameters('virtualNetworkNewOrExisting'), 'new'))]",
+            "name": "[concat(parameters('vnet').name, '/', parameters('sharedSubnet').name)]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnet').name)]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgContainerAppName'))]"
+            ],
+            "properties": {
+                "addressPrefix": "[parameters('sharedSubnet').addressPrefix]",
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgName'))]"
+                },
+                "delegations": [
+                    {
+                        "name": "delegation",
+                        "properties": {
+                            "serviceName": "Microsoft.App/environments"
+                        }
+                    }
+                ]
+            }
+        },
+        {
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "2022-07-01",
             "condition": "[and(parameters('privateEndpointEnabled'), equals(parameters('virtualNetworkNewOrExisting'), 'new'))]",
@@ -137,12 +175,23 @@
             }
         },
         {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2021-02-01",
+            "condition": "[parameters('privateEndpointEnabled')]",
+            "name": "[variables('nsgName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "securityRules": []
+            }
+        },
+        {
             "apiVersion": "2024-10-02-preview",
             "name": "[variables('environmentName')]",
             "type": "Microsoft.App/managedEnvironments",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[variables('snetContainerAppResourceID')]"
+                "[variables('snetContainerAppResourceID')]",
+                "[variables('snetSharedResourceID')]"
             ],
             "tags": "[ if(contains(parameters('tagsByResource'), 'Microsoft.App/managedEnvironments'), parameters('tagsByResource')['Microsoft.App/managedEnvironments'], json('{}')) ]",
             "properties": {
@@ -155,7 +204,8 @@
                         "maximumCount": "[if(equals(parameters('workloadProfile'), 'Consumption'), null(), 1)]"
                     }
                 ],
-                "publicNetworkAccess": "[if(not(parameters('privateEndpointEnabled')), 'Enabled', 'Disabled')]"
+                "publicNetworkAccess": "[if(not(parameters('privateEndpointEnabled')), 'Enabled', 'Disabled')]",
+                "vnetConfiguration": "[if(parameters('privateEndpointEnabled'), json(concat('{\"infrastructureSubnetId\":\"', variables('snetSharedResourceID'), '\"}')), json('null'))]"
             }
         },
         {
@@ -177,6 +227,7 @@
                         "targetPort": 8080,
                         "allowInsecure": false
                     },
+                    "networkProfileId": "[if(parameters('privateEndpointEnabled'), concat(variables('environmentResourceID'), '/networkProfiles/default'), json('null'))]",
                     "secrets": []
                 },
                 "template": {
