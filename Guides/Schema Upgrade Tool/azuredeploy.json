@@ -172,7 +172,7 @@
                 "configuration": {
                     "activeRevisionsMode": "Single",
                     "ingress": {
-                        "external": true,
+                        "external": "[not(parameters('privateEndpointEnabled'))]",
                         "transport": "auto",
                         "targetPort": 8080,
                         "allowInsecure": false
