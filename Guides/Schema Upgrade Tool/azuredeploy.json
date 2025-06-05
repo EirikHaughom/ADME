@@ -226,9 +226,7 @@
                         "transport": "auto",
                         "targetPort": 8080,
                         "allowInsecure": false
-                    },
-                    "networkProfileId": "[if(parameters('privateEndpointEnabled'), concat(variables('environmentResourceID'), '/networkProfiles/default'), json('null'))]",
-                    "secrets": []
+                    }
                 },
                 "template": {
                     "containers": [
