@@ -36,8 +36,8 @@ Automated deployment through Azure Portal experience.
    - **Container image**: (Default: latest Schema Upgrade Tool image).
    - **ADME endpoint**: Base URL of your ADME instance (e.g. `https://my-adme.energy.azure.com/`).
    - **Workload profile**: `Consumption` or `Premium`.
-   - **Use private network?**: Toggle to enable VNet, then configure or select a VNet and subnet.
-   - **Tags**: (Optional) Resource tags.
+   - **Use private network?**: Toggle to enable VNet, then configure or select a VNet, container subnet, and shared subnet.
+   - **tagsByResource**: (Optional) Resource-specific tags.
 6. Click **Review + Create** and then **Create**.
 7. Monitor the deployment progress in **Notifications**.
 
@@ -60,23 +60,23 @@ az deployment group create \
   --resource-group $RG \
   --template-file $TEMPLATE \
   --parameters "${PARAMS[@]}"
-```  
+```
 
-If you enable `privateEndpointEnabled=true`, add parameters for `vnet.name`, `virtualNetworkNewOrExisting`, and `containerSubnet.addressPrefix`.
+If you enable `privateEndpointEnabled=true`, add parameters for `vnet.name`, `virtualNetworkNewOrExisting`, `containerSubnet.addressPrefix`, and `sharedSubnet.addressPrefix`.
 
 ## Parameters
 
 | Name                       | Description                                                                                 | Default                                                                         |
 | -------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
 | `name`                     | The Container App name (3–24 characters).                                                   | N/A                                                                             |
-| `containerImage`           | Docker image for the Schema Upgrade Tool.                                                    | `community.opengroup.org:5555/.../schema-upgrade-v0-27-1:latest`                |
-| `osduEndpoint`             | Base URL of your ADME instance (must end with `/`).                                          | `https://<your-adme-instance>.energy.azure.com/`                                |
-| `workloadProfile`          | `Consumption` or `Premium` workload profile.                                                 | `Consumption`                                                                   |
-| `privateEndpointEnabled`   | Deploy with private endpoint and VNet integration.                                           | `false`                                                                         |
-| `vnet`                     | VNet object: `name` and `addressPrefix`. Visible when private networking is enabled.        | `{ name: "vnet" }`                                                             |
-| `virtualNetworkNewOrExisting` | `new` to create VNet, `existing` to use an existing one.                                   | `new`                                                                           |
-| `containerSubnet`          | Subnet object: `name` and `addressPrefix`.                                                   | `{ name: "containerSubnet", addressPrefix: "10.0.1.0/24" }`                  |
-| `tags`                     | Tags to apply to all resources.                                                              | `{}`                                                                             |
+| `containerImage`           | Docker image for the Schema Upgrade Tool.                                                   | `community.opengroup.org:5555/.../schema-upgrade-v0-27-1:latest`                |
+| `osduEndpoint`             | Base URL of your ADME instance (must end with `/`).                                         | `https://<your-adme-instance>.energy.azure.com/`                                |
+| `workloadProfile`          | `Consumption` or `Premium` workload profile.                                                | `Consumption`                                                                   |
+| `privateEndpointEnabled`   | Deploy with private endpoint and VNet integration.                                          | `false`                                                                         |
+| `vnet`                     | VNet object: `name` and `addressPrefix`. Visible when private networking is enabled.       | `{ name: "vnet", addressPrefix: "10.0.0.0/16" }`                            |
+| `containerSubnet`          | Subnet object: `name` and `addressPrefix`. Visible when private networking is enabled.    | `{ name: "containerSubnet", addressPrefix: "10.0.1.0/24" }`                 |
+| `sharedSubnet`             | Shared subnet object: `name` and `addressPrefix` for shared resources. Visible when private networking is enabled.    | `{ name: "sharedSubnet", addressPrefix: "10.0.0.0/24" }`                     |
+| `tagsByResource`           | Tags to apply to specific resources.                                                        | `{}`                                                                            |
 
 ## Outputs
 
