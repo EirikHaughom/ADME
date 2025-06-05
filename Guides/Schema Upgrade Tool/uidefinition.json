@@ -215,7 +215,7 @@
 											"label": "Container subnet",
 											"defaultValue": {
 												"name": "container-subnet",
-												"addressPrefixSize": "/24"
+												"addressPrefixSize": "/25"
 											},
 											"constraints": {
 												"minAddressPrefixSize": "/30",
@@ -226,7 +226,7 @@
                                             "label": "Shared subnet",
                                             "defaultValue": {
                                                 "name": "shared-subnet",
-                                                "addressPrefixSize": "/24"
+                                                "addressPrefixSize": "/25"
                                             },
                                             "constraints": {
                                                 "minAddressPrefixSize": "/30",
