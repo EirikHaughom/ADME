@@ -23,7 +23,7 @@ This guide provides step-by-step instructions to deploy the Connected Production
 
 ## Overview
 
-The Connected Production DDMS provides a cloud-hosted, scalable, and secure API service for managing production data in the OSDU data model. This solution deploys a set of App Services, Azure SQL, and supporting resources via an ARM template.
+The Connected Production DDMS provides a cloud-hosted, scalable, and secure API service for managing production data in the OSDU data model. This solution deploys a set of App Services, Azure PostgreSQL, and supporting resources via an ARM template.
 
 ## Prerequisites
 
@@ -40,7 +40,7 @@ Before you begin, ensure you have:
 
 The following files are used during deployment:
 
-- `azuredeploy.json`: ARM template defining resources (App Service Plans, Web Apps, Azure SQL, VNet, etc.)
+- `azuredeploy.json`: ARM template defining resources (App Service Plans, Web Apps, Azure PostgreSQL, VNet, etc.)
 - `uidefinition.json`: Custom UI definition for Azure Portal parameters
 - `parameters.production.json` (you may create this): Parameter file for production settings
 
@@ -189,7 +189,7 @@ New-AzResourceGroupDeployment \
 ## Post-Deployment Validation
 
 1. In the Azure Portal, navigate to the resource group and verify:
-   - Azure SQL server and database are provisioned
+   - Azure PostgreSQL server and database are provisioned
    - App Service Plan and Web App are running
    - VNet integration configured (if used)
 2. Retrieve the Web App URL
@@ -200,20 +200,6 @@ Invoke-WebRequest "https://<app-url>/health" -UseBasicParsing
 ```
 
 Expect HTTP 200 with a JSON status payload.
-
-## Test Data Loading
-
-This solution can load sample Production DDMS data:
-
-1. Clone or download the test data from the OSDU repo:
-   `https://community.opengroup.org/osdu/platform/domain-data-mgmt-services/production/core/dspdm-services/-/tree/main/database/database/data/dump`
-2. Load data into the SQL database via Azure Data Factory, bcp, or SQL client:
-   ```pwsh
-   sqlcmd -S <server>.database.windows.net -d <database> \
-     -U <sqlAdminLogin> -P "<password>" \
-     -i dump/production_data.sql
-   ```
-3. Verify sample records via SQL query
 
 ## Troubleshooting
 
