@@ -77,6 +77,11 @@ These parameters have no default values and must be provided:
 
 ## Deployment Methods
 
+Select one of the deployment methods below.
+
+- [Azure Portal](#azure-portal)
+- [Azure CLI](#azure-cli)
+
 ### Azure Portal
 
 Get started by using the `Deploy to Azure`button.
@@ -88,7 +93,7 @@ Get started by using the `Deploy to Azure`button.
 1. Review and click **Create**
 1. Wait ~10–15 minutes for deployment to finish
 
-### Azure CLI / PowerShell
+### Azure CLI
 
 ## Parameter Configuration
 
