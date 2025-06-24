@@ -159,6 +159,13 @@
             "metadata": {
                 "description": "A unique identifier."
             }
+        },
+        "addDemoData": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Add demo data (pdm-demo) when true or init only (pdm-init) when false."
+            }
         }
     },
     "variables": {
@@ -370,7 +377,7 @@
                                 },
                                 {
                                     "name": "DB_INSTALL_MODE",
-                                    "value": "pdm-demo"
+                                    "value": "[if(parameters('addDemoData'), 'pdm-demo', 'pdm-init')]"
                                 },
                                 {
                                     "name": "DB_MODEL_NAME",

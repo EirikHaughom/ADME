@@ -74,6 +74,7 @@ These parameters have no default values and must be provided:
 | containerSubnet              | object        | `{ "name": "containerSubnet" }`  | Subnet settings object for the container apps                                                      |
 | workloadProfile              | string        | `Consumption`                    | Container App workload profile (e.g., `Consumption` or `D4` for Premium)                            |
 | privateEndpointEnabled       | bool          | `false`                          | Enable private endpoint integration for resources                                                 |
+| addDemoData                  | bool          | `false`                          | Add demo data (pdm-demo) when true or init only (pdm-init) when false.                             |
 
 ## Deployment Methods
 
@@ -131,8 +132,27 @@ az deployment group create \
     admeScope=<scope> \
     admeLegalTag=<legalTag> \
     clientID=<appId> \
-    clientSecret=<secret>
-```
+    clientSecret=<secret> \
+    addDemoData=true
+```  
+
+Or in a parameters file (`parameters.production.json`):
+
+```json
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "resourcePrefix": { "value": "prod-ddms" },
+    "sqlAdminLogin": { "value": "sqladmin" },
+    "sqlAdminPassword": { "value": "<YourStrongP@ssword>" },
+    "location": { "value": "eastus2" },
+    "appServiceSku": { "value": "S1" },
+    "vnetSubnetId": { "value": "/subscriptions/.../resourceGroups/rg-network/providers/Microsoft.Network/virtualNetworks/vnet/subnets/ddms" },
+    "addDemoData": { "value": true }
+  }
+}
+```  
 
 PowerShell example:
 
@@ -200,6 +220,12 @@ Invoke-WebRequest "https://<app-url>/health" -UseBasicParsing
 ```
 
 Expect HTTP 200 with a JSON status payload.
+
+## Test Data Loading
+
+When `addDemoData` is set to `true`, the init container runs in `pdm-demo` mode and populates sample data into the OSDU databases. If `addDemoData` is `false`, the init container runs in `pdm-init` mode, initializing only the required schema without demo records.
+
+You can verify the demo data by connecting to your PostgreSQL database (e.g., using `psql`) and inspecting tables. Ensure that records exist to confirm successful data loading.
 
 ## Troubleshooting
 
