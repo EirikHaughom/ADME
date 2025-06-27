@@ -1,0 +1,848 @@
+openapi: 3.0.3
+info:
+  title: Azure Data Manager for Energy - Seismic File Metadata Service API
+  version: v1.0.0 # Updated from 0.0.1 and aligned with ADME practice
+  description: >-
+    Provides API endpoints to retrieve detailed metadata from seismic files,
+    such as OpenZGY and SEGY formats, stored within Azure Data Manager for
+    Energy. This includes headers, bingrids, and other format-specific
+    information.
+  contact:
+    name: Microsoft Support
+    email: support@microsoft.com
+servers:
+  - url: https://contoso.energy.azure.com/seismic-file-metadata/api
+    description: Azure Data Manager for Energy - Contoso Environment
+tags:
+  - name: ServiceHealth
+    description: Operations related to service health and status.
+  - name: OpenZgyMetadata
+    description: Operations to retrieve metadata from OpenZGY formatted seismic files.
+  - name: SegyMetadata
+    description: Operations to retrieve metadata from SEGY formatted seismic files.
+  - name: DeprecatedOpenZgyMetadata
+    description: Deprecated operations for OpenZGY metadata retrieval.
+  - name: DeprecatedSegyMetadata
+    description: Deprecated operations for SEGY metadata retrieval.
+  - name: DeprecatedServiceHealth
+    description: Deprecated service health operations.
+components:
+  schemas:
+    ValidationError:
+      title: ValidationError
+      type: object
+      properties:
+        loc:
+          type: array
+          items:
+            oneOf: # Changed from anyOf for stricter validation if possible, but anyOf is fine from original
+              - type: string
+              - type: integer
+          title: Location
+          description: The location of the validation error (e.g., path to the field).
+          example: ["query", "sdpath"]
+        msg:
+          type: string
+          title: Message
+          description: A human-readable error message.
+          example: "Field required"
+        type:
+          type: string
+          title: Error Type
+          description: The type of validation error.
+          example: "value_error.missing"
+      required:
+        - loc
+        - msg
+        - type
+    HTTPValidationError:
+      title: HTTPValidationError
+      type: object
+      properties:
+        errors: # Changed from 'detail' in common FastAPI to 'errors' as per input
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          title: Errors
+          description: A list of validation errors.
+    ServiceStatusResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          description: The operational status of the service.
+          example: "OK"
+      required:
+        - status
+    OpenZgyBingridResponse:
+      type: object
+      description: Represents the bingrid information for an OpenZGY dataset. The specific structure is dependent on the service implementation.
+      additionalProperties: true
+      example:
+        inline_count: 256
+        crossline_count: 512
+        inline_spacing: 25.0
+        crossline_spacing: 25.0
+        # Other bingrid specific fields
+    OpenZgyHeadersResponse:
+      type: object
+      description: Represents the header information for an OpenZGY dataset. The specific structure is dependent on the service implementation.
+      additionalProperties: true
+      example:
+        sample_rate: 4.0
+        sample_count: 1501
+        # Other header specific fields
+    SegyBinaryHeaderResponse:
+      type: object
+      description: Represents the binary header of a SEGY file. Structure contains key-value pairs corresponding to standard SEGY binary header fields.
+      additionalProperties: true # Allowing for all SEGY binary header fields
+      example:
+        job_id: 1
+        line_number: 101
+        reel_number: 1
+        data_traces_per_ensemble: 96
+        aux_traces_per_ensemble: 2
+        sample_interval_ms: 2
+        # other binary header fields
+    SegyExtendedTextualHeadersResponse:
+      type: array
+      items:
+        type: string
+      description: List of extended textual headers from a SEGY file.
+      example:
+        - "EXTENDED TEXTUAL HEADER BLOCK 1"
+        - "EXTENDED TEXTUAL HEADER BLOCK 2"
+    SegyIs3DResponse:
+      type: object # Assuming it returns a structured response, not just a number
+      properties:
+        is_3d:
+          type: boolean # Changed from number 1 to boolean for clarity
+          description: True if the dataset is identified as 3D, false otherwise.
+      example:
+        is_3d: true
+    SegyRawTraceHeadersResponse:
+      type: array
+      items:
+        type: object # Each trace header is an object
+        additionalProperties: true # Allowing for various trace header fields
+        description: Represents a single raw trace header.
+        example:
+          TRACE_SEQUENCE_LINE: 1
+          INLINE_NO: 1000
+          CROSSLINE_NO: 2000
+          # other raw trace header values
+      description: List of raw trace headers for the specified traces.
+    SegyRevisionResponse:
+      type: object
+      properties:
+        revision:
+          type: string # e.g., "1.0", "2.0" or "rev1"
+          description: The SEGY revision number of the dataset.
+      example:
+        revision: "1.0"
+    SegyScaledTraceHeadersResponse:
+      type: array
+      items:
+        type: object # Each trace header is an object
+        additionalProperties: true # Allowing for various trace header fields
+        description: Represents a single scaled trace header.
+        example:
+          TRACE_SEQUENCE_LINE: 1
+          INLINE_NO: 1000.0 # Scaled values might be floats
+          CROSSLINE_NO: 2000.0
+          # other scaled trace header values
+      description: List of scaled trace headers for the specified traces.
+    SegyTextualHeaderResponse:
+      type: string # The textual header is typically a single block of text
+      description: The main textual header (EBCDIC header) from a SEGY file.
+      example: "C01 CLIENT: Contoso Energy COMPANY: Seismic Corp CREW: 101..."
+    SegyTraceHeaderFieldCountResponse:
+      type: object
+      properties:
+        field_count:
+          type: integer
+          format: int32
+          description: The number of fields in each trace header.
+      example:
+        field_count: 80
+
+  parameters:
+    DataPartitionIdHeader:
+      name: data-partition-id
+      in: header
+      description: >-
+        The identifier of the data partition to identify the instance of the
+        data store. Required for ADME services accessing partitioned data.
+      required: true
+      schema:
+        type: string
+      example: 'contoso-opendes'
+    SdPathQueryParameter:
+      name: sdpath
+      in: query
+      description: >-
+        Seismic store path (sd://tenant/subproject/dataset) identifying the dataset.
+      required: true
+      schema:
+        type: string
+        example: "sd://contoso_opendes/survey_alpha/raw_line_001.zgy"
+    StartTraceQueryParameter:
+      name: start_trace
+      in: query
+      description: The starting trace number (1-indexed) for header retrieval.
+      required: true
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+      example: 1
+    TracesToDumpQueryParameter:
+      name: traces_to_dump
+      in: query
+      description: The number of traces for which to dump headers.
+      required: true
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+      example: 10
+
+  securitySchemes:
+    oAuth2AuthCode:
+      type: oauth2
+      description: OAuth2 authentication using Authorization Code flow with Azure AD.
+      flows:
+        authorizationCode:
+          authorizationUrl: https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/authorize
+          tokenUrl: https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token
+          scopes:
+            'api://contoso.energy.azure.com/data.read': Read access to ADME data.
+            # 'api://contoso.energy.azure.com/SeismicFileMetadata.Read': Specific scope if available
+
+  responses:
+    ValidationProblem:
+      description: Validation Error. The request was malformed or contained invalid parameters.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPValidationError'
+    UnauthorizedError:
+      description: Unauthorized. The client has not provided valid authentication credentials.
+      # Content could be HTTPValidationError or a simpler AppError model if preferred by ADME.
+      # For consistency with 422, using HTTPValidationError if applicable, or define a specific AppError.
+      # Assuming a generic error structure for 401/403 for now.
+      content:
+        application/json:
+          schema:
+            type: object # Placeholder for a generic error model for 401/403
+            properties:
+              error: {type: string, example: "Unauthorized"}
+              message: {type: string, example: "Authentication credentials were not provided or are invalid."}
+    ForbiddenError:
+      description: Forbidden. The client is authenticated but does not have permission to perform this action.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error: {type: string, example: "Forbidden"}
+              message: {type: string, example: "User does not have the required permissions."}
+    NotFoundError: # Common 404
+      description: Not Found. The requested resource (e.g., dataset at sdpath) could not be found.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error: {type: string, example: "NotFound"}
+              message: {type: string, example: "The specified resource was not found."}
+
+
+security:
+  - oAuth2AuthCode:
+      - 'api://contoso.energy.azure.com/data.read'
+
+paths:
+  /service-status: # Path adjusted from /seismic-file-metadata/api/service-status
+    get:
+      tags:
+        - ServiceHealth
+      summary: Get Service Status
+      description: Returns the operational status of the Seismic File Metadata service.
+      operationId: GetServiceStatus # Renamed
+      security: [] # Public endpoint, no auth needed
+      responses:
+        '200':
+          description: Service is operational.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceStatusResponse' # Defined schema
+        '503':
+          description: Service Unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceStatusResponse' # Can also use this for error status
+
+  /v1/openzgy/bingrid: # Path adjusted
+    get:
+      tags:
+        - DeprecatedOpenZgyMetadata # Marked as DEPRECATED
+      summary: Get OpenZGY Bingrid (v1 - Deprecated)
+      description: |
+        (DEPRECATED) Returns bingrid information for the specified OpenZGY dataset.
+        Required roles:
+        - `subproject.viewer` (uniform policy)
+        - `dataset.viewer` (dataset policy)
+      operationId: GetOpenZgyBingridV1 # Renamed
+      deprecated: true
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/SdPathQueryParameter'
+      responses:
+        '200':
+          description: Successfully retrieved bingrid information.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpenZgyBingridResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+
+  /v1/openzgy/headers: # Path adjusted
+    get:
+      tags:
+        - DeprecatedOpenZgyMetadata # Marked as DEPRECATED
+      summary: Get OpenZGY Headers (v1 - Deprecated)
+      description: |
+        (DEPRECATED) Returns header information for the specified OpenZGY dataset.
+        Required roles:
+        - `subproject.viewer` (uniform policy)
+        - `dataset.viewer` (dataset policy)
+      operationId: GetOpenZgyHeadersV1 # Renamed
+      deprecated: true
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/SdPathQueryParameter'
+      responses:
+        '200':
+          description: Successfully retrieved header information.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpenZgyHeadersResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+
+  /v1/segy/binaryHeader: # Path adjusted
+    get:
+      tags:
+        - DeprecatedSegyMetadata # Marked as DEPRECATED
+      summary: Get SEGY Binary Header (v1 - Deprecated)
+      description: |
+        (DEPRECATED) Returns the binary header for the specified SEGY dataset.
+        Required roles:
+        - `subproject.viewer` (uniform policy)
+        - `dataset.viewer` (dataset policy)
+      operationId: GetSegyBinaryHeaderV1 # Renamed
+      deprecated: true
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/SdPathQueryParameter'
+      responses:
+        '200':
+          description: Successfully retrieved SEGY binary header.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SegyBinaryHeaderResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+
+  /v1/segy/extendedTextualHeaders: # Path adjusted
+    get:
+      tags:
+        - DeprecatedSegyMetadata # Marked as DEPRECATED
+      summary: Get SEGY Extended Textual Headers (v1 - Deprecated)
+      description: |
+        (DEPRECATED) Returns extended textual headers for the specified SEGY dataset.
+        Required roles:
+        - `subproject.viewer` (uniform policy)
+        - `dataset.viewer` (dataset policy)
+      operationId: GetSegyExtendedTextualHeadersV1 # Renamed
+      deprecated: true
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/SdPathQueryParameter'
+      responses:
+        '200':
+          description: Successfully retrieved SEGY extended textual headers.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SegyExtendedTextualHeadersResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+
+  /v1/segy/is3D: # Path adjusted
+    get:
+      tags:
+        - DeprecatedSegyMetadata # Marked as DEPRECATED
+      summary: Check if SEGY Dataset is 3D (v1 - Deprecated)
+      description: |
+        (DEPRECATED) Returns true if the specified SEGY dataset is identified as 3D.
+        Required roles:
+        - `subproject.viewer` (uniform policy)
+        - `dataset.viewer` (dataset policy)
+      operationId: GetSegyIs3DV1 # Renamed
+      deprecated: true
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/SdPathQueryParameter'
+      responses:
+        '200':
+          description: Successfully determined if dataset is 3D.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SegyIs3DResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+
+  /v1/segy/rawTraceHeaders: # Path adjusted
+    get:
+      tags:
+        - DeprecatedSegyMetadata # Marked as DEPRECATED
+      summary: Get SEGY Raw Trace Headers (v1 - Deprecated)
+      description: |
+        (DEPRECATED) Returns raw trace headers for a specified range of traces in a SEGY dataset.
+        Required roles:
+        - `subproject.viewer` (uniform policy)
+        - `dataset.viewer` (dataset policy)
+      operationId: GetSegyRawTraceHeadersV1 # Renamed
+      deprecated: true
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/SdPathQueryParameter'
+        - $ref: '#/components/parameters/StartTraceQueryParameter'
+        - $ref: '#/components/parameters/TracesToDumpQueryParameter'
+      responses:
+        '200':
+          description: Successfully retrieved raw trace headers.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SegyRawTraceHeadersResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+
+  /v1/segy/revision: # Path adjusted
+    get:
+      tags:
+        - DeprecatedSegyMetadata # Marked as DEPRECATED
+      summary: Get SEGY Revision (v1 - Deprecated)
+      description: |
+        (DEPRECATED) Returns the SEGY revision number for the specified dataset.
+        Required roles:
+        - `subproject.viewer` (uniform policy)
+        - `dataset.viewer` (dataset policy)
+      operationId: GetSegyRevisionV1 # Renamed
+      deprecated: true
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/SdPathQueryParameter'
+      responses:
+        '200':
+          description: Successfully retrieved SEGY revision.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SegyRevisionResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+
+  /v1/segy/scaledTraceHeaders: # Path adjusted
+    get:
+      tags:
+        - DeprecatedSegyMetadata # Marked as DEPRECATED
+      summary: Get SEGY Scaled Trace Headers (v1 - Deprecated)
+      description: |
+        (DEPRECATED) Returns scaled trace headers for a specified range of traces in a SEGY dataset.
+        Required roles:
+        - `subproject.viewer` (uniform policy)
+        - `dataset.viewer` (dataset policy)
+      operationId: GetSegyScaledTraceHeadersV1 # Renamed
+      deprecated: true
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/SdPathQueryParameter'
+        - $ref: '#/components/parameters/StartTraceQueryParameter'
+        - $ref: '#/components/parameters/TracesToDumpQueryParameter'
+      responses:
+        '200':
+          description: Successfully retrieved scaled trace headers.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SegyScaledTraceHeadersResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+
+  /v1/segy/textualHeader: # Path adjusted
+    get:
+      tags:
+        - DeprecatedSegyMetadata # Marked as DEPRECATED
+      summary: Get SEGY Textual Header (v1 - Deprecated)
+      description: |
+        (DEPRECATED) Returns the textual (EBCDIC) header for the specified SEGY dataset.
+        Required roles:
+        - `subproject.viewer` (uniform policy)
+        - `dataset.viewer` (dataset policy)
+      operationId: GetSegyTextualHeaderV1 # Renamed
+      deprecated: true
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/SdPathQueryParameter'
+      responses:
+        '200':
+          description: Successfully retrieved SEGY textual header.
+          content:
+            application/json: # Or text/plain if it's raw text
+              schema:
+                $ref: '#/components/schemas/SegyTextualHeaderResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+
+  /v1/segy/traceHeaderFieldCount: # Path adjusted
+    get:
+      tags:
+        - DeprecatedSegyMetadata # Marked as DEPRECATED
+      summary: Get SEGY Trace Header Field Count (v1 - Deprecated)
+      description: |
+        (DEPRECATED) Returns the number of fields in each trace header for the specified SEGY dataset.
+        Required roles:
+        - `subproject.viewer` (uniform policy)
+        - `dataset.viewer` (dataset policy)
+      operationId: GetSegyTraceHeaderFieldCountV1 # Renamed
+      deprecated: true
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/SdPathQueryParameter'
+      responses:
+        '200':
+          description: Successfully retrieved trace header field count.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SegyTraceHeaderFieldCountResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+
+  /v1/service-status: # Path adjusted
+    get:
+      tags:
+        - DeprecatedServiceHealth # Marked as DEPRECATED
+      summary: Get Service Status (v1 - Deprecated)
+      description: (DEPRECATED) Returns the operational status of the service.
+      operationId: GetServiceStatusV1 # Renamed
+      deprecated: true
+      security: [] # Assuming public
+      responses:
+        '200':
+          description: Service is operational.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceStatusResponse'
+        '503':
+          description: Service Unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceStatusResponse'
+
+  # V2 Endpoints (Current)
+  /v2/openzgy/bingrid: # Path adjusted
+    get:
+      tags:
+        - OpenZgyMetadata
+      summary: Get OpenZGY Bingrid
+      description: |
+        Returns bingrid information for the specified OpenZGY dataset.
+        Required roles:
+        - `subproject.viewer` (uniform policy)
+        - `dataset.viewer` (dataset policy)
+      operationId: GetOpenZgyBingridV2 # Renamed
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/SdPathQueryParameter'
+      responses:
+        '200':
+          description: Successfully retrieved bingrid information.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpenZgyBingridResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+
+  /v2/openzgy/headers: # Path adjusted
+    get:
+      tags:
+        - OpenZgyMetadata
+      summary: Get OpenZGY Headers
+      description: |
+        Returns header information for the specified OpenZGY dataset.
+        Required roles:
+        - `subproject.viewer` (uniform policy)
+        - `dataset.viewer` (dataset policy)
+      operationId: GetOpenZgyHeadersV2 # Renamed
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/SdPathQueryParameter'
+      responses:
+        '200':
+          description: Successfully retrieved header information.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpenZgyHeadersResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+
+  /v2/segy/binaryHeader: # Path adjusted
+    get:
+      tags:
+        - SegyMetadata
+      summary: Get SEGY Binary Header
+      description: |
+        Returns the binary header for the specified SEGY dataset.
+        Required roles:
+        - `subproject.viewer` (uniform policy)
+        - `dataset.viewer` (dataset policy)
+      operationId: GetSegyBinaryHeaderV2 # Renamed
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/SdPathQueryParameter'
+      responses:
+        '200':
+          description: Successfully retrieved SEGY binary header.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SegyBinaryHeaderResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+
+  /v2/segy/extendedTextualHeaders: # Path adjusted
+    get:
+      tags:
+        - SegyMetadata
+      summary: Get SEGY Extended Textual Headers
+      description: |
+        Returns extended textual headers for the specified SEGY dataset.
+        Required roles:
+        - `subproject.viewer` (uniform policy)
+        - `dataset.viewer` (dataset policy)
+      operationId: GetSegyExtendedTextualHeadersV2 # Renamed
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/SdPathQueryParameter'
+      responses:
+        '200':
+          description: Successfully retrieved SEGY extended textual headers.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SegyExtendedTextualHeadersResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+
+  /v2/segy/is3D: # Path adjusted
+    get:
+      tags:
+        - SegyMetadata
+      summary: Check if SEGY Dataset is 3D
+      description: |
+        Returns true if the specified SEGY dataset is identified as 3D.
+        Required roles:
+        - `subproject.viewer` (uniform policy)
+        - `dataset.viewer` (dataset policy)
+      operationId: GetSegyIs3DV2 # Renamed
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/SdPathQueryParameter'
+      responses:
+        '200':
+          description: Successfully determined if dataset is 3D.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SegyIs3DResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+
+  /v2/segy/rawTraceHeaders: # Path adjusted
+    get:
+      tags:
+        - SegyMetadata
+      summary: Get SEGY Raw Trace Headers
+      description: |
+        Returns raw trace headers for a specified range of traces in a SEGY dataset.
+        Required roles:
+        - `subproject.viewer` (uniform policy)
+        - `dataset.viewer` (dataset policy)
+      operationId: GetSegyRawTraceHeadersV2 # Renamed
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/SdPathQueryParameter'
+        - $ref: '#/components/parameters/StartTraceQueryParameter'
+        - $ref: '#/components/parameters/TracesToDumpQueryParameter'
+      responses:
+        '200':
+          description: Successfully retrieved raw trace headers.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SegyRawTraceHeadersResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+
+  /v2/segy/revision: # Path adjusted
+    get:
+      tags:
+        - SegyMetadata
+      summary: Get SEGY Revision
+      description: |
+        Returns the SEGY revision number for the specified dataset.
+        Required roles:
+        - `subproject.viewer` (uniform policy)
+        - `dataset.viewer` (dataset policy)
+      operationId: GetSegyRevisionV2 # Renamed
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/SdPathQueryParameter'
+      responses:
+        '200':
+          description: Successfully retrieved SEGY revision.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SegyRevisionResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+
+  /v2/segy/scaledTraceHeaders: # Path adjusted
+    get:
+      tags:
+        - SegyMetadata
+      summary: Get SEGY Scaled Trace Headers
+      description: |
+        Returns scaled trace headers for a specified range of traces in a SEGY dataset.
+        Required roles:
+        - `subproject.viewer` (uniform policy)
+        - `dataset.viewer` (dataset policy)
+      operationId: GetSegyScaledTraceHeadersV2 # Renamed
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/SdPathQueryParameter'
+        - $ref: '#/components/parameters/StartTraceQueryParameter'
+        - $ref: '#/components/parameters/TracesToDumpQueryParameter'
+      responses:
+        '200':
+          description: Successfully retrieved scaled trace headers.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SegyScaledTraceHeadersResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+
+  /v2/segy/textualHeader: # Path adjusted
+    get:
+      tags:
+        - SegyMetadata
+      summary: Get SEGY Textual Header
+      description: |
+        Returns the textual (EBCDIC) header for the specified SEGY dataset.
+        Required roles:
+        - `subproject.viewer` (uniform policy)
+        - `dataset.viewer` (dataset policy)
+      operationId: GetSegyTextualHeaderV2 # Renamed
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/SdPathQueryParameter'
+      responses:
+        '200':
+          description: Successfully retrieved SEGY textual header.
+          content:
+            application/json: # Or text/plain if it's raw text
+              schema:
+                $ref: '#/components/schemas/SegyTextualHeaderResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+
+  /v2/segy/traceHeaderFieldCount: # Path adjusted
+    get:
+      tags:
+        - SegyMetadata
+      summary: Get SEGY Trace Header Field Count
+      description: |
+        Returns the number of fields in each trace header for the specified SEGY dataset.
+        Required roles:
+        - `subproject.viewer` (uniform policy)
+        - `dataset.viewer` (dataset policy)
+      operationId: GetSegyTraceHeaderFieldCountV2 # Renamed
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/SdPathQueryParameter'
+      responses:
+        '200':
+          description: Successfully retrieved trace header field count.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SegyTraceHeaderFieldCountResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }

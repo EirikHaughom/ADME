@@ -1,0 +1,986 @@
+swagger: '2.0'
+info:
+  title: Azure Data Manager for Energy - Entitlements Service API
+  description: >-
+    Entitlements Service is used to enable authorization in the Azure Data
+    Manager for Energy. It manages groups and memberships for controlling access
+    to data partitions and services.
+  contact:
+    name: Microsoft Support
+    email: support@microsoft.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  version: 2.0.0
+host: contoso.energy.azure.com
+basePath: /api/entitlements/v2
+schemes:
+  - https
+consumes: []
+produces: []
+paths:
+  /_ah/liveness_check:
+    get:
+      tags:
+        - Health
+      summary: Liveness Check endpoint
+      description: >-
+        For deployment available public `/liveness_check` endpoint, indicating
+        if the service is running.
+      operationId: GetLivenessCheck
+      produces:
+        - text/plain
+        - application/json
+      parameters:
+        - $ref: '#/parameters/DataPartitionIdHeader'
+      responses:
+        '200':
+          description: Service is alive.
+          schema:
+            type: string
+            example: Entitlements Service is alive
+        '503':
+          $ref: '#/responses/ServiceUnavailable'
+  /_ah/readiness_check:
+    get:
+      tags:
+        - Health
+      summary: Readiness Check endpoint
+      description: >-
+        For deployment available public `/readiness_check` endpoint, indicating
+        if the service is ready to accept traffic.
+      operationId: GetReadinessCheck
+      produces:
+        - text/plain
+        - application/json
+      parameters:
+        - $ref: '#/parameters/DataPartitionIdHeader'
+      responses:
+        '200':
+          description: Service is ready.
+          schema:
+            type: string
+            example: Entitlements Service is ready
+        '503':
+          $ref: '#/responses/ServiceUnavailable'
+  /groups:
+    get:
+      tags:
+        - Groups
+      summary: List groups for the current user
+      description: >-
+        Retrieves a list of groups associated with the current authenticated
+        user.
+      operationId: ListCurrentUserGroups
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/RoleRequiredQueryParam'
+        - $ref: '#/parameters/DataPartitionIdHeader'
+        - $ref: '#/parameters/OnBehalfOfHeader'
+      responses:
+        '200':
+          description: Successfully retrieved the list of groups.
+          schema:
+            $ref: '#/definitions/ListGroupResponseDto'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '404':
+          $ref: '#/responses/NotFound'
+        '500':
+          $ref: '#/responses/InternalServerError'
+        '502':
+          $ref: '#/responses/BadGateway'
+        '503':
+          $ref: '#/responses/ServiceUnavailable'
+    post:
+      tags:
+        - Groups
+      summary: Create a new group
+      description: Creates a new group with the specified name and description.
+      operationId: CreateGroup
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/DataPartitionIdHeader'
+        - in: body
+          name: body
+          description: Details of the group to be created.
+          required: true
+          schema:
+            $ref: '#/definitions/CreateGroupDto'
+      responses:
+        '201':
+          description: Group created successfully.
+          schema:
+            $ref: '#/definitions/GroupDto'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '409':
+          $ref: '#/responses/Conflict'
+        '500':
+          $ref: '#/responses/InternalServerError'
+        '502':
+          $ref: '#/responses/BadGateway'
+        '503':
+          $ref: '#/responses/ServiceUnavailable'
+  /groups/all:
+    get:
+      tags:
+        - Groups
+      summary: List all groups within a data partition
+      description: >-
+        Retrieves a paginated list of all groups within the specified data
+        partition, filterable by group type.
+      operationId: ListAllGroupsInPartition
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/GroupTypeQueryParam'
+        - $ref: '#/parameters/CursorQueryParam'
+        - $ref: '#/parameters/LimitQueryParam'
+        - $ref: '#/parameters/DataPartitionIdHeader'
+      responses:
+        '200':
+          description: Successfully retrieved the list of all groups in the partition.
+          schema:
+            $ref: '#/definitions/ListGroupsOfPartitionDto'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '500':
+          $ref: '#/responses/InternalServerError'
+        '502':
+          $ref: '#/responses/BadGateway'
+        '503':
+          $ref: '#/responses/ServiceUnavailable'
+  /groups/{groupEmail}:
+    parameters:
+      - $ref: '#/parameters/GroupEmailPathParam'
+      - $ref: '#/parameters/DataPartitionIdHeader'
+    delete:
+      tags:
+        - Groups
+      summary: Delete a group by email
+      description: Deletes a group identified by its email address.
+      operationId: DeleteGroupByEmail
+      parameters:
+        - $ref: '#/parameters/GroupEmailPathParam'
+      produces:
+        - application/json
+      responses:
+        '204':
+          description: Group deleted successfully.
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '404':
+          $ref: '#/responses/NotFound'
+        '500':
+          $ref: '#/responses/InternalServerError'
+        '502':
+          $ref: '#/responses/BadGateway'
+        '503':
+          $ref: '#/responses/ServiceUnavailable'
+    patch:
+      tags:
+        - Groups
+      summary: Update a group's description
+      description: Updates the description of an existing group using a PATCH operation.
+      operationId: UpdateGroupByEmail
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/GroupEmailPathParam'
+        - in: body
+          name: body
+          description: >-
+            A list of operations to apply to the group. Typically used to update
+            the description.
+          required: true
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/UpdateGroupOperation'
+            example:
+              - op: replace
+                path: /description
+                value:
+                  - New updated group description
+      responses:
+        '200':
+          description: Group updated successfully.
+          schema:
+            $ref: '#/definitions/UpdateGroupResponseDto'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '404':
+          $ref: '#/responses/NotFound'
+        '500':
+          $ref: '#/responses/InternalServerError'
+        '502':
+          $ref: '#/responses/BadGateway'
+        '503':
+          $ref: '#/responses/ServiceUnavailable'
+  /groups/{groupEmail}/members:
+    parameters:
+      - $ref: '#/parameters/GroupEmailPathParam'
+      - $ref: '#/parameters/DataPartitionIdHeader'
+    get:
+      tags:
+        - Members
+      summary: List members of a specific group
+      description: >-
+        Retrieves a list of members belonging to the specified group, optionally
+        filtered by role.
+      operationId: ListMembersInGroup
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/RoleQueryParam'
+        - $ref: '#/parameters/IncludeTypeQueryParam'
+        - $ref: '#/parameters/GroupEmailPathParam'
+      responses:
+        '200':
+          description: Successfully retrieved the list of group members.
+          schema:
+            $ref: '#/definitions/ListMemberResponseDto'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '404':
+          $ref: '#/responses/NotFound'
+        '500':
+          $ref: '#/responses/InternalServerError'
+        '502':
+          $ref: '#/responses/BadGateway'
+        '503':
+          $ref: '#/responses/ServiceUnavailable'
+    post:
+      tags:
+        - Members
+      summary: Add a member to a group
+      description: Adds a new member with a specified role to the given group.
+      operationId: AddMemberToGroup
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/GroupEmailPathParam'
+        - in: body
+          name: body
+          description: Details of the member to be added (email and role).
+          required: true
+          schema:
+            $ref: '#/definitions/AddMemberDto'
+      responses:
+        '200':
+          description: Member added successfully. Returns the details of the added member.
+          schema:
+            $ref: '#/definitions/AddMemberDto'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '404':
+          $ref: '#/responses/NotFound'
+        '409':
+          $ref: '#/responses/Conflict'
+        '500':
+          $ref: '#/responses/InternalServerError'
+        '502':
+          $ref: '#/responses/BadGateway'
+        '503':
+          $ref: '#/responses/ServiceUnavailable'
+  /groups/{groupEmail}/members/{memberEmail}:
+    parameters:
+      - $ref: '#/parameters/GroupEmailPathParam'
+      - $ref: '#/parameters/MemberEmailPathParam'
+      - $ref: '#/parameters/DataPartitionIdHeader'
+    delete:
+      tags:
+        - Members
+      summary: Remove a member from a group
+      description: Removes a specific member from the specified group.
+      operationId: RemoveMemberFromGroup
+      parameters:
+        - $ref: '#/parameters/GroupEmailPathParam'
+        - $ref: '#/parameters/MemberEmailPathParam'
+      produces:
+        - application/json
+      responses:
+        '204':
+          description: Member removed successfully from the group.
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '404':
+          $ref: '#/responses/NotFound'
+        '500':
+          $ref: '#/responses/InternalServerError'
+        '502':
+          $ref: '#/responses/BadGateway'
+        '503':
+          $ref: '#/responses/ServiceUnavailable'
+  /groups/{groupEmail}/membersCount:
+    parameters:
+      - $ref: '#/parameters/GroupEmailPathParam'
+      - $ref: '#/parameters/DataPartitionIdHeader'
+    get:
+      tags:
+        - Members
+      summary: Get members of a group (for counting)
+      description: >-
+        Retrieves members of a specific group, optionally filtered by role. The
+        client can count the members from the response.
+      operationId: GetGroupMembers
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/GroupEmailPathParam'
+        - $ref: '#/parameters/RoleQueryParam'
+        - $ref: '#/parameters/DataPartitionIdHeader'
+      responses:
+        '200':
+          description: Successfully retrieved members of the group.
+          schema:
+            $ref: '#/definitions/ListMemberResponseDto'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '404':
+          $ref: '#/responses/NotFound'
+        '500':
+          $ref: '#/responses/InternalServerError'
+        '502':
+          $ref: '#/responses/BadGateway'
+        '503':
+          $ref: '#/responses/ServiceUnavailable'
+  /info:
+    get:
+      tags:
+        - Info
+      summary: Get service build and version information
+      description: >-
+        Provides build and git related information for the Entitlements Service.
+        This endpoint is publicly available.
+      operationId: GetInfo
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/DataPartitionIdHeader'
+      responses:
+        '200':
+          description: Successfully retrieved service version information.
+          schema:
+            $ref: '#/definitions/VersionInfo'
+        '500':
+          $ref: '#/responses/InternalServerError'
+        '503':
+          $ref: '#/responses/ServiceUnavailable'
+  /members/{memberEmail}:
+    parameters:
+      - $ref: '#/parameters/MemberEmailPathParam'
+      - $ref: '#/parameters/DataPartitionIdHeader'
+    delete:
+      tags:
+        - Members
+      summary: Delete a member from all groups
+      description: >-
+        Deletes a member, identified by their email, from all groups they belong
+        to within the data partition.
+      operationId: DeleteMemberFromAllGroups
+      parameters:
+        - $ref: '#/parameters/MemberEmailPathParam'
+      produces:
+        - application/json
+      responses:
+        '204':
+          description: Member deleted successfully from all associated groups.
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '404':
+          $ref: '#/responses/NotFound'
+        '500':
+          $ref: '#/responses/InternalServerError'
+        '502':
+          $ref: '#/responses/BadGateway'
+        '503':
+          $ref: '#/responses/ServiceUnavailable'
+  /members/{memberEmail}/groups:
+    parameters:
+      - $ref: '#/parameters/MemberEmailPathParam'
+      - $ref: '#/parameters/DataPartitionIdHeader'
+    get:
+      tags:
+        - Groups
+      summary: List groups for a specific member
+      description: >-
+        Retrieves a list of groups that a specific member (user or service
+        identity) belongs to, optionally filtered by group type and application
+        ID.
+      operationId: ListGroupsForMember
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/GroupTypeQueryParam'
+        - $ref: '#/parameters/AppIdQueryParam'
+        - $ref: '#/parameters/RoleRequiredQueryParam'
+        - $ref: '#/parameters/MemberEmailPathParam'
+      responses:
+        '200':
+          description: Successfully retrieved the list of groups for the member.
+          schema:
+            $ref: '#/definitions/ListGroupResponseDto'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '404':
+          $ref: '#/responses/NotFound'
+        '500':
+          $ref: '#/responses/InternalServerError'
+        '502':
+          $ref: '#/responses/BadGateway'
+        '503':
+          $ref: '#/responses/ServiceUnavailable'
+  /tenant-provisioning:
+    parameters:
+      - $ref: '#/parameters/DataPartitionIdHeader'
+    delete:
+      tags:
+        - TenantProvisioning
+      summary: Delete entitlements provisioning for a tenant
+      description: >-
+        Removes all entitlements configurations for a specific tenant (data
+        partition). This is a destructive operation.
+      operationId: DeleteTenantProvisioning
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Tenant provisioning deleted successfully.
+          schema:
+            $ref: '#/definitions/InitServiceDto'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '404':
+          $ref: '#/responses/NotFound'
+        '500':
+          $ref: '#/responses/InternalServerError'
+        '502':
+          $ref: '#/responses/BadGateway'
+        '503':
+          $ref: '#/responses/ServiceUnavailable'
+    post:
+      tags:
+        - TenantProvisioning
+      summary: Initialize entitlements for a tenant
+      description: >-
+        Initializes the entitlements service for a new tenant (data partition),
+        potentially including initial alias mappings.
+      operationId: InitiateTenantProvisioning
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: Optional alias mappings to configure during tenant initialization.
+          schema:
+            $ref: '#/definitions/InitServiceDto'
+      responses:
+        '200':
+          description: Tenant initialized successfully.
+          schema:
+            $ref: '#/definitions/InitServiceDto'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '409':
+          $ref: '#/responses/Conflict'
+        '500':
+          $ref: '#/responses/InternalServerError'
+        '502':
+          $ref: '#/responses/BadGateway'
+        '503':
+          $ref: '#/responses/ServiceUnavailable'
+definitions:
+  AddMemberDto:
+    description: Represents a model to add a member to a group.
+    required:
+      - email
+      - role
+    type: object
+    properties:
+      email:
+        description: Email address of the member to add (user or service identity).
+        type: string
+        example: user.name@example.com
+      role:
+        description: Role to assign to the member within the group.
+        enum:
+          - MEMBER
+          - OWNER
+        type: string
+        example: MEMBER
+  AliasEntity:
+    description: Represents a mapping between an alias and a user ID.
+    type: object
+    properties:
+      aliasId:
+        description: The alias identifier.
+        type: string
+        example: john.doe.alias
+      userId:
+        description: The canonical user ID.
+        type: string
+        example: user.name@example.com
+  AppError:
+    type: object
+    properties:
+      code:
+        format: int32
+        type: integer
+        example: 400
+      message:
+        type: string
+        example: Invalid input.
+      reason:
+        type: string
+        example: Required field 'name' is missing.
+  ConnectedOuterService:
+    type: object
+    properties:
+      name:
+        type: string
+        example: Identity Management Service
+      version:
+        type: string
+        example: v1.0
+  CreateGroupDto:
+    description: Represents a model to create a new group.
+    required:
+      - name
+      - description
+    type: object
+    properties:
+      name:
+        description: >-
+          Name of the group. Must be unique within the data partition. Pattern
+          allows letters, numbers, {}, _, ., -
+        pattern: ^[A-Za-z0-9{}_.-]{3,128}$
+        type: string
+        example: data.welldata.viewers
+      description:
+        description: A brief description of the group's purpose.
+        pattern: ^[-A-Za-z0-9 _./,;:'"!@&+%#$]{0,255}$
+        type: string
+        example: Viewers for well data in Project Alpha
+  GroupDto:
+    description: Represents a group with its details.
+    type: object
+    properties:
+      name:
+        description: Name of the group.
+        type: string
+        example: data.welldata.viewers
+      email:
+        description: Email identifier of the group (often same as name or derived).
+        type: string
+        example: data.welldata.viewers@opendes.contoso.com
+      description:
+        description: Description of the group.
+        type: string
+        example: Viewers for well data in Project Alpha
+  InitServiceDto:
+    description: >-
+      Data transfer object for initializing the entitlements service for a
+      tenant.
+    type: object
+    properties:
+      aliasMappings:
+        description: A list of alias mappings to be configured.
+        type: array
+        items:
+          $ref: '#/definitions/AliasEntity'
+        example:
+          - aliasId: service.account.alias
+            userId: real.service.account@example.com
+  ListGroupResponseDto:
+    description: Represents a response containing a list of groups for a member.
+    type: object
+    properties:
+      memberEmail:
+        description: Email of the member for whom the groups are listed.
+        type: string
+        example: user.name@example.com
+      groups:
+        description: >-
+          A list of groups the member belongs to, along with their role in each
+          group.
+        type: array
+        items:
+          $ref: '#/definitions/ParentReference'
+      desId:
+        description: >-
+          Identifier for the member (may be same as memberEmail or an internal
+          ID).
+        type: string
+        example: user.name@example.com
+  ListGroupsOfPartitionDto:
+    description: Represents a paginated list of groups within a data partition.
+    type: object
+    properties:
+      groups:
+        description: A list of groups in the current page.
+        type: array
+        items:
+          $ref: '#/definitions/ParentReference'
+      cursor:
+        description: Cursor for fetching the next page of results. Null if no more pages.
+        type: string
+        example: eyJOFFSETCI6MTAwLCJLIMITCI6MTAwfQ==
+      totalCount:
+        format: int64
+        description: Total count of groups matching the query (if available).
+        type: integer
+        example: 125
+  ListMemberResponseDto:
+    description: Represents a response containing a list of members of a group.
+    type: object
+    properties:
+      members:
+        description: A list of members in the group.
+        type: array
+        items:
+          $ref: '#/definitions/MemberDto'
+  MemberDto:
+    description: Represents a member of a group.
+    type: object
+    properties:
+      email:
+        description: Email address of the member.
+        type: string
+        example: user.name@example.com
+      role:
+        description: Role of the member within the group.
+        enum:
+          - MEMBER
+          - OWNER
+        type: string
+        example: MEMBER
+      memberType:
+        description: Type of the member (USER or GROUP).
+        enum:
+          - USER
+          - GROUP
+        type: string
+        example: USER
+      dataPartitionId:
+        description: Data partition ID to which this membership pertains.
+        type: string
+        example: opendes-tenant1
+  ParentReference:
+    description: >-
+      Represents a summary reference to a group, often used when listing group
+      memberships.
+    type: object
+    properties:
+      name:
+        description: Name of the referenced group.
+        type: string
+        example: data.welldata.viewers
+      email:
+        description: Email identifier of the referenced group.
+        type: string
+        example: data.welldata.viewers@opendes.contoso.com
+      description:
+        description: Description of the referenced group.
+        type: string
+        example: Viewers for well data in Project Alpha
+      role:
+        description: Role of the subject (e.g. user) in this group.
+        enum:
+          - MEMBER
+          - OWNER
+          - ''
+        type: string
+        example: MEMBER
+  UpdateGroupOperation:
+    description: >-
+      Represents a single PATCH operation to update a group. Currently supports
+      replacing the description.
+    type: object
+    properties:
+      op:
+        description: >-
+          The operation to perform. Currently, only "replace" is typically
+          supported for group updates.
+        enum:
+          - replace
+        type: string
+        example: replace
+      path:
+        description: >-
+          The JSON Pointer path to the attribute to update. For description,
+          it's "/description".
+        type: string
+        example: /description
+      value:
+        description: >-
+          The new value(s) for the attribute. For description, it's an array
+          containing the new description string.
+        maxItems: 1
+        minItems: 1
+        type: array
+        items:
+          description: >-
+            The new value for the attribute. For description, this would be an
+            array with one string element.
+          type: string
+          example: New updated description for the project alpha viewers group
+  UpdateGroupResponseDto:
+    description: Represents the response after updating a group.
+    type: object
+    properties:
+      name:
+        description: Name of the updated group.
+        type: string
+        example: data.welldata.viewers
+      email:
+        description: Email identifier of the updated group.
+        type: string
+        example: data.welldata.viewers@opendes.contoso.com
+      appIds:
+        description: >-
+          List of Application IDs associated or affected by the group update (if
+          applicable).
+        type: array
+        items:
+          type: string
+          example: app-id-123
+  VersionInfo:
+    type: object
+    properties:
+      groupId:
+        type: string
+        example: org.osdu
+      artifactId:
+        type: string
+        example: entitlements-service
+      version:
+        type: string
+        example: 2.0.0
+      buildTime:
+        format: date-time
+        type: string
+        example: '2023-11-01T12:00:00.0000000+00:00'
+      branch:
+        type: string
+        example: main
+      commitId:
+        type: string
+        example: a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2
+      commitMessage:
+        type: string
+        example: 'feat: Enhanced group management capabilities'
+      connectedOuterServices:
+        type: array
+        items:
+          $ref: '#/definitions/ConnectedOuterService'
+parameters:
+  DataPartitionIdHeader:
+    in: header
+    name: data-partition-id
+    description: >-
+      Tenant Identifier (Data Partition ID) for data isolation and access
+      control.
+    required: true
+    type: string
+  OnBehalfOfHeader:
+    in: header
+    name: on-behalf-of
+    description: >-
+      Optional. User email to perform the operation on behalf of. Requires
+      appropriate service-to-service permissions.
+    type: string
+    format: email
+  GroupEmailPathParam:
+    in: path
+    name: groupEmail
+    description: Email identifier of the group.
+    required: true
+    type: string
+    format: email
+  MemberEmailPathParam:
+    in: path
+    name: memberEmail
+    description: Email identifier of the member.
+    required: true
+    type: string
+    format: email
+  RoleQueryParam:
+    in: query
+    name: role
+    description: Filter by member role (MEMBER or OWNER).
+    type: string
+    enum:
+      - MEMBER
+      - OWNER
+  IncludeTypeQueryParam:
+    in: query
+    name: includeType
+    description: If true, includes the member type (USER or GROUP) in the response.
+    type: boolean
+    default: false
+  RoleRequiredQueryParam:
+    in: query
+    name: roleRequired
+    description: >-
+      If true, only groups where the user has a specific role (MEMBER or OWNER)
+      are returned. Default is false.
+    type: boolean
+    default: false
+  GroupTypeQueryParam:
+    in: query
+    name: type
+    description: Filter by the type of the group.
+    required: true
+    type: string
+    enum:
+      - NONE
+      - DATA
+      - USER
+      - SERVICE
+  CursorQueryParam:
+    in: query
+    name: cursor
+    description: Opaque cursor for pagination, used to retrieve the next set of results.
+    type: string
+  LimitQueryParam:
+    in: query
+    name: limit
+    description: Maximum number of results to return per page.
+    type: integer
+    format: int32
+    default: 100
+    minimum: 1
+  AppIdQueryParam:
+    in: query
+    name: appid
+    description: >-
+      Optional application ID to filter groups by, if applicable for the 'on
+      behalf of' scenario.
+    type: string
+responses:
+  BadRequest:
+    description: >-
+      Bad Request. The request was invalid, malformed, or missing required
+      parameters. Check the response body for details.
+    schema:
+      $ref: '#/definitions/AppError'
+  Unauthorized:
+    description: >-
+      Unauthorized. Authentication is required and has failed or has not yet
+      been provided. Ensure a valid bearer token is included in the
+      `Authorization` header.
+    schema:
+      $ref: '#/definitions/AppError'
+  Forbidden:
+    description: >-
+      Forbidden. The authenticated user does not have the necessary permissions
+      to perform this action.
+    schema:
+      $ref: '#/definitions/AppError'
+  NotFound:
+    description: >-
+      Not Found. The requested resource (e.g., group, member) could not be
+      found.
+    schema:
+      $ref: '#/definitions/AppError'
+  Conflict:
+    description: >-
+      Conflict. The request could not be completed due to a conflict with the
+      current state of the resource (e.g., group already exists, member already
+      in group).
+    schema:
+      $ref: '#/definitions/AppError'
+  InternalServerError:
+    description: >-
+      Internal Server Error. An unexpected condition was encountered on the
+      server.
+    schema:
+      $ref: '#/definitions/AppError'
+  BadGateway:
+    description: >-
+      Bad Gateway. The server, while acting as a gateway or proxy, received an
+      invalid response from an upstream server.
+    schema:
+      $ref: '#/definitions/AppError'
+  ServiceUnavailable:
+    description: >-
+      Service Unavailable. The server is currently unable to handle the request
+      due to a temporary overload or scheduled maintenance.
+    schema:
+      $ref: '#/definitions/AppError'
+securityDefinitions: {}
+security:
+  - Authorization: []
+tags:
+  - name: Health
+    description: Service health and readiness checks.
+  - name: Info
+    description: Service version and build information.
+  - name: Groups
+    description: Operations related to managing groups.
+  - name: Members
+    description: Operations related to managing group memberships and members.
+  - name: TenantProvisioning
+    description: Operations for initializing and managing tenant-specific entitlements.

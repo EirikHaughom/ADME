@@ -1,0 +1,701 @@
+openapi: 3.0.3
+info:
+  title: Azure Data Manager for Energy - Dataset Service API
+  version: 1.0.0
+  description: Dataset service provides internal and external API endpoints to allow application or user fetch storage/retrieval instructions for various types of datasets.
+  contact:
+    name: Microsoft Support
+    email: support@microsoft.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: /api/dataset/v1
+tags:
+  - name: dataset
+    description: Dataset DMS and Dataset Registry related operations
+  - name: health-check-api
+    description: Health Check API
+  - name: info
+    description: Version info endpoint
+security:
+  - Authorization: []
+paths:
+  /getDatasetRegistry:
+    get:
+      tags:
+        - dataset
+      summary: Get a single Dataset Registry by ID
+      description: "Get a specific Dataset Registry by its ID. \n**Required roles:  `service.storage.creator` or `service.storage.admin` or `service.storage.viewer`."
+      operationId: GetDatasetRegistryById
+      parameters:
+        - $ref: '#/components/parameters/DatasetRegistryIdQueryParam'
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      responses:
+        '200':
+          description: Successfully retrieved the Dataset Registry.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetCreateUpdateDatasetRegistryResponse' # Contains a single item in 'datasetRegistries' array
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+    post:
+      tags:
+        - dataset
+      summary: Get multiple Dataset Registries by IDs
+      description: "Get multiple Dataset Registries by providing a list of their IDs. \n**Required roles:  `service.storage.creator` or `service.storage.admin` or `service.storage.viewer`."
+      operationId: GetDatasetRegistriesByIds
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      requestBody:
+        description: A list of Dataset Registry IDs to retrieve.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetDatasetRegistryRequest'
+      responses:
+        '200':
+          description: Successfully retrieved the Dataset Registries.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetCreateUpdateDatasetRegistryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound' # Could mean one or more IDs not found
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /info:
+    get:
+      tags:
+        - info
+      summary: Get service build and version information
+      description: Provides build and git related information for the Dataset Service. This endpoint is publicly available.
+      operationId: GetInfo
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      responses:
+        '200':
+          description: Successfully retrieved service version information.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionInfo'
+        '500':
+          $ref: '#/components/responses/InternalServerError' # Adding for completeness
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable' # Adding for completeness
+      security: []
+  /liveness_check:
+    get:
+      tags:
+        - health-check-api
+      summary: Liveness Check endpoint
+      description: For deployment available public `/liveness_check` endpoint verifies the operational status of the Dataset Service.
+      operationId: GetLivenessCheck
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      responses:
+        '200':
+          description: Dataset Service is alive and operational.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Dataset Service is alive"
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+      security: []
+  /registerDataset:
+    put:
+      tags:
+        - dataset
+      summary: Create or Update Dataset Registries
+      description: "Creates new Dataset Registries or updates existing ones. \n**Required roles: `service.storage.creator` or `service.storage.admin`."
+      operationId: CreateOrUpdateDatasetRegistries
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      requestBody:
+        description: A list of Dataset Registry objects to create or update.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDatasetRegistryRequest'
+      responses:
+        '200': # Or 201 if resources are consistently created, 200 for updates
+          description: Successfully created or updated Dataset Registries.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetCreateUpdateDatasetRegistryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound' # If updating a non-existent ID and creation is not implied
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /retrievalInstructions:
+    get:
+      tags:
+        - dataset
+      summary: Generate retrieval instructions for a single dataset
+      description: "Generates retrieval instructions (e.g., Signed URLs) for a single dataset identified by its ID. \nRequired roles: `service.dataset.viewers`."
+      operationId: GetRetrievalInstructionsForDataset
+      parameters:
+        - $ref: '#/components/parameters/DatasetRegistryIdQueryParam'
+        - $ref: '#/components/parameters/ExpiryTimeQueryParam'
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      responses:
+        '200':
+          description: Successfully generated retrieval instructions.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetrievalInstructionsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+    post:
+      tags:
+        - dataset
+      summary: Generate retrieval instructions for multiple datasets
+      description: "Generates retrieval instructions (e.g., Signed URLs) for multiple datasets by providing a list of their IDs. \nRequired roles: `service.dataset.viewers`."
+      operationId: GetRetrievalInstructionsForMultipleDatasets
+      parameters:
+        - $ref: '#/components/parameters/ExpiryTimeQueryParam'
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      requestBody:
+        description: A list of Dataset Registry IDs for which to generate retrieval instructions.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetDatasetRegistryRequest'
+      responses:
+        '200':
+          description: Successfully generated retrieval instructions for the requested datasets.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetrievalInstructionsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound' # If one or more IDs not found
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /revokeURL:
+    post:
+      tags:
+        - dataset
+      summary: Revoke previously generated access URLs for a Dataset kind subtype
+      description: "Revokes previously generated URLs (e.g., SAS tokens) associated with a specific dataset kind subtype. \nRequired roles: `service.dataset.admin`."
+      operationId: RevokeDatasetAccessUrls
+      parameters:
+        - $ref: '#/components/parameters/KindSubTypeQueryParam'
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      requestBody:
+        description: Optional provider-specific parameters to refine the revocation scope. For example, specific SAS token identifiers if supported by the provider.
+        required: true # Even if it's an empty object for some providers
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties:
+                type: string
+              example:
+                sasUserDelegationKeyId: "key-id-to-revoke" # Example, actual properties depend on provider
+      responses:
+        '204':
+          description: URLs successfully marked for revocation. Note that actual revocation might take some time depending on the underlying storage provider.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /storageInstructions:
+    post:
+      tags:
+        - dataset
+      summary: Generate storage instructions for datasets
+      description: "Generates storage instructions (e.g., Signed URLs for upload) for datasets of a specific kind subtype. \nRequired roles: `service.dataset.editors`."
+      operationId: GetStorageInstructions
+      parameters:
+        - $ref: '#/components/parameters/KindSubTypeQueryParam'
+        - $ref: '#/components/parameters/ExpiryTimeQueryParam'
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      responses: # This POST endpoint doesn't have a request body in the original spec. Assuming it's correct.
+        '200':
+          description: Successfully generated storage instructions.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetDatasetStorageInstructionsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound' # If kindSubType is not supported/found
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+components:
+  schemas:
+    Acl:
+      type: object
+      description: Access Control List defining owners and viewers of a resource.
+      properties:
+        owners:
+          type: array
+          items:
+            type: string
+            format: email # Assuming email format for user/group identifiers
+            example: "data.default.owners@opendes.contoso.com"
+          description: List of owner identifiers.
+          nullable: true
+        viewers:
+          type: array
+          items:
+            type: string
+            format: email # Assuming email format for user/group identifiers
+            example: "data.default.viewers@opendes.contoso.com"
+          description: List of viewer identifiers.
+          nullable: true
+      example:
+        owners: ["data.default.owners@opendes.contoso.com", "user1@contoso.com"]
+        viewers: ["data.default.viewers@opendes.contoso.com", "group1@contoso.com"]
+    AppError:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+          example: 400
+        message:
+          type: string
+          example: "Invalid request parameters."
+        reason:
+          type: string
+          example: "Missing required field 'id'."
+    ConnectedOuterService:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Storage Service"
+        version:
+          type: string
+          example: "v1.2.3"
+    CreateDatasetRegistryRequest:
+      type: object
+      description: Request body for creating or updating dataset registries.
+      required:
+        - datasetRegistries
+      properties:
+        datasetRegistries:
+          type: array
+          items:
+            $ref: '#/components/schemas/Record'
+          minItems: 1
+          maxItems: 20
+          description: A list of dataset registry records to be created or updated.
+    DatasetRetrievalProperties:
+      type: object
+      description: Contains retrieval properties for a single dataset, including provider key and specific instructions.
+      properties:
+        datasetRegistryId:
+          type: string
+          example: "opendes:dataset--File.Generic:c829255018"
+          nullable: true
+        providerKey:
+          type: string
+          example: "azure-blob"
+          nullable: true
+        retrievalProperties:
+          type: object
+          additionalProperties:
+            type: object # Value can be a string (e.g., URL) or a more complex object
+          description: Provider-specific retrieval instructions. For Azure Blob, this might include a SAS URL.
+          example:
+            sasUrl: "https://myaccount.blob.core.windows.net/mycontainer/myblob?sastoken"
+            readWrite: false
+          nullable: true
+    GetCreateUpdateDatasetRegistryResponse:
+      type: object
+      description: Response containing a list of dataset registry records.
+      properties:
+        datasetRegistries:
+          type: array
+          items:
+            $ref: '#/components/schemas/Record'
+          description: A list of dataset registry records.
+          nullable: true
+    GetDatasetRegistryRequest:
+      type: object
+      description: Request body for retrieving multiple dataset registries by their IDs.
+      required:
+        - datasetRegistryIds
+      properties:
+        datasetRegistryIds:
+          type: array
+          items:
+            type: string
+            example: "opendes:dataset--File.Generic:8118591ee2"
+          minItems: 1
+          maxItems: 20
+          description: A list of dataset registry IDs to retrieve.
+    GetDatasetStorageInstructionsResponse:
+      type: object
+      description: Response containing storage instructions for a dataset.
+      properties:
+        providerKey:
+          type: string
+          description: The key identifying the storage provider (e.g., "azure-blob").
+          example: "azure-blob"
+          nullable: true
+        storageLocation:
+          type: object
+          additionalProperties:
+            type: object # Value can be a string (e.g., URL) or a more complex object
+          description: Provider-specific storage location details. For Azure Blob, this might include a SAS URL for upload.
+          example:
+            sasUrl: "https://myaccount.blob.core.windows.net/mycontainer/newblob?sastoken_for_write"
+            filePath: "/uploads/data.zip"
+          nullable: true
+    Legal:
+      type: object
+      description: Legal metadata associated with a resource.
+      required:
+        - legaltags # Making legaltags required as per OSDU core
+        - otherRelevantDataCountries
+        - status # Making status required
+      properties:
+        legaltags:
+          type: array
+          items:
+            type: string
+            example: "opendes-storage-dataset-by-value"
+          uniqueItems: true
+          description: A list of legal tags associated with the data.
+          nullable: true
+        otherRelevantDataCountries:
+          type: array
+          items:
+            type: string
+            example: "US"
+          uniqueItems: true
+          description: A list of other relevant data countries.
+          nullable: true
+        status:
+          type: string
+          enum:
+            - compliant
+            - incompliant
+          description: The compliance status of the data.
+          example: "compliant"
+          nullable: true
+      example:
+        legaltags: ["opendes-storage-dataset-by-value", "project-x-data"]
+        otherRelevantDataCountries: ["US", "CA"]
+        status: "compliant"
+    Record:
+      type: object
+      description: Represents a generic OSDU record, used here for Dataset Registries.
+      required:
+        - id # Standard OSDU record requirement
+        - kind # Standard OSDU record requirement
+        - acl
+        - legal
+        - data
+      properties:
+        id:
+          type: string
+          pattern: ^[\w\-\.]+:[\w-\.]+:[\w\-\.\:\%]+$
+          description: Unique identifier for the record.
+          example: "opendes:dataset--File.Generic:8118591ee2c54b468567503058862961"
+        kind:
+          type: string
+          description: Kind of the record, indicating its schema.
+          example: "opendes:wks:dataset--File.Generic:1.0.0"
+        version:
+          type: integer
+          format: int64
+          description: Version number of the record.
+          example: 1621350254300957
+          nullable: true
+        acl:
+          $ref: '#/components/schemas/Acl'
+        legal:
+          $ref: '#/components/schemas/Legal'
+        data:
+          type: object
+          additionalProperties:
+            type: object
+          description: Core data payload of the record, structure depends on the 'kind'.
+          example:
+            DatasetProperties:
+              FileSource: "/mytenant/myproject/mydata/file.txt"
+              SchemaFormatTypeID: "osdu:reference-data--SchemaFormatType:JSON:"
+            Name: "My Sample Dataset"
+            Description: "A sample generic file dataset."
+          nullable: true
+        ancestry:
+          $ref: '#/components/schemas/RecordAncestry'
+          nullable: true
+        meta:
+          type: array
+          items:
+            type: object
+            additionalProperties:
+              type: object
+          description: Additional metadata blocks.
+          example:
+            - kind: " গুণমান" # "quality" in Bengali - example of a meta block
+              name: "DataQualityScore"
+              value: "A"
+          nullable: true
+        tags:
+          type: object
+          additionalProperties:
+            type: string
+          description: User-defined tags for categorization and search.
+          example:
+            department: "Exploration"
+            region: "NorthSea"
+          nullable: true
+        createUser:
+          type: string
+          description: User who created the record.
+          example: "user@opendes.contoso.com"
+          readOnly: true
+          nullable: true
+        createTime:
+          type: string
+          format: date-time
+          description: Timestamp of when the record was created.
+          example: "2023-05-15T10:00:00Z"
+          readOnly: true
+          nullable: true
+        modifyUser:
+          type: string
+          description: User who last modified the record.
+          example: "user@opendes.contoso.com"
+          readOnly: true
+          nullable: true
+        modifyTime:
+          type: string
+          format: date-time
+          description: Timestamp of when the record was last modified.
+          example: "2023-05-15T11:30:00Z"
+          readOnly: true
+          nullable: true
+    RecordAncestry:
+      type: object
+      description: Defines the parentage of a record.
+      properties:
+        parents:
+          type: array
+          items:
+            type: string
+            example: "opendes:master-data--Well:WGS84_XYZ_1"
+          uniqueItems: true
+          description: A list of parent record IDs.
+          nullable: true
+      example:
+        parents: ["opendes:master-data--Well:WGS84_XYZ_1", "opendes:work-product-component--ProcessedSeismic:SurveyA_Stack"]
+    RetrievalInstructionsResponse:
+      type: object
+      description: Response containing retrieval instructions for one or more datasets.
+      properties:
+        datasets:
+          type: array
+          items:
+            $ref: '#/components/schemas/DatasetRetrievalProperties'
+          description: A list of dataset retrieval properties.
+          nullable: true
+    VersionInfo:
+      type: object
+      properties:
+        groupId:
+          type: string
+          example: "org.osdu"
+          nullable: true
+        artifactId:
+          type: string
+          example: "dataset-service"
+          nullable: true
+        version:
+          type: string
+          example: "1.0.0"
+          nullable: true
+        buildTime:
+          type: string
+          format: date-time # Assuming standard ISO 8601 timestamp
+          example: "2023-10-27T12:00:00Z"
+          nullable: true
+        branch:
+          type: string
+          example: "main"
+          nullable: true
+        commitId:
+          type: string
+          example: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+          nullable: true
+        commitMessage:
+          type: string
+          example: "feat: Initial release of Dataset v1 API"
+          nullable: true
+        connectedOuterServices:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConnectedOuterService'
+          nullable: true
+  securitySchemes:
+    Authorization:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Bearer token for authorization. Example: \"Bearer {token}\""
+  parameters:
+    DataPartitionIdHeader:
+      name: data-partition-id
+      in: header
+      description: Tenant Identifier (Data Partition ID) for data isolation and access control.
+      required: true
+      schema:
+        type: string
+        example: "opendes-tenant1"
+    DatasetRegistryIdQueryParam:
+      name: id
+      in: query
+      description: The unique identifier of the Dataset Registry.
+      required: true # Generally required for single GETs
+      schema:
+        type: string
+        example: "opendes:dataset--File.Generic:8118591ee2c54b468567503058862961"
+    ExpiryTimeQueryParam:
+      name: expiryTime
+      in: query
+      description: The duration for which the generated Signed URL should be valid. Accepted patterns are `^[0-9]+[Mm]$` (minutes), `^[0-9]+[Hh]$` (hours), `^[0-9]+[Dd]$` (days). Defaults to 1 hour if not provided.
+      required: false
+      schema:
+        type: string
+        pattern: \d+([mhdMHD])$
+        example: "5M"
+    KindSubTypeQueryParam:
+      name: kindSubType
+      in: query
+      description: The subtype of the kind (e.g., `dataset--File.Generic`). Used to identify the type of dataset for operations like URL revocation or storage instruction generation.
+      required: true
+      schema:
+        type: string
+        example: "dataset--File.Generic"
+  responses:
+    BadRequest:
+      description: Bad Request. The request was invalid, malformed, or missing required parameters. Check the response body for details.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    Unauthorized:
+      description: Unauthorized. Authentication is required and has failed or has not yet been provided. Ensure a valid bearer token is included in the `Authorization` header.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    Forbidden:
+      description: Forbidden. The authenticated user does not have the necessary permissions to perform this action on the requested resource or service.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    NotFound:
+      description: Not Found. The requested resource (e.g., Dataset Registry, KindSubType) could not be found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    InternalServerError:
+      description: Internal Server Error. An unexpected condition was encountered on the server.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    BadGateway:
+      description: Bad Gateway. The server, while acting as a gateway or proxy, received an invalid response from an upstream server.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    ServiceUnavailable:
+      description: Service Unavailable. The server is currently unable to handle the request due to a temporary overload or scheduled maintenance. Please try again later.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'

@@ -1,0 +1,531 @@
+openapi: 3.0.3
+info:
+  title: Azure Data Manager for Energy - Well Delivery Service API
+  version: v1.0.0 # Using version from input
+  description: >-
+    API for managing well delivery domain objects within Azure Data Manager for
+    Energy. This includes entities such as Activity Plans, BHA Runs, Fluids Programs,
+    Fluids Reports, Hole Sections, Operations Reports, Wells, Wellbores, and Wellbore Trajectories.
+  contact:
+    name: Microsoft Support
+    email: support@microsoft.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: https://contoso.energy.azure.com/api/well-delivery # Updated server URL structure
+    description: Azure Data Manager for Energy - Contoso Environment
+tags:
+  - name: ServiceInformation
+    description: Endpoints for service health and version information.
+  - name: ActivityPlan
+    description: Operations related to Activity Plan entities.
+  - name: BhaRun
+    description: Operations related to BHA Run entities.
+  - name: FluidsProgram
+    description: Operations related to Fluids Program entities.
+  - name: FluidsReport
+    description: Operations related to Fluids Report entities.
+  - name: HoleSection
+    description: Operations related to Hole Section entities.
+  - name: OperationsReport
+    description: Operations related to Operations Report entities.
+  - name: Well
+    description: Operations related to Well master data entities.
+  - name: Wellbore
+    description: Operations related to Wellbore master data entities.
+  - name: WellboreTrajectory
+    description: Operations related to Wellbore Trajectory entities.
+  - name: GenericEntity # For /storage/v1/{type}
+    description: Generic operations for managing OSDU entities.
+  - name: GenericQuery
+    description: Generic query operations for entities.
+
+components:
+  schemas:
+    AppError:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+          description: HTTP error status code.
+          example: 400
+        message:
+          type: string
+          description: A human-readable error message.
+          example: "Invalid well ID format."
+        reason:
+          type: string
+          description: A more specific reason for the error, if available.
+          example: "Well ID 'abc' does not conform to expected pattern."
+    ConnectedOuterService:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "OSDU Storage Service"
+        version:
+          type: string
+          example: "v2.0.0"
+    VersionInfo:
+      type: object
+      properties:
+        version:
+          type: string
+          example: "1.0.0"
+        commitId:
+          type: string
+          example: "a1b2c3d4e5f67890"
+        buildTime:
+          type: string
+          format: date-time
+          example: "2023-10-26T14:30:00Z"
+        branch:
+          type: string
+          example: "main"
+          nullable: true
+        commitMessage:
+          type: string
+          example: "Release 1.0.0 of Well Delivery Service"
+          nullable: true
+        groupId:
+          type: string
+          example: "com.microsoft.adme"
+          nullable: true
+        artifactId:
+          type: string
+          example: "well-delivery-service"
+          nullable: true
+        connectedOuterServices:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConnectedOuterService'
+          nullable: true
+    # OSDU Record schema - a simplified version for API contracts.
+    # Actual record structure is defined by its 'kind'.
+    Record:
+      type: object # The original spec often returns 'type: string' for complex objects. This should be 'type: object' or a specific $ref.
+      description: Represents a generic OSDU record. The actual content is determined by the 'kind' property.
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the record.
+          example: "contoso-opendes:wks:master-data--Well:WELL-001"
+        version:
+          type: integer
+          format: int64
+          description: Version timestamp of the record.
+          example: 1678886400000
+        kind:
+          type: string
+          description: OSDU kind identifier for the record schema.
+          example: "osdu:wks:master-data--Well:1.2.0"
+        acl:
+          $ref: '#/components/schemas/StorageAcl' # Using consistent name
+        legal:
+          $ref: '#/components/schemas/Legal' # Using consistent name
+        data:
+          type: object
+          additionalProperties: true
+          description: The main data payload of the record, conforming to the schema defined by 'kind'.
+        # ... other common OSDU fields like ancestry, tags, createTime, etc.
+      additionalProperties: true # To allow for all OSDU standard fields not explicitly listed
+
+    StorageAcl: # From Storage spec, assuming common model
+      type: object
+      description: Access Control List for a record.
+      properties:
+        owners:
+          type: array
+          items: { type: string, format: email }
+          example: ["data.default.owners@contoso.energy"]
+        viewers:
+          type: array
+          items: { type: string, format: email }
+          example: ["data.default.viewers@contoso.energy"]
+      required: [owners, viewers]
+
+    Legal: # From Storage spec, assuming common model
+      type: object
+      description: Legal tags and compliance status for a record.
+      properties:
+        legaltags:
+          type: array
+          items: { type: string }
+          uniqueItems: true
+          example: ["OSDU-Public-US-Free"]
+        otherRelevantDataCountries:
+          type: array
+          items: { type: string, pattern: "^[A-Z]{2}$" }
+          uniqueItems: true
+          example: ["US", "CA"]
+        status:
+          type: string
+          enum: [compliant, incompliant, pending]
+          example: "compliant"
+      required: [legaltags, otherRelevantDataCountries]
+
+    RecordVersions: # From Storage spec
+      type: object
+      properties:
+        recordId:
+          type: string
+        versions:
+          type: array
+          items:
+            type: integer
+            format: int64 # Timestamps
+    # Response for GET /activityPlans/v1/by_well/{well_id} etc. where schema was 'type: string'
+    # Assuming these endpoints return a single OSDU Record or an array of Records.
+    # For a single record response:
+    ActivityPlanResponse: { $ref: '#/components/schemas/Record' }
+    # For a list of records response:
+    BhaRunListResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/Record' # Assuming each BHA Run is an OSDU record
+    FluidsProgramListResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/Record'
+    FluidsReportListResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/Record'
+    HoleSectionListResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/Record'
+    OperationsReportListResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/Record'
+    # Other list responses would follow this pattern.
+
+  parameters:
+    DataPartitionIdHeader:
+      name: data-partition-id
+      in: header
+      description: >-
+        Specifies the data partition ID for the request. This is typically the tenant or account ID.
+      required: true
+      schema:
+        type: string
+      example: 'contoso-opendes'
+    WellIdPathParameter:
+      name: well_id
+      in: path
+      description: The unique identifier of the Well record.
+      required: true
+      schema:
+        type: string
+        # OSDU ID Format: {data-partition-id}:{dataset-name}:{resource-type}:{unique-part}
+        pattern: ^[\w\-\.]+:[\w-\.]+:master-data--Well:[\w\-\.\:\%]+$
+      example: "contoso-opendes:master-data--Well:WELL-001"
+    WellboreIdPathParameter:
+      name: wellbore_id
+      in: path
+      description: The unique identifier of the Wellbore record.
+      required: true
+      schema:
+        type: string
+        pattern: ^[\w\-\.]+:[\w-\.]+:master-data--Wellbore:[\w\-\.\:\%]+$
+      example: "contoso-opendes:master-data--Wellbore:WELLBORE-001A"
+    HoleSectionIdPathParameter:
+      name: hole_section_id
+      in: path
+      description: The unique identifier of the Hole Section record.
+      required: true
+      schema:
+        type: string
+        pattern: ^[\w\-\.]+:[\w-\.]+:work-product-component--HoleSection:[\w\-\.\:\%]+$ # Example pattern
+      example: "contoso-opendes:wpc--HoleSection:HS-001"
+    WellActivityProgramVersionPathParameter:
+      name: wap_version # Original name
+      in: path
+      description: The version of the Well Activity Program.
+      required: true
+      schema:
+        type: integer
+        format: int64
+      example: 1678091451598889
+    WellboreVersionPathParameter:
+      name: wellbore_version # Original name
+      in: path
+      description: The version of the Wellbore record.
+      required: true
+      schema:
+        type: integer
+        format: int64
+      example: 1678091451598889
+    OperationsReportIdPathParameter:
+      name: operations_report_id
+      in: path
+      description: The unique identifier of the Operations Report record.
+      required: true
+      schema:
+        type: string
+        pattern: ^[\w\-\.]+:[\w-\.]+:work-product-component--OperationsReport:[\w\-\.\:\%]+$
+      example: "contoso-opendes:wpc--OperationsReport:OPREP-001"
+    WellNamePathParameter: # From /wells/v1/by_name/{name}
+      name: name # Was {name} in path
+      in: path
+      description: The name of the Well.
+      required: true
+      schema:
+        type: string
+      example: "Well-A1"
+    EntityTypePathParameter: # For /storage/v1/{type}
+      name: type
+      in: path
+      description: The type or kind of the OSDU entity (e.g., "well", "wellbore").
+      required: true
+      schema:
+        type: string
+      example: "master-data--Well" # Or just "well" depending on service mapping
+    EntityIdPathParameter: # For /storage/v1/{type}/{id}
+      name: id
+      in: path
+      description: The unique identifier of the entity.
+      required: true
+      schema:
+        type: string
+      example: "contoso-opendes:master-data--Well:WELL-001"
+    EntityVersionPathParameter: # For /storage/v1/{type}/{id}/{version}
+      name: version
+      in: path
+      description: The specific version (timestamp or sequential number) of the entity.
+      required: true
+      schema:
+        type: integer
+        format: int64
+      example: 1622548800000
+    TimeRangeStartTimePathParameter:
+      name: start_time
+      in: path
+      description: Start of the time range (inclusive), format 'yyyy-MM-ddTHH:mm:ssZ' or 'yyyy-MM-dd'.
+      required: true
+      schema:
+        type: string
+        format: date-time # Or allow date too, service must parse
+      example: "2023-01-01T00:00:00Z"
+    TimeRangeEndTimePathParameter:
+      name: end_time
+      in: path
+      description: End of the time range (inclusive), format 'yyyy-MM-ddTHH:mm:ssZ' or 'yyyy-MM-dd'.
+      required: true
+      schema:
+        type: string
+        format: date-time
+      example: "2023-01-31T23:59:59Z"
+    WellIdsPathParameter: # For /bhaRuns/v1/by_wells/{well_ids}:planned
+      name: well_ids
+      in: path
+      description: Comma-separated list of Well IDs.
+      required: true
+      schema:
+        type: string # Or array with style simple/form, explode false
+      example: "osdu:master-data--Well:W-001,osdu:master-data--Well:W-002"
+
+  securitySchemes:
+    oAuth2AuthCode:
+      type: oauth2
+      description: OAuth2 authentication using Authorization Code flow with Azure AD.
+      flows:
+        authorizationCode:
+          authorizationUrl: https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/authorize
+          tokenUrl: https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token
+          scopes:
+            'api://contoso.energy.azure.com/data.read': Read access to ADME data.
+            'api://contoso.energy.azure.com/data.write': Write access to ADME data.
+            # Example specific scopes:
+            # 'api://contoso.energy.azure.com/WellDelivery.Read': Read access to Well Delivery data.
+            # 'api://contoso.energy.azure.com/WellDelivery.Write': Write access to Well Delivery data.
+
+  responses: # Common responses
+    AppErrorResponse:
+      description: An error occurred. See response body for details.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    UnauthorizedError: { $ref: '#/components/responses/AppErrorResponse' } # Simplified to reuse AppError
+    ForbiddenError: { $ref: '#/components/responses/AppErrorResponse' }
+    NotFoundError: { $ref: '#/components/responses/AppErrorResponse' }
+    BadRequestError: { $ref: '#/components/responses/AppErrorResponse' }
+    InternalServerError: { $ref: '#/components/responses/AppErrorResponse' }
+    BadGatewayError: { $ref: '#/components/responses/AppErrorResponse' }
+    ServiceUnavailableError: { $ref: '#/components/responses/AppErrorResponse' }
+    SuccessfulOperation: # For generic 200/204 success with no specific body
+      description: The operation was successful.
+    RecordResponse: # Specific response for single record
+      description: Successfully retrieved the record.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Record'
+    RecordListResponse: # Specific response for list of records
+      description: Successfully retrieved the list of records.
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Record'
+
+security:
+  - oAuth2AuthCode:
+      - 'api://contoso.energy.azure.com/data.read'
+      - 'api://contoso.energy.azure.com/data.write'
+
+paths:
+  # Health and Info
+  /_ah/warmup: # Keeping original path
+    get:
+      tags:
+        - ServiceInformation
+      summary: Perform Liveness Check (Warmup)
+      description: >-
+        Provides a liveness check endpoint for the Well Delivery service,
+        indicating if the service is running and responsive.
+      operationId: GetWarmupStatus # Renamed from warmup
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader' # Typically not needed for liveness
+      security: [] # Usually public
+      responses:
+        '200':
+          description: Well Delivery service is alive.
+          content:
+            text/plain: # Changed from */* to be specific
+              schema:
+                type: string
+                example: "Well Delivery service is alive"
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' } # Unusual for liveness
+        '404': { $ref: '#/components/responses/NotFoundError' } # Unusual for liveness
+        '503': { $ref: '#/components/responses/ServiceUnavailableError' }
+  /info:
+    get:
+      tags:
+        - ServiceInformation
+      summary: Get Service Version Information
+      description: Provides build and git related information about the deployed Well Delivery service.
+      operationId: GetServiceInformation # Renamed from info
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader' # Might not be needed if info is global
+      security: [] # Typically public
+      responses:
+        '200':
+          description: Successfully retrieved version information.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionInfo'
+        default:
+          $ref: '#/components/responses/AppErrorResponse'
+
+  # Activity Plans
+  /activityPlans/v1/by_well/{well_id}:
+    get:
+      tags:
+        - ActivityPlan
+      summary: Get Latest Activity Plan by Well ID
+      description: >-
+        Retrieves the latest Activity Plan object associated with a given Well ID.
+        Required roles: `service.storage.viewer`, `service.storage.creator`, or `service.storage.admin`.
+      operationId: GetLatestActivityPlanByWellId # PascalCase, more descriptive
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/WellIdPathParameter'
+      responses:
+        '200':
+          description: Successfully retrieved the Activity Plan object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityPlanResponse' # Expected to be a Record
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '502': { $ref: '#/components/responses/BadGatewayError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailableError' }
+
+  # BHA Runs
+  /bhaRuns/v1/by_holeSection/{hole_section_id}:
+    get:
+      tags:
+        - BhaRun
+      summary: List BHA Runs by Hole Section ID
+      description: >-
+        Retrieves a list of BHA Run objects associated with a specific Hole Section ID.
+        Required roles: `service.storage.viewer`, `service.storage.creator`, or `service.storage.admin`.
+      operationId: ListBhaRunsByHoleSectionId
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/HoleSectionIdPathParameter'
+      responses:
+        '200':
+          description: Successfully retrieved BHA Run objects.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BhaRunListResponse'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+
+  /bhaRuns/v1/by_wellbore/{wellbore_id}:actual:
+    get:
+      tags:
+        - BhaRun
+      summary: List Actual BHA Runs by Wellbore ID
+      description: >-
+        Retrieves a list of actual BHA Run objects for a given Wellbore ID.
+        Required roles: `service.storage.viewer`, `service.storage.creator`, or `service.storage.admin`.
+      operationId: ListActualBhaRunsByWellboreId
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/WellboreIdPathParameter'
+      responses:
+        '200':
+          description: Successfully retrieved actual BHA Run objects.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BhaRunListResponse'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+
+  /bhaRuns/v1/by_wells/{well_ids}:planned: # well_ids should be a query param usually, or a POST with body
+    get:
+      tags:
+        - BhaRun
+      summary: List Planned BHA Runs by Well IDs
+      description: >-
+        Retrieves a list of planned BHA Run objects for a list of Well IDs.
+        The `well_ids` path parameter should be a comma-separated string of Well IDs.
+        Required roles: `service.storage.viewer`, `service.storage.creator`, or `service.storage.admin`.
+      operationId: ListPlannedBhaRunsByWellIds
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/WellIdsPathParameter' # Defined as comma-separated
+      responses:
+        '200':
+          description: Successfully retrieved planned BHA Run objects.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BhaRunListResponse'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '500': { $ref: '#/components/responses/InternalServerError' }

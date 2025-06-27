@@ -1,0 +1,333 @@
+openapi: 3.0.3
+info:
+  title: Azure Data Manager for Energy - External Data Sources DMS
+  version: 2.0.0
+  description: Service that enables and facilitates the retrieval of third-party datasets by providing external retrieval instructions.
+  contact:
+    name: Microsoft Support
+    email: support@microsoft.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: /api/eds/v1
+tags:
+  - name: health-check-api
+    description: Endpoints for checking the health and readiness of the service.
+  - name: info-api
+    description: Endpoint for retrieving service version and build information.
+  - name: eds-dms-api
+    description: Endpoints for managing and retrieving instructions for external data sources.
+security:
+  - Authorization: []
+paths:
+  /health/liveness_check:
+    get:
+      tags:
+        - health-check-api
+      summary: Liveness Check endpoint
+      description: For deployment available public `/liveness_check` endpoint, which provides `External Data Sources Data Management Service is alive` message.
+      operationId: GetLivenessCheck
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      responses:
+        '200':
+          description: External Data Sources Data Management Service is alive.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: External Data Sources Data Management Service is alive
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+      security: []
+  /health/readiness_check:
+    get:
+      tags:
+        - health-check-api
+      summary: Readiness Check endpoint
+      description: For deployment available public `/readiness_check` endpoint, which provides `External Data Sources Data Management Service is ready` message.
+      operationId: GetReadinessCheck
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      responses:
+        '200':
+          description: External Data Sources Data Management Service is ready.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: External Data Sources Data Management Service is ready
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+      security: []
+  /info:
+    get:
+      tags:
+        - info-api
+      summary: Get service build and version information
+      description: For deployment available public `/info` endpoint, which provides build and git related information.
+      operationId: GetInfo
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/AcceptJsonHeader'
+      responses:
+        '200':
+          description: Successfully retrieved service version information.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionInfo'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+      security: []
+  /retrievalInstructions:
+    post:
+      tags:
+        - eds-dms-api
+      summary: Get External Retrieval Instructions
+      description: 'The API returns a list of external retrieval instructions from an external dataset service or wrapper. Allowed roles: `service.eds.user`.'
+      operationId: GetExternalRetrievalInstructions
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      requestBody:
+        description: A list of dataset registry IDs for which to fetch retrieval instructions.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RetrievalInstructionsRequest'
+      responses:
+        '200':
+          description: Successfully retrieved external retrieval instructions.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalRetrievalInstructionsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+components:
+  schemas:
+    AppError:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+          example: 400
+        message:
+          type: string
+          example: "Invalid input provided."
+        reason:
+          type: string
+          example: "datasetRegistryIds field is required."
+    ConnectedOuterService:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "ThirdPartyDataServiceX"
+          nullable: true
+        version:
+          type: string
+          example: "v1.5"
+          nullable: true
+    RetrievalInstructionsRequest:
+      type: object
+      description: Request body for fetching retrieval instructions for one or more datasets.
+      properties:
+        datasetRegistryIds:
+          type: array
+          items:
+            type: string
+            example: "provider:dataset-kind:unique-id-123"
+          description: A list of dataset registry IDs.
+          minItems: 1 # Assuming at least one ID is required
+          nullable: false # The array itself should not be null if the object is present
+      required:
+        - datasetRegistryIds
+      example:
+        datasetRegistryIds:
+          - "providerX:seismic-data:survey-001"
+          - "providerY:well-logs:well-abc-log-set-1"
+    ExternalRetrievalInstruction:
+      type: object
+      description: Contains retrieval instructions for a single external dataset.
+      properties:
+        datasetId:
+          type: string
+          description: The ID of the dataset for which instructions are provided.
+          example: "providerX:seismic-data:survey-001"
+        providerKey:
+          type: string
+          description: Identifier for the external data provider or service.
+          example: "seistore-alpha"
+          nullable: true
+        retrievalDetails:
+          type: object
+          description: Provider-specific instructions or data required to retrieve the dataset. This could be a signed URL, API endpoint details, access tokens, query parameters, etc.
+          additionalProperties: true # Allows for flexible, provider-specific structures
+          example:
+            type: "S3_SIGNED_URL"
+            url: "https://s3.amazonaws.com/external-bucket/data/survey-001.segy?AWSAccessKeyId=...&Expires=...&Signature=..."
+            region: "us-east-1"
+          nullable: true
+    ExternalRetrievalInstructionsResponse:
+      type: object
+      description: Response containing a list of external retrieval instructions.
+      properties:
+        instructions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExternalRetrievalInstruction'
+          description: A list of retrieval instructions for the requested datasets.
+          nullable: true
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              datasetId:
+                type: string
+                description: The ID of the dataset for which retrieval failed.
+                example: "providerZ:unsupported-data:dataset-789"
+              error:
+                type: string
+                description: A message describing why instructions could not be retrieved for this dataset.
+                example: "Dataset not found or access denied by external provider."
+          description: A list of errors encountered while trying to fetch instructions for specific datasets. Present if partial success occurs.
+          nullable: true
+      example:
+        instructions:
+          - datasetId: "providerX:seismic-data:survey-001"
+            providerKey: "seistore-alpha"
+            retrievalDetails:
+              type: "S3_SIGNED_URL"
+              url: "https://s3.amazonaws.com/external-bucket/data/survey-001.segy?..."
+          - datasetId: "providerY:well-logs:well-abc-log-set-1"
+            providerKey: "logarchive-beta"
+            retrievalDetails:
+              type: "API_ENDPOINT"
+              endpoint: "https://api.logarchive.com/v2/logs/well-abc-log-set-1"
+              apiKeyRequired: true
+        errors:
+          - datasetId: "providerZ:non-existent-data:dataset-000"
+            error: "Dataset ID not found in external source."
+    VersionInfo:
+      type: object
+      properties:
+        groupId:
+          type: string
+          example: "org.osdu"
+          nullable: true
+        artifactId:
+          type: string
+          example: "eds-dms-service"
+          nullable: true
+        version:
+          type: string
+          example: "2.0.0"
+          nullable: true
+        buildTime:
+          type: string
+          format: date-time
+          example: "2023-11-01T10:00:00Z"
+          nullable: true
+        branch:
+          type: string
+          example: "release/2.0"
+          nullable: true
+        commitId:
+          type: string
+          example: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+          nullable: true
+        commitMessage:
+          type: string
+          example: "Release v2.0.0 for External Data Sources DMS"
+          nullable: true
+        connectedOuterServices:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConnectedOuterService'
+          nullable: true
+  securitySchemes:
+    Authorization:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Bearer token for authorization. Example: \"Bearer {token}\""
+  parameters:
+    DataPartitionIdHeader:
+      name: data-partition-id
+      in: header
+      description: Tenant Identifier (Data Partition ID) for data isolation and access control.
+      required: true
+      schema:
+        type: string
+        example: "opendes-tenant1"
+    AcceptJsonHeader:
+      name: Accept
+      in: header
+      description: Specifies the desired response media type.
+      required: false # Often optional, server might default to JSON
+      schema:
+        type: string
+        default: application/json
+        example: application/json
+  responses:
+    BadRequest:
+      description: Bad Request. The request was invalid, malformed, or missing required parameters. Check the response body for details.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    Unauthorized:
+      description: Unauthorized. Authentication is required and has failed or has not yet been provided. Ensure a valid bearer token is included in the `Authorization` header.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    Forbidden:
+      description: Forbidden. The authenticated user does not have the necessary permissions to perform this action on the requested resource or service.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    NotFound:
+      description: Not Found. The requested resource or one of the specified dataset IDs could not be found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    InternalServerError:
+      description: Internal Server Error. An unexpected condition was encountered on the server.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    BadGateway:
+      description: Bad Gateway. The server, while acting as a gateway or proxy, received an invalid response from an upstream server (e.g., an external data provider).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    ServiceUnavailable:
+      description: Service Unavailable. The server is currently unable to handle the request due to a temporary overload or scheduled maintenance, or an issue with an external dependency.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'

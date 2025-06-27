@@ -1,0 +1,1139 @@
+openapi: 3.0.3
+info:
+  title: Azure Data Manager for Energy - Storage Service API
+  version: 2.0.0
+  description: >-
+    Storage service API for Azure Data Manager for Energy. It handles the
+    ingestion, querying, and management of metadata records in the OSDU data
+    platform.
+  contact:
+    name: Microsoft Support
+    email: support@microsoft.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: https://contoso.energy.azure.com/api/storage/v2
+    description: Azure Data Manager for Energy - Contoso Environment (Storage Service v2)
+tags:
+  - name: RecordQuery
+    description: Operations for querying records.
+  - name: RecordManagement
+    description: Operations for creating, updating, and deleting records.
+  - name: ServiceInformation
+    description: Endpoints for service health and version information.
+
+components:
+  schemas:
+    Acl:
+      type: object
+      description: Access Control List defining owners and viewers for a record.
+      properties:
+        owners:
+          type: array
+          items:
+            type: string
+            format: email # Or group identifier
+          description: List of owner identifiers (e.g., user or group emails).
+          example: ["data.default.owners@contoso.dataservices.energy"]
+        viewers:
+          type: array
+          items:
+            type: string
+            format: email # Or group identifier
+          description: List of viewer identifiers (e.g., user or group emails).
+          example: ["data.default.viewers@contoso.dataservices.energy"]
+      required:
+        - owners
+        - viewers
+    AppError:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+          description: HTTP error status code.
+          example: 400
+        message:
+          type: string
+          description: A human-readable error message.
+          example: "Invalid input provided."
+        reason:
+          type: string
+          description: A more specific reason for the error, if available.
+          example: "Record ID format is incorrect."
+    BulkUpdateRecordsResponse:
+      type: object
+      description: Response from a bulk record update operation.
+      properties:
+        recordCount:
+          type: integer
+          format: int32
+          description: Number of records successfully updated.
+        recordIds:
+          type: array
+          items:
+            type: string
+          description: List of record IDs that were successfully updated.
+        notFoundRecordIds:
+          type: array
+          items:
+            type: string
+          description: List of record IDs that were not found.
+        unAuthorizedRecordIds:
+          type: array
+          items:
+            type: string
+          description: List of record IDs for which the user is not authorized to update.
+        lockedRecordIds:
+          type: array
+          items:
+            type: string
+          description: List of record IDs that were locked and could not be updated.
+    ConnectedOuterService:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Cosmos DB"
+        version:
+          type: string
+          example: "4.x"
+    ConversionStatus: # Used in MultiRecordResponse
+      type: object
+      description: Status of a record conversion process during fetch.
+      properties:
+        id:
+          type: string
+          description: The record ID for which conversion status is reported.
+        status:
+          type: string
+          description: The conversion status (e.g., "SUCCESS", "FAILED").
+        errors:
+          type: array
+          items:
+            type: string
+          description: List of errors if conversion failed.
+          nullable: true
+    CreateUpdateRecordsResponse:
+      type: object
+      description: Response from creating or updating records.
+      properties:
+        recordCount:
+          type: integer
+          format: int32
+          description: Number of records successfully created or updated.
+        recordIds:
+          type: array
+          items:
+            type: string
+          description: List of record IDs that were successfully created or updated.
+        recordIdVersions: # Assuming format "recordId:version"
+          type: array
+          items:
+            type: string
+            pattern: ^.+:[0-9]+$ # recordId:versionNumber
+          description: List of record ID and version pairs for the created/updated records.
+          example: ["tenant1:well:123:1", "tenant1:well:456:3"]
+        skippedRecordIds:
+          type: array
+          items:
+            type: string
+          description: List of record IDs that were skipped (e.g., due to 'skipdupes' or no change).
+    DatastoreQueryResult:
+      type: object
+      description: Result of a query returning a list of record IDs.
+      properties:
+        results: # Renamed from 'records' for consistency with other query results
+          type: array
+          items:
+            type: string # These are record IDs
+          description: List of record IDs matching the query.
+        cursor:
+          type: string
+          nullable: true
+          description: Cursor for fetching the next page of results, if applicable.
+    DeleteRecordsErrorDetail: # Simplified from DeleteRecordsException for specific field
+      type: object
+      description: Details for a record that could not be deleted.
+      properties:
+        recordId:
+          type: string
+          description: The ID of the record that failed to delete.
+        reason:
+          type: string
+          description: The reason for the deletion failure.
+    DeleteRecordsPartialSuccessResponse: # For 207 response
+      type: object
+      description: Response indicating partial success for a delete operation.
+      properties:
+        successfullyDeletedRecordIds:
+          type: array
+          items:
+            type: string
+          description: List of record IDs that were successfully deleted.
+        failedToDeleteRecords:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeleteRecordsErrorDetail'
+          description: List of records that could not be deleted and the reasons.
+    JsonPatchOperation: # Renamed from PatchOperation for clarity with RFC 6902
+      type: object
+      description: A single JSON Patch operation (RFC 6902).
+      properties:
+        op:
+          type: string
+          enum: [add, remove, replace, move, copy, test]
+          description: The operation to perform.
+        path:
+          type: string
+          description: A JSON Pointer path to the target location.
+          example: "/data/wellName"
+        value: # Can be any JSON value for 'add' and 'replace'
+          # type: object
+          # additionalProperties: true
+          description: The value to apply. Structure depends on 'op' and 'path'.
+          # Example for replacing a simple string: "New Well Name"
+          # Example for adding to an array: {"newItem": "value"}
+          # Example for replacing an object: {"complex": "object"}
+          # Using schema: {} to allow any type for broader compatibility with JSON Patch
+        from: # Used by 'move' or 'copy' operations
+          type: string
+          description: A JSON Pointer path indicating the source for 'move' or 'copy' operations.
+          example: "/data/oldWellName"
+      required:
+        - op
+        - path
+        # 'value' is not required for 'remove', 'from' is not required for all ops.
+    Legal:
+      type: object
+      description: Legal metadata for a record, including legal tags and compliance status.
+      properties:
+        legaltags:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+          description: List of legal tags associated with the record.
+          example: ["OSDU-Public-US"]
+        otherRelevantDataCountries:
+          type: array
+          items:
+            type: string # ISO 3166-1 alpha-2 country codes
+            pattern: ^[A-Z]{2}$
+          uniqueItems: true
+          description: List of other relevant data countries.
+          example: ["CA", "MX"]
+        status:
+          type: string
+          enum: [compliant, incompliant, pending] # Added pending
+          description: The compliance status of the record.
+          example: "compliant"
+      required:
+        - legaltags # Original spec requires otherRelevantDataCountries only, OSDU usually requires legaltags too.
+        - otherRelevantDataCountries
+    MultiRecordIds: # For POST /query/records
+      type: object
+      description: Request to fetch multiple records by their IDs.
+      properties:
+        records:
+          type: array
+          items:
+            type: string # Record IDs
+          minItems: 1 # Adjusted from 0 as fetching 0 records is not useful
+          maxItems: 100
+          description: List of record IDs to fetch.
+        attributes:
+          type: array
+          items:
+            type: string
+          description: >-
+            Optional list of attributes to return for each record (projection).
+            If not provided, all attributes are returned.
+            Example: "id", "kind", "data.WellName".
+          nullable: true
+      required:
+        - records
+    MultiRecordInfo: # Response for POST /query/records
+      type: object
+      description: Information about multiple fetched records.
+      properties:
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/Record'
+          description: List of successfully fetched records.
+        invalidRecords:
+          type: array
+          items:
+            type: string # Record IDs
+          description: List of record IDs that were invalid or malformed.
+        retryRecords:
+          type: array
+          items:
+            type: string # Record IDs
+          description: List of record IDs that could be retried (e.g., due to transient issues).
+    MultiRecordRequest: # For POST /query/records:batch
+      type: object
+      description: Request to fetch a batch of records.
+      properties:
+        records:
+          type: array
+          items:
+            type: string # Record IDs
+          minItems: 1
+          maxItems: 20
+          description: List of record IDs to fetch in the batch.
+      required:
+        - records
+    MultiRecordResponse: # Response for POST /query/records:batch
+      type: object
+      description: Response for a batch fetch of records.
+      properties:
+        records: # These are likely the full record JSON strings or objects
+          type: array
+          items:
+            $ref: '#/components/schemas/Record' # Assuming full records are returned
+          description: List of successfully fetched and converted records.
+        notFound:
+          type: array
+          items:
+            type: string # Record IDs
+          description: List of record IDs that were not found.
+        conversionStatuses:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConversionStatus'
+          description: Status of data conversion for each fetched record, if applicable.
+    PatchRecordsRequestModel: # For PATCH /records (application/json-patch+json)
+      type: object
+      description: Request model for patching records using JSON Patch.
+      properties:
+        query:
+          $ref: '#/components/schemas/RecordQueryPatch'
+          description: Query to identify records to be patched.
+        ops:
+          type: array
+          items:
+            $ref: '#/components/schemas/JsonPatchOperation'
+          description: List of JSON Patch operations to apply.
+      required:
+        - query
+        - ops
+      example:
+        query:
+          ids: ["common:work-product-component--WellLog:123456"]
+        ops:
+          - op: "replace"
+            path: "/acl/viewers/0"
+            value: "new.viewer@contoso.dataservices.energy"
+    PatchRecordsResponse:
+      type: object
+      description: Response from patching records.
+      properties:
+        recordCount:
+          type: integer
+          format: int32
+          description: Number of records that matched the query and were attempted for patching.
+        recordIds:
+          type: array
+          items:
+            type: string
+          description: List of record IDs that were successfully patched.
+        failedRecordIds:
+          type: array
+          items:
+            type: string
+          description: List of record IDs that failed to patch.
+        notFoundRecordIds:
+          type: array
+          items:
+            type: string
+          description: List of record IDs from the query that were not found.
+        errors:
+          type: array
+          items:
+            type: string # Or a more structured error object
+          description: List of error messages encountered during patching.
+          nullable: true
+    Record:
+      type: object
+      description: Represents a metadata record in the OSDU Data Platform.
+      properties:
+        id:
+          type: string
+          pattern: ^[\w\-\.]+:[\w-\.]+:[\w\-\.\:\%]+$ # data-partition-id:dataset-name:record-type:unique-id
+          description: The unique identifier of the record.
+          example: "contoso-opendes:master-data--Well:WELL-001"
+          readOnly: true # Usually system-assigned on creation if not provided
+        version:
+          type: integer
+          format: int64
+          description: The version number of the record.
+          example: 1622548800000
+          readOnly: true
+        kind:
+          type: string
+          pattern: ^[\w\-\.]+:[\w\-\.]+:[\w\-\.]+:(\d+\.\d+\.\d+)$ # authority:source:type:version (e.g., osdu:wks:master-data--Well:1.0.0)
+          description: The schema kind of the record.
+          example: "osdu:wks:master-data--Well:1.0.0"
+        acl:
+          $ref: '#/components/schemas/Acl'
+        legal:
+          $ref: '#/components/schemas/Legal'
+        ancestry:
+          $ref: '#/components/schemas/RecordAncestry'
+          nullable: true
+        tags:
+          type: object
+          additionalProperties:
+            type: string
+          description: Arbitrary key-value pairs for tagging the record.
+          example: {"Project": "NorthSea", "Status": "Active"}
+          nullable: true
+        createTime:
+          type: string
+          format: date-time
+          description: Timestamp of when the record version was created.
+          example: "2023-01-10T10:00:00Z"
+          readOnly: true
+        createUser:
+          type: string
+          format: email
+          description: User who created this record version.
+          example: "creator@contoso.dataservices.energy"
+          readOnly: true
+        modifyTime:
+          type: string
+          format: date-time
+          description: Timestamp of when this record version was last modified.
+          example: "2023-01-10T10:05:00Z"
+          readOnly: true
+        modifyUser:
+          type: string
+          format: email
+          description: User who last modified this record version.
+          example: "modifier@contoso.dataservices.energy"
+          readOnly: true
+        data:
+          type: object
+          additionalProperties: true # Data is schema-driven by 'kind'
+          description: The actual data payload of the record, conforming to the schema specified by 'kind'.
+          example: {"WellName": "Well A-1", "SpudDate": "2022-05-15"}
+        meta:
+          type: array
+          items:
+            type: object # OSDU AbstractMetaItem (complex, simplified here)
+            additionalProperties: true
+          description: >-
+            Frame of Reference metadata, defining units, CRS, etc., for properties within 'data'.
+          nullable: true
+      required:
+        - kind
+        - acl
+        - legal
+        - data
+    RecordAncestry:
+      type: object
+      description: Defines the parentage of a record for lineage and legal purposes.
+      properties:
+        parents:
+          type: array
+          items:
+            type: string # Record IDs with version, e.g., "id:version"
+            pattern: ^[\w\-\.]+:[\w-\.]+:[\w\-\.\:\%]+:\d+$
+          uniqueItems: true
+          description: List of parent record IDs, including their versions.
+          example: ["contoso-opendes:seismic-trace-data:TRACE_SET_001:1622500000000"]
+    RecordBulkUpdateParam: # For PATCH /records (application/json)
+      type: object
+      description: Parameters for bulk updating record metadata.
+      properties:
+        query:
+          $ref: '#/components/schemas/RecordQuery'
+          description: Query to identify records to be updated.
+        ops:
+          type: array
+          items:
+            $ref: '#/components/schemas/JsonPatchOperation' # Using the more standard JsonPatchOperation
+          description: >-
+            List of patch operations to apply. For 'application/json' media type,
+            these typically target metadata fields like ACLs, legal tags, tags.
+      required:
+        - query
+        - ops
+    RecordQuery: # For RecordBulkUpdateParam
+      type: object
+      description: Query specifying records by their IDs.
+      properties:
+        ids:
+          type: array
+          items:
+            type: string # Record IDs
+          minItems: 1
+          maxItems: 500
+          description: List of record IDs.
+      required:
+        - ids
+    RecordQueryPatch: # For PatchRecordsRequestModel
+      type: object
+      description: Query identifying records to patch, by their IDs.
+      properties:
+        ids:
+          type: array
+          items:
+            type: string
+            # Example from original: common:work-product-component--wellLog:123456
+            # This format implies {data-partition-id}:{kind-short}:{unique-part}
+            # OSDU ID format is more like {data-partition-id}:{dataset}:{resource-type}:{resource-id}
+            pattern: ^[\w\-\.]+:[\w\-\.]+:[\w\-\.\:\%]+$ # General OSDU ID pattern without version
+          description: >-
+            List of record IDs. Each ID must follow the OSDU naming convention,
+            e.g., {data-partition-id}:{dataset-name}:{record-type}:{unique-identifier}.
+          example: ["contoso-opendes:work-product-component--WellLog:LOG_001"]
+      required: # If query must have IDs
+        - ids
+    RecordVersions:
+      type: object
+      description: List of available versions for a specific record.
+      properties:
+        recordId:
+          type: string
+          description: The ID of the record.
+        versions:
+          type: array
+          items:
+            type: integer
+            format: int64 # Version timestamps
+          description: List of version numbers (timestamps) for the record.
+      required:
+        - recordId
+        - versions
+    VersionInfo:
+      type: object
+      properties:
+        version:
+          type: string
+          example: "2.0.0"
+        commitId:
+          type: string
+          example: "a1b2c3d4e5f67890"
+        buildTime:
+          type: string
+          format: date-time
+          example: "2023-10-26T14:30:00Z"
+        branch:
+          type: string
+          example: "main"
+        commitMessage:
+          type: string
+          example: "Release 2.0.0 with enhanced query capabilities"
+        groupId:
+          type: string
+          example: "org.osdu"
+        artifactId:
+          type: string
+          example: "storage-service"
+        connectedOuterServices:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConnectedOuterService'
+
+  parameters:
+    DataPartitionIdHeader:
+      name: data-partition-id
+      in: header
+      description: >-
+        Specifies the data partition ID for the request. This is typically the tenant or account ID.
+      required: true
+      schema:
+        type: string
+      example: 'contoso-opendes'
+    XCollaborationHeader:
+      name: x-collaboration
+      in: header
+      description: >-
+        Identifier for cross-collaboration scenarios, if applicable.
+        Specifies the target data partition for collaboration.
+      required: false
+      schema:
+        type: string
+      example: 'partner-opendes'
+    FrameOfReferenceHeader:
+      name: frame-of-reference
+      in: header
+      description: >-
+        Specifies the desired frame of reference for data normalization in the response.
+        Format: `units={UoM};crs={CRS};elevation={ElevationRef};azimuth={AzimuthRef};dates={DateRef};`
+        Use 'none' for no normalization.
+      required: true
+      schema:
+        type: string
+      example: "units=SI;crs=wgs84;elevation=msl;azimuth=true north;dates=utc;"
+    RecordIdPathParameter:
+      name: id
+      in: path
+      description: The unique identifier of the record.
+      required: true
+      schema:
+        type: string
+        pattern: ^[\w\-\.]+:[\w-\.]+:[\w\-\.\:\%]+$
+      example: "contoso-opendes:master-data--Well:WELL-001"
+    RecordVersionPathParameter:
+      name: version
+      in: path
+      description: The specific version (timestamp) of the record.
+      required: true
+      schema:
+        type: integer
+        format: int64
+      example: 1622548800000
+    AttributeQueryParameter:
+      name: attribute
+      in: query
+      description: >-
+        Filter attributes to restrict the returned fields of the record(s).
+        Use dot notation for nested fields, e.g., `data.WellName`.
+        Multiple attributes can be specified.
+      required: false
+      schema:
+        type: array
+        items:
+          type: string
+      example: ["id", "kind", "data.WellName"] # As query param, often repeated: attribute=id&attribute=kind
+      style: form # Default style, but can be explicit
+      explode: false # For array of single values, typically attribute=val1,val2 or repeated
+
+  securitySchemes:
+    oAuth2AuthCode:
+      type: oauth2
+      description: OAuth2 authentication using Authorization Code flow with Azure AD.
+      flows:
+        authorizationCode:
+          authorizationUrl: https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/authorize
+          tokenUrl: https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token
+          scopes:
+            'api://contoso.energy.azure.com/data.read': Read access to ADME data.
+            'api://contoso.energy.azure.com/data.write': Write access to ADME data.
+            # 'api://contoso.energy.azure.com/Storage.Read': Granular scope for reading from storage
+            # 'api://contoso.energy.azure.com/Storage.Write': Granular scope for writing to storage
+
+  responses:
+    AppErrorResponse:
+      description: An error occurred. See response body for details.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    UnauthorizedError:
+      description: Unauthorized. Authentication credentials missing or invalid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    ForbiddenError:
+      description: Forbidden. Authenticated user lacks permission for this action.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    NotFoundError:
+      description: Not Found. The requested resource could not be found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    BadRequestError:
+      description: Bad Request. The request was malformed or contained invalid parameters.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    InternalServerError:
+      description: Internal Server Error. An unexpected error occurred on the server.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    BadGatewayError:
+      description: Bad Gateway. Error communicating with an upstream service.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    ServiceUnavailableError:
+      description: Service Unavailable. The service is temporarily unavailable.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    DeletionPartialSuccess: # For 207 on delete
+      description: Partial success. Some records were deleted, but others failed. See body for details.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DeleteRecordsPartialSuccessResponse'
+    PatchPartialSuccess: # For 206 on patch
+      description: Partial success. Some records were patched, but others failed or were not found. See body for details.
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/PatchRecordsResponse'
+              - $ref: '#/components/schemas/BulkUpdateRecordsResponse'
+
+
+security:
+  - oAuth2AuthCode:
+      - 'api://contoso.energy.azure.com/data.read'
+      - 'api://contoso.energy.azure.com/data.write'
+
+paths:
+  /info:
+    get:
+      tags:
+        - ServiceInformation
+      summary: Get Service Version Information
+      description: Provides build and git related information about the deployed Storage service.
+      operationId: GetServiceInfo
+      security: [] # Public endpoint
+      responses:
+        '200':
+          description: Successfully retrieved service information.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionInfo'
+        default:
+          $ref: '#/components/responses/AppErrorResponse'
+
+  /liveness_check:
+    get:
+      tags:
+        - ServiceInformation
+      summary: Perform Liveness Check
+      description: Verifies the operational status of the Storage Service.
+      operationId: GetLivenessCheck
+      security: [] # Public endpoint
+      responses:
+        '200':
+          description: Service is alive and responsive.
+          content:
+            text/plain: # As per original, can be JSON too
+              schema:
+                type: string
+                example: "Service is alive"
+        '502':
+          $ref: '#/components/responses/BadGatewayError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+        default:
+          $ref: '#/components/responses/AppErrorResponse'
+
+  /query/records:
+    get:
+      tags:
+        - RecordQuery
+      summary: Get All Record IDs by Kind
+      description: >-
+        Retrieves a paginated list of all record IDs belonging to a specified kind.
+        Requires `service.storage.admin` role or equivalent.
+      operationId: GetAllRecordIdsByKind
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/XCollaborationHeader'
+        - name: kind
+          in: query
+          description: The kind of records to query (e.g., tenant1:public:well:1.0.2).
+          required: true
+          schema:
+            type: string
+            pattern: ^[\w\-\.]+:[\w\-\.]+:[\w\-\.]+:(\d+\.\d+\.\d+)$
+          example: "contoso-opendes:wks:master-data--Well:1.0.0"
+        - name: limit
+          in: query
+          description: Maximum number of record IDs to return per page.
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            default: 100
+          example: 50
+        - name: cursor
+          in: query
+          description: Cursor for retrieving the next page of results.
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved record IDs.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatastoreQueryResult'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' } # If kind or cursor not found
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '502': { $ref: '#/components/responses/BadGatewayError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailableError' }
+    post:
+      tags:
+        - RecordQuery
+      summary: Fetch Multiple Records by IDs
+      description: >-
+        Retrieves full records for a given list of record IDs.
+        Allowed roles: `service.storage.viewer`, `service.storage.creator`, `service.storage.admin` or equivalent.
+      operationId: FetchRecordsByIds
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/XCollaborationHeader'
+      requestBody:
+        description: List of record IDs and optional attributes to fetch.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MultiRecordIds'
+      responses:
+        '200':
+          description: Successfully fetched records.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MultiRecordInfo'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' } # If any specified record ID not found (behavior may vary)
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '502': { $ref: '#/components/responses/BadGatewayError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailableError' }
+
+  /query/records:batch:
+    post:
+      tags:
+        - RecordQuery
+      summary: Fetch Multiple Records with Frame of Reference
+      description: >-
+        Retrieves multiple records, applying frame-of-reference normalization if specified.
+        Required roles: `users.datalake.viewers`, `users.datalake.editors`, or `users.datalake.admins`.
+      operationId: FetchRecordsBatchWithFrameOfReference
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/XCollaborationHeader'
+        - $ref: '#/components/parameters/FrameOfReferenceHeader'
+      requestBody:
+        description: List of record IDs to fetch.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MultiRecordRequest'
+      responses:
+        '200':
+          description: Successfully fetched and potentially converted records.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MultiRecordResponse'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '502': { $ref: '#/components/responses/BadGatewayError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailableError' }
+
+  /records:
+    put:
+      tags:
+        - RecordManagement
+      summary: Create or Update Records
+      description: >-
+        Creates new records or updates existing ones. If a record ID is provided and exists,
+        a new version is created. If no ID or a non-existent ID is provided, a new record is created.
+        Required roles: `users.datalake.creator`, `users.datalake.editors`, or `users.datalake.admins`.
+      operationId: CreateOrUpdateRecords
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/XCollaborationHeader'
+        - name: skipdupes
+          in: query
+          description: If true, skips updating records if the new data is identical to the existing version.
+          required: false
+          schema:
+            type: boolean
+            default: false
+      requestBody:
+        description: An array of records to create or update.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Record'
+              minItems: 1 # Changed from 0, as an empty array for PUT is usually not meaningful
+              maxItems: 500
+      responses:
+        '201':
+          description: Records created and/or updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateUpdateRecordsResponse'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' } # e.g. if referenced kind or ACL group is invalid
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '502': { $ref: '#/components/responses/BadGatewayError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailableError' }
+    patch:
+      tags:
+        - RecordManagement
+      summary: Patch Multiple Records
+      description: >-
+        Modifies record data and/or metadata attributes using patch operations for multiple records.
+        Supports `application/json` for metadata-only patches (ACLs, Legal Tags, Tags) and
+        `application/json-patch+json` for full JSON Patch (RFC 6902) operations.
+        Required roles: `users.datalake.editors` or `users.datalake.admins`.
+      operationId: PatchRecords
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/XCollaborationHeader'
+      requestBody:
+        description: Patch operations and query to identify records.
+        required: true
+        content:
+          application/json: # For limited metadata patch (ACL, Legal, Tags)
+            schema:
+              $ref: '#/components/schemas/RecordBulkUpdateParam'
+          application/json-patch+json: # For full JSON Patch (RFC 6902)
+            schema:
+              $ref: '#/components/schemas/PatchRecordsRequestModel'
+      responses:
+        '200':
+          description: Records updated successfully.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/PatchRecordsResponse'
+                  - $ref: '#/components/schemas/BulkUpdateRecordsResponse'
+        '206':
+          $ref: '#/components/responses/PatchPartialSuccess'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '502': { $ref: '#/components/responses/BadGatewayError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailableError' }
+
+  /records/delete:
+    post:
+      tags:
+        - RecordManagement
+      summary: Soft Delete Multiple Records
+      description: >-
+        Performs a soft deletion on a list of records. These records can typically be recovered.
+        Required roles: `users.datalake.editors` or `users.datalake.admins` (and must be OWNER of the record).
+      operationId: SoftDeleteRecords
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/XCollaborationHeader'
+      requestBody:
+        description: A list of record IDs to be soft-deleted.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+              minItems: 1
+              maxItems: 500
+              example: ["contoso-opendes:master-data--Well:WELL-001", "contoso-opendes:master-data--Well:WELL-002"]
+      responses:
+        '204':
+          description: All specified records were successfully soft-deleted.
+        '207':
+          $ref: '#/components/responses/DeletionPartialSuccess'
+        '400': { $ref: '#/components/responses/BadRequestError' } # e.g. invalid ID format
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' } # If all records not found
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '502': { $ref: '#/components/responses/BadGatewayError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailableError' }
+
+  /records/{id}:
+    get:
+      tags:
+        - RecordManagement
+      summary: Get Latest Version of a Record
+      description: >-
+        Retrieves the latest version of a specific record by its ID.
+        Allowed roles: `service.storage.viewer`, `service.storage.creator`, `service.storage.admin` or equivalent.
+      operationId: GetLatestRecordVersionById
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/XCollaborationHeader'
+        - $ref: '#/components/parameters/RecordIdPathParameter'
+        - $ref: '#/components/parameters/AttributeQueryParameter'
+      responses:
+        '200':
+          description: Successfully retrieved the latest version of the record.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Record' # Changed from string
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '502': { $ref: '#/components/responses/BadGatewayError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailableError' }
+    delete:
+      tags:
+        - RecordManagement
+      summary: Purge a Record (Permanent Delete)
+      description: >-
+        Permanently deletes a record and all its versions. This operation cannot be undone.
+        Allowed roles: `service.storage.admin` (and must be OWNER of the record).
+      operationId: PurgeRecordById
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/XCollaborationHeader'
+        - $ref: '#/components/parameters/RecordIdPathParameter'
+      responses:
+        '204':
+          description: Record and all its versions purged successfully.
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '502': { $ref: '#/components/responses/BadGatewayError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailableError' }
+
+  /records/{id}/versions:
+    delete:
+      tags:
+        - RecordManagement
+      summary: Purge Older Versions of a Record
+      description: >-
+        Permanently deletes older versions of a record up to a specified limit, excluding the latest version
+        and any linked records or files. This operation cannot be undone.
+        Allowed roles: `service.storage.admin` (and must be OWNER of the record).
+      operationId: PurgeRecordVersionsById
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/XCollaborationHeader'
+        - $ref: '#/components/parameters/RecordIdPathParameter'
+        - name: limit
+          in: query
+          description: The maximum number of older versions to purge.
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+          example: 100
+      responses:
+        '204':
+          description: Specified older record versions purged successfully.
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '502': { $ref: '#/components/responses/BadGatewayError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailableError' }
+
+  /records/{id}/versions/{version}:
+    get:
+      tags:
+        - RecordManagement
+      summary: Get a Specific Version of a Record
+      description: >-
+        Retrieves a specific version of a record by its ID and version timestamp.
+        Allowed roles: `service.storage.viewer`, `service.storage.creator`, `service.storage.admin` or equivalent.
+      operationId: GetRecordVersionByIdAndVersion
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/XCollaborationHeader'
+        - $ref: '#/components/parameters/RecordIdPathParameter'
+        - $ref: '#/components/parameters/RecordVersionPathParameter'
+        - $ref: '#/components/parameters/AttributeQueryParameter'
+      responses:
+        '200':
+          description: Successfully retrieved the specified record version.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Record' # Changed from string
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '502': { $ref: '#/components/responses/BadGatewayError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailableError' }
+
+  /records/versions/{id}: # Original had path param {id} but operationId getRecordVersions (plural)
+                          # Assuming this is to get all versions for a single ID
+    get:
+      tags:
+        - RecordManagement
+      summary: Get All Versions of a Record
+      description: >-
+        Retrieves a list of all available versions (timestamps) for a given record ID.
+        Allowed roles: `service.storage.viewer`, `service.storage.creator`, `service.storage.admin` or equivalent.
+      operationId: ListRecordVersionsById
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/XCollaborationHeader'
+        - $ref: '#/components/parameters/RecordIdPathParameter' # Renamed from 'id' in original path to match param name.
+      responses:
+        '200':
+          description: Successfully retrieved record versions.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordVersions'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '502': { $ref: '#/components/responses/BadGatewayError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailableError' }
+
+  /records/{id}:delete:
+    post:
+      tags:
+        - RecordManagement
+      summary: Soft Delete a Record by ID
+      description: >-
+        Performs a logical (soft) deletion of a record by its ID. This operation can typically be reverted.
+        Allowed roles: `service.storage.creator` or `service.storage.admin` (and must be OWNER of the record).
+      operationId: SoftDeleteRecordById # Original was deleteRecord
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/XCollaborationHeader'
+        - $ref: '#/components/parameters/RecordIdPathParameter'
+      responses:
+        '204':
+          description: Record soft-deleted successfully.
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '502': { $ref: '#/components/responses/BadGatewayError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailableError' }

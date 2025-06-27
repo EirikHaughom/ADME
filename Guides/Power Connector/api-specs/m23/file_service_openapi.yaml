@@ -1,0 +1,748 @@
+openapi: 3.0.3
+info:
+  title: Azure Data Manager for Energy - File Service API
+  version: 2.0.0
+  description: This service allows users to manage files on the Azure Data Manager for Energy platform. File Management includes uploads, downloads, and creation of metadata records for files.
+  contact:
+    name: Microsoft Support
+    email: support@microsoft.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: /api/file
+tags:
+  - name: FileMetadata
+    description: Operations for creating, retrieving, and deleting file metadata records.
+  - name: FileTransfer
+    description: Operations for generating URLs for file uploads and downloads.
+  - name: Health
+    description: Service health and readiness checks.
+  - name: Info
+    description: Service version and build information.
+security:
+  - Authorization: []
+paths:
+  /v2/files/metadata:
+    post:
+      tags:
+        - FileMetadata
+      summary: Creates a metadata record for an uploaded file
+      description: 'This API creates a metadata record for a file that is already uploaded. The metadata is linked to the file via `FileSource` provided in the request body. If `FileSource` attribute is missing or there is no file present at the source, the request fails. When metadata is successfully created, it returns the `Id` of the file metadata record. **Required roles**: `service.file.editors`.'
+      operationId: CreateFileMetadata
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      requestBody:
+        description: The file metadata to be created.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FileMetadata'
+      responses:
+        '201':
+          description: File metadata record created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileMetadataResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound' # e.g., if FileSource does not exist
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /v2/files/uploadURL:
+    get:
+      tags:
+        - FileTransfer
+      summary: Get a signed URL for file upload
+      description: 'Gets a temporary signed URL to upload a file to a landing zone. The service does not upload the file itself; the user must use this URL. The URL is time-bound (default 1 hour, max 7 days). The response includes a `FileSource` (relative path) which must be used when subsequently posting the file metadata. **Required roles**: `service.file.editors`.'
+      operationId: GetUploadUrl
+      parameters:
+        - $ref: '#/components/parameters/ExpiryTimeQueryParam'
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      responses:
+        '200':
+          description: Successfully generated file upload URL and location.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /v2/files/{id}/downloadURL:
+    get:
+      tags:
+        - FileTransfer
+      summary: Get a signed URL for file download
+      description: 'Gets a temporary signed URL for downloading the file associated with the unique metadata record `id`. The URL is time-bound (default 1 hour, max 7 days). **Required roles**: `service.file.viewers`.'
+      operationId: GetDownloadUrlForFile
+      parameters:
+        - $ref: '#/components/parameters/RecordIdPathParam'
+        - $ref: '#/components/parameters/ExpiryTimeQueryParam'
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      responses:
+        '200':
+          description: Successfully generated file download URL.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DownloadUrlResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /v2/files/{id}/metadata:
+    parameters:
+      - $ref: '#/components/parameters/RecordIdPathParam'
+      - $ref: '#/components/parameters/DataPartitionIdHeader'
+    get:
+      tags:
+        - FileMetadata
+      summary: Get a file metadata record by ID
+      description: 'Gets the latest version of the file metadata record identified by the given `id`. **Required roles**: `service.file.viewers` (Note: original spec said `service.file.editors`, but GETs are usually viewer roles).'
+      operationId: GetFileMetadata
+      responses:
+        '200':
+          description: Successfully retrieved the file metadata record.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordVersion' # RecordVersion is the FileMetadata with a version number
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+    delete:
+      tags:
+        - FileMetadata
+      summary: Delete a file and its metadata record
+      description: 'Deletes the file metadata record identified by the given `id` AND the associated file from storage. **Required roles**: `users.datalake.editors` or `users.datalake.admins`.'
+      operationId: DeleteFileAndMetadata
+      responses:
+        '204':
+          description: File and metadata record deleted successfully.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /v2/info:
+    get:
+      tags:
+        - Info
+      summary: Get service build and version information
+      description: For deployment, a publicly available `/info` endpoint that provides build and git related information.
+      operationId: GetInfo
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      responses:
+        '200':
+          description: Successfully retrieved service version information.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionInfo'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+      security: []
+  /v2/liveness_check:
+    get:
+      tags:
+        - Health
+      summary: Liveness Check endpoint
+      description: For deployment, a publicly available `/liveness_check` endpoint to verify the service is running.
+      operationId: GetLivenessCheck
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      responses:
+        '200':
+          description: Service is alive.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "File Service is alive"
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+      security: []
+  /v2/readiness_check:
+    get:
+      tags:
+        - Health
+      summary: Readiness Check endpoint
+      description: For deployment, a publicly available `/readiness_check` endpoint to verify the service is ready to handle requests.
+      operationId: GetReadinessCheck
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      responses:
+        '200':
+          description: Service is ready.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "File Service is ready"
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+      security: []
+components:
+  schemas:
+    Acl:
+      type: object
+      description: Access Control List defining owners and viewers of a resource.
+      properties:
+        owners:
+          type: array
+          items:
+            type: string
+            format: email
+            example: "data.default.owners@opendes.contoso.com"
+          description: List of owner identifiers (typically user or group emails).
+          nullable: true
+        viewers:
+          type: array
+          items:
+            type: string
+            format: email
+            example: "data.default.viewers@opendes.contoso.com"
+          description: List of viewer identifiers (typically user or group emails).
+          nullable: true
+    Ancestry:
+      type: object
+      description: Defines the parentage of a record, linking it to other OSDU entities.
+      properties:
+        parents:
+          type: array
+          description: An array of OSDU record IDs representing the parents of this entity.
+          items:
+            type: string
+            example: "opendes:master-data--Well:WELL_ID_123"
+          nullable: true
+          uniqueItems: true
+    AppError:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+          example: 400
+        message:
+          type: string
+          example: "Invalid input provided."
+        reason:
+          type: string
+          example: "Required field 'FileSource' is missing."
+    ConnectedOuterService:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Storage Service"
+          nullable: true
+        version:
+          type: string
+          example: "v1.5"
+          nullable: true
+    DatasetProperties: # This seems to be a wrapper for FileSourceInfo in the context of FileData
+      type: object
+      description: Contains properties specific to the dataset, primarily the file source information.
+      required:
+        - FileSourceInfo
+      properties:
+        FileSourceInfo:
+          $ref: '#/components/schemas/FileSourceInfo'
+    DownloadUrlResponse:
+      type: object
+      description: Response containing a signed URL for downloading a file.
+      properties:
+        SignedUrl:
+          type: string
+          format: url
+          description: A time-limited signed URL to download the file.
+          example: "https://myaccount.blob.core.windows.net/mycontainer/path/to/file.txt?sastoken_details"
+          nullable: true
+    FileData:
+      type: object
+      description: The core data section of a file metadata record, containing all necessary details about the file.
+      required:
+        - DatasetProperties # Which in turn requires FileSourceInfo.FileSource
+      properties:
+        Name:
+          type: string
+          description: An optional user-friendly name for the dataset or file.
+          example: "Well Log Data Q1 2023.las"
+          nullable: true
+        Description:
+          type: string
+          description: An optional textual description of the dataset.
+          example: "LAS file containing gamma ray and resistivity logs for Well Alpha-01."
+          nullable: true
+        DatasetProperties:
+          $ref: '#/components/schemas/DatasetProperties'
+        TotalSize:
+          type: string
+          pattern: ^[0-9]+$
+          description: Total size of the dataset in bytes. For a single file, this should match `FileSourceInfo.FileSize`.
+          example: "1048576" # 1MB
+          nullable: true
+        Checksum:
+          type: string
+          pattern: ^[0-9a-fA-F]{32}$
+          description: MD5 checksum of the file bytes (32-character hexadecimal string).
+          example: "d41d8cd98f00b204e9800998ecf8427e"
+          nullable: true
+        EncodingFormatTypeID:
+          type: string
+          pattern: ^srn:<namespace>:reference-data\\/EncodingFormatType:[^:]+:[0-9]*$
+          description: SRN of the encoding format type (e.g., UTF-8, ASCII).
+          example: "srn:opendes:reference-data/EncodingFormatType:UTF-8:1"
+          nullable: true
+        SchemaFormatTypeID:
+          type: string
+          pattern: ^srn:<namespace>:reference-data\\/SchemaFormatType:[^:]+:[0-9]*$
+          description: SRN of the schema format type (e.g., CSV, LAS, SEGY).
+          example: "srn:opendes:reference-data/SchemaFormatType:LAS:1"
+          nullable: true
+        Endian:
+          type: string
+          enum: [BIG, LITTLE]
+          description: Endianness of binary data within the file (BIG or LITTLE).
+          example: LITTLE
+          nullable: true
+        Source: # Generic source description
+          type: string
+          description: Information about the original source of the file data.
+          example: "Acme Logging Services, Run 2"
+          nullable: true
+        ExistenceKind: # OSDU Standard reference value
+          type: string
+          description: SRN indicating the existence state of the resource (e.g., actual, planned).
+          example: "srn:opendes:reference-data/ExistenceKind:Actual:1"
+          nullable: true
+        ResourceCurationStatus: # OSDU Standard reference value
+          type: string
+          description: SRN indicating the curation status of the resource.
+          example: "srn:opendes:reference-data/ResourceCurationStatus:Curated:1"
+          nullable: true
+        ResourceLifecycleStatus: # OSDU Standard reference value
+          type: string
+          description: SRN indicating the lifecycle status of the resource.
+          example: "srn:opendes:reference-data/ResourceLifecycleStatus:Active:1"
+          nullable: true
+        ResourceSecurityClassification: # OSDU Standard reference value
+          type: string
+          description: SRN indicating the security classification of the resource.
+          example: "srn:opendes:reference-data/ResourceSecurityClassification:Restricted:1"
+          nullable: true
+        ResourceHomeRegionID: # OSDU Standard reference value
+          type: string
+          description: SRN of the home geo-political region for this resource.
+          example: "srn:opendes:reference-data/GeoPoliticalRegion:NAM:1" # North America
+          nullable: true
+        ResourceHostRegionIDs: # OSDU Standard reference value
+          type: array
+          items:
+            type: string
+            example: "srn:opendes:reference-data/GeoPoliticalRegion:US:1"
+          description: SRN list of host geo-political regions for this resource.
+          nullable: true
+        ExtensionProperties:
+          type: object
+          additionalProperties:
+            type: object # Allows for nested custom properties
+          description: Custom extension properties specific to this file or data management system.
+          example:
+            projectCode: "AlphaX"
+            processingSoftware: "GeoPro v2.1"
+          nullable: true
+    FileMetadata:
+      type: object
+      description: Represents a file metadata record, adhering to OSDU record structure.
+      required:
+        - kind
+        - acl
+        - legal
+        - data
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the file metadata record (system-generated).
+          example: "opendes:dataset--File.Generic:guid-goes-here"
+          readOnly: true # Usually system-assigned on creation
+          nullable: true
+        version: # Added version here as it's part of the standard record structure returned by GET
+          type: integer
+          format: int64
+          description: The version number of this OSDU resource; set by the framework.
+          example: 1621350254300957
+          readOnly: true
+          nullable: true
+        kind:
+          type: string
+          description: "Kind of data being ingested. Must follow the OSDU naming convention: {data-partition-id}:{source|wks|group}:{schema-name}:{version}."
+          example: "opendes:wks:dataset--File.Generic:1.0.0"
+        acl:
+          $ref: '#/components/schemas/Acl'
+        legal:
+          $ref: '#/components/schemas/Legal'
+        data:
+          $ref: '#/components/schemas/FileData'
+        ancestry:
+          $ref: '#/components/schemas/Ancestry'
+          nullable: true
+        tags:
+          type: object
+          additionalProperties:
+            type: string
+          description: User-defined tags for categorization and search.
+          example:
+            project: "Alpha"
+            dataType: "WellLog"
+          nullable: true
+        meta: # Standard OSDU meta block
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+          description: Extensible metadata block for additional, non-core attributes.
+          example:
+            - kind: "GeoContext"
+              CRS: "EPSG:4326"
+              DepthRange: {"min": 1000, "max": 3000, "unit": "m"}
+          nullable: true
+    FileMetadataResponse: # Typically returns the ID of the created/updated record
+      type: object
+      description: Response from creating a file metadata record.
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the created or updated file metadata record.
+          example: "opendes:dataset--File.Generic:guid-goes-here"
+          nullable: true
+        version: # Often the version is also returned
+          type: integer
+          format: int64
+          description: The version number of the created/updated OSDU resource.
+          example: 1621350254300957
+          nullable: true
+    FileSourceInfo:
+      type: object
+      description: Detailed information about the source file.
+      required:
+        - FileSource # This is critical
+      properties:
+        FileSource:
+          type: string
+          description: Relative path for the data file within the data partition's storage (e.g., a path in a blob container). This is typically provided by the GetUploadUrl endpoint.
+          example: "/mytenant/uploads/project_alpha/well_logs/well_a_run1.las"
+        Name:
+          type: string
+          description: Optional user-friendly name of the file.
+          example: "well_a_run1.las"
+          nullable: true
+        FileSize:
+          type: string # Stored as string, validated as long
+          pattern: ^[0-9]+$
+          description: Length of the file in bytes.
+          example: "2097152" # 2MB
+          nullable: true
+        Checksum:
+          type: string
+          pattern: ^[0-9a-fA-F]{32}$
+          description: MD5 checksum of the file bytes (32-character hexadecimal string).
+          example: "d41d8cd98f00b204e9800998ecf8427e"
+          nullable: true
+        ChecksumAlgorithm:
+          type: string
+          description: The name of the checksum algorithm used (e.g., MD5, SHA-256).
+          example: "MD5"
+          nullable: true
+        EncodingFormatTypeID:
+          type: string
+          pattern: ^srn:<namespace>:reference-data\\/EncodingFormatType:[^:]+:[0-9]*$
+          description: SRN of the encoding format type of the file.
+          example: "srn:opendes:reference-data/EncodingFormatType:BINARY:1"
+          nullable: true
+        PreloadFilePath:
+          type: string
+          description: Original file system path of the data file before it was uploaded to the platform.
+          example: "C:\\data\\project_alpha\\source_files\\well_a_run1.las"
+          nullable: true
+        PreloadFileCreateDate:
+          type: string
+          format: date-time
+          description: Optional original creation date and time of the file.
+          example: "2023-01-10T09:30:00Z"
+          nullable: true
+        PreloadFileModifyDate:
+          type: string
+          format: date-time
+          description: Optional original last modification date and time of the file.
+          example: "2023-01-10T10:15:00Z"
+          nullable: true
+        PreloadFileCreateUser:
+          type: string
+          description: Optional user or system that created the original file.
+          example: "johndoe"
+          nullable: true
+        PreloadFileModifyUser:
+          type: string
+          description: Optional user or system that last modified the original file.
+          example: "janedoe"
+          nullable: true
+    Legal:
+      type: object
+      description: Legal metadata associated with the resource.
+      required:
+        - legaltags
+        - otherRelevantDataCountries
+        - status
+      properties:
+        legaltags:
+          type: array
+          items:
+            type: string
+            example: "opendes-public-usa-dataset"
+          uniqueItems: true
+          description: A list of legal tags associated with the data.
+          minItems: 1
+        otherRelevantDataCountries:
+          type: array
+          items:
+            type: string
+            example: "US"
+          uniqueItems: true
+          description: A list of ISO 3166-1 alpha-2 country codes relevant to the data.
+          minItems: 1
+        status:
+          type: string
+          enum: [compliant, incompliant]
+          description: The compliance status of the data.
+          example: "compliant"
+    LocationResponse: # Response from GetUploadUrl
+      type: object
+      description: Response containing the file ID (source path) and the signed URL for upload.
+      properties:
+        FileID: # This is the FileSource
+          type: string
+          description: The relative path (FileSource) where the file should be uploaded. This ID is used when creating the metadata record.
+          example: "/mytenant/uploads/project_beta/seismic/line_xyz_stack.segy"
+          nullable: true
+        Location: # The signed URL for upload
+          type: object
+          additionalProperties:
+            type: string # The value is the signed URL itself
+          description: Contains the signed URL for uploading the file. The key in this object might be provider-specific (e.g., "SignedUrl").
+          example:
+            SignedUrl: "https://myaccount.blob.core.windows.net/mycontainer/path/to/upload_location?sastoken_details"
+          nullable: true
+    RecordVersion: # This is essentially FileMetadata with a version field
+      type: object
+      description: Represents a specific version of a file metadata record.
+      required:
+        - id
+        - version
+        - kind
+        - acl
+        - legal
+        - data
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the file metadata record.
+          example: "opendes:dataset--File.Generic:guid-goes-here"
+        version:
+          type: integer
+          format: int64
+          description: The version number of this OSDU resource; set by the framework.
+          example: 1621350254300957
+        kind:
+          type: string
+          description: "Kind of data. Follows OSDU naming convention."
+          example: "opendes:wks:dataset--File.Generic:1.0.0"
+        acl:
+          $ref: '#/components/schemas/Acl'
+        legal:
+          $ref: '#/components/schemas/Legal'
+        data:
+          $ref: '#/components/schemas/FileData'
+        ancestry:
+          $ref: '#/components/schemas/Ancestry'
+          nullable: true
+        tags:
+          type: object
+          additionalProperties:
+            type: string
+          description: User-defined tags.
+          example: {"status": "final", "quality": "high"}
+          nullable: true
+        meta:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+          description: Extensible metadata block.
+          nullable: true
+    VersionInfo:
+      type: object
+      properties:
+        groupId:
+          type: string
+          example: "org.osdu"
+          nullable: true
+        artifactId:
+          type: string
+          example: "file-service"
+          nullable: true
+        version:
+          type: string
+          example: "2.0.0"
+          nullable: true
+        buildTime:
+          type: string
+          format: date-time
+          example: "2023-11-01T09:00:00Z"
+          nullable: true
+        branch:
+          type: string
+          example: "main"
+          nullable: true
+        commitId:
+          type: string
+          example: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+          nullable: true
+        commitMessage:
+          type: string
+          example: "feat: Implemented v2 file metadata APIs"
+          nullable: true
+        connectedOuterServices:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConnectedOuterService'
+          nullable: true
+  securitySchemes:
+    Authorization:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Bearer token for authorization. Example: \"Bearer {token}\""
+  parameters:
+    DataPartitionIdHeader:
+      name: data-partition-id
+      in: header
+      description: Tenant Identifier (Data Partition ID) for data isolation and access control.
+      required: true
+      schema:
+        type: string
+        example: "opendes-tenant1"
+    RecordIdPathParam:
+      name: id
+      in: path
+      description: The unique identifier of the file metadata record.
+      required: true
+      schema:
+        type: string
+        example: "opendes:dataset--File.Generic:c829255018a74be08419688a44b934b3"
+    ExpiryTimeQueryParam:
+      name: expiryTime
+      in: query
+      description: The duration for which the generated Signed URL should be valid. Accepted patterns are `^[0-9]+[Mm]$` (minutes), `^[0-9]+[Hh]$` (hours), `^[0-9]+[Dd]$` (days). Defaults to 1 hour if not provided.
+      required: false
+      schema:
+        type: string
+        pattern: ^\d+([mhdMHD])$ # Corrected pattern
+        example: "30M"
+  responses:
+    BadRequest:
+      description: Bad Request. The request was invalid, malformed, or missing required parameters. Check the response body for details.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    Unauthorized:
+      description: Unauthorized. Authentication is required and has failed or has not yet been provided. Ensure a valid bearer token is included in the `Authorization` header.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    Forbidden:
+      description: Forbidden. The authenticated user does not have the necessary permissions to perform this action.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    NotFound:
+      description: Not Found. The requested resource (e.g., file metadata record) could not be found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    InternalServerError:
+      description: Internal Server Error. An unexpected condition was encountered on the server.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    BadGateway:
+      description: Bad Gateway. The server, while acting as a gateway or proxy, received an invalid response from an upstream server (e.g., storage service).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    ServiceUnavailable:
+      description: Service Unavailable. The server is currently unable to handle the request due to a temporary overload or scheduled maintenance.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'

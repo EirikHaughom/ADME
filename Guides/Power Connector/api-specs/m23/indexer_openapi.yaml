@@ -1,0 +1,470 @@
+openapi: 3.0.3
+info:
+  title: Azure Data Manager for Energy - Indexer Service API
+  version: 2.0.0 # Standardized version
+  description: Indexer service creates and manages search indexes for records, enabling users to locate information quickly within the Azure Data Manager for Energy platform.
+  contact:
+    name: Microsoft Support
+    email: support@microsoft.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: /api/indexer/v2
+tags:
+  - name: Health
+    description: Service health and readiness checks.
+  - name: Info
+    description: Service version and build information.
+  - name: IndexManagement
+    description: Operations for managing and re-indexing search indexes.
+  - name: PartitionManagement
+    description: Operations for provisioning and managing indexes at the data partition level.
+security:
+  - Authorization: []
+paths:
+  /index:
+    delete:
+      tags:
+        - IndexManagement
+      summary: Delete the search index for a given kind
+      description: 'Deletes the search index associated with the specified kind. Required roles: `users.datalake.ops`.'
+      operationId: DeleteIndexByKind
+      parameters:
+        - $ref: '#/components/parameters/KindQueryParam'
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      responses:
+        '200':
+          description: Successfully initiated index deletion for the kind.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteIndexResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound' # Kind or index not found
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /info:
+    get:
+      tags:
+        - Info
+      summary: Get service build and version information
+      description: For deployment, a publicly available `/info` endpoint that provides build and git related information for the Indexer Service.
+      operationId: GetInfo
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      responses:
+        '200':
+          description: Successfully retrieved service version information.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionInfo'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+      security: []
+  /liveness_check:
+    get:
+      tags:
+        - Health
+      summary: Liveness Check endpoint
+      description: For deployment, a publicly available `/liveness_check` endpoint to verify the service is running.
+      operationId: GetLivenessCheck
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      responses:
+        '200':
+          description: Indexer Service is alive.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Indexer Service is alive"
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+      security: []
+  /partitions/provision:
+    put:
+      tags:
+        - PartitionManagement
+      summary: Provision indexing for a data partition
+      description: 'Provisions or re-provisions the indexing capabilities for the specified data partition. Required roles: `users.datalake.ops`.'
+      operationId: ProvisionPartitionIndex
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      responses:
+        '200': # Or 201 if it's consistently a creation/initialization
+          description: Partition provisioning request processed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartitionProvisionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409': # If partition is already provisioned and this is not an update op
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /readiness_check:
+    get:
+      tags:
+        - Health
+      summary: Readiness Check endpoint
+      description: For deployment, a publicly available `/readiness_check` endpoint to verify the service is ready to handle requests.
+      operationId: GetReadinessCheck
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      responses:
+        '200':
+          description: Indexer Service is ready.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Indexer Service is ready"
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+      security: []
+  /reindex:
+    post: # Was POST in original for kind re-index
+      tags:
+        - IndexManagement
+      summary: Re-index all records of a specific kind
+      description: 'This API allows users to re-index all records of a specified kind without re-ingesting them via the storage API. Required roles: `service.search.admin`.'
+      operationId: ReindexKind
+      parameters:
+        - $ref: '#/components/parameters/ForceCleanQueryParam'
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      requestBody:
+        description: Specifies the kind to be re-indexed and an optional cursor for continuation.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecordReindexRequest'
+      responses:
+        '200': # Assuming 200 for successful initiation, or 202 if it's a long-running async process
+          description: Re-indexing for the specified kind has been initiated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReindexStatusResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound' # Kind not found
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+    patch: # Was PATCH in original for full partition re-index
+      tags:
+        - IndexManagement
+      summary: Re-index all records in a data partition
+      description: 'This API allows users to re-index an entire data partition without re-ingesting records. Required roles: `users.datalake.ops`.'
+      operationId: ReindexPartition
+      parameters:
+        - $ref: '#/components/parameters/ForceCleanQueryParam'
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      responses:
+        '200': # Assuming 200 for successful initiation
+          description: Full partition re-indexing has been initiated.
+          content:
+            application/json: # Original was string
+              schema:
+                $ref: '#/components/schemas/ReindexStatusResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /reindex/records:
+    post:
+      tags:
+        - IndexManagement
+      summary: Re-index a specific list of records
+      description: 'This API allows users to re-index a specified list of records by their IDs without re-ingesting them. Required roles: `service.search.admin`.'
+      operationId: ReindexSpecificRecords
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      requestBody:
+        description: A list of record IDs to be re-indexed.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReindexRecordsRequest'
+      responses:
+        '202':
+          description: Re-indexing request for the specified records has been accepted for processing.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReindexAcceptedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+components:
+  schemas:
+    AppError:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+          example: 400
+        message:
+          type: string
+          example: "Invalid kind format provided."
+        reason:
+          type: string
+          example: "Kind parameter must follow the pattern {data-partition-id}:{source}:{type}:{version}"
+    ConnectedOuterService:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Search Engine Service (e.g., Elasticsearch)"
+          nullable: true
+        version:
+          type: string
+          example: "7.10.2"
+          nullable: true
+    RecordReindexRequest:
+      type: object
+      description: Request to re-index records of a specific kind, potentially using a cursor for pagination.
+      required:
+        - kind
+      properties:
+        kind:
+          type: string
+          description: The OSDU kind to be re-indexed (e.g., `opendes:wks:master-data--Well:1.0.0`).
+          example: "opendes:wks:master-data--Well:1.0.0"
+        cursor:
+          type: string
+          description: Opaque cursor for continuing a re-indexing process that was previously started or paginated.
+          example: "eyJzb3J0VmFsdWVzIjpbMTYwOTQ1OTE5OTAwMF0sInNlYXJjaEFmdGVyIjpbMTYwOTQ1OTE5OTAwMF19"
+          nullable: true
+    ReindexRecordsRequest:
+      type: object
+      description: Request to re-index a specific list of records by their IDs.
+      required:
+        - recordIds
+      properties:
+        recordIds:
+          type: array
+          items:
+            type: string
+            example: "opendes:master-data--Well:recordId123"
+          minItems: 1
+          maxItems: 1000
+          description: A list of up to 1000 record IDs to be re-indexed.
+    DeleteIndexResponse:
+      type: object
+      description: Response confirming the initiation of index deletion for a kind.
+      properties:
+        status:
+          type: string
+          example: "Index deletion initiated for kind: opendes:wks:master-data--Well:1.0.0"
+        kind:
+          type: string
+          example: "opendes:wks:master-data--Well:1.0.0"
+    PartitionProvisionResponse:
+      type: object
+      description: Response confirming the provisioning status of a data partition's index.
+      properties:
+        status:
+          type: string
+          example: "Partition opendes-tenant1 provisioning initiated/completed."
+        dataPartitionId:
+          type: string
+          example: "opendes-tenant1"
+    ReindexStatusResponse:
+      type: object
+      description: Response indicating the status of a re-indexing operation (for kind or full partition).
+      properties:
+        status:
+          type: string
+          example: "Re-indexing initiated for kind: opendes:wks:master-data--Well:1.0.0"
+        operationId: # Optional: if the reindex is async and an ID is provided to track it
+          type: string
+          example: "reindex-op-a1b2c3d4"
+          nullable: true
+        details:
+          type: string
+          example: "Processed 0 records so far. Use cursor 'xyz' to continue if applicable."
+          nullable: true
+    ReindexAcceptedResponse:
+      type: object
+      description: Response confirming that a request to re-index specific records has been accepted.
+      properties:
+        message:
+          type: string
+          example: "Re-indexing request for 25 records accepted."
+        recordCount:
+          type: integer
+          format: int32
+          example: 25
+        operationId: # Optional: if an ID is provided to track the batch
+          type: string
+          example: "reindex-batch-e5f6g7h8"
+          nullable: true
+    VersionInfo:
+      type: object
+      properties:
+        groupId:
+          type: string
+          example: "org.osdu"
+          nullable: true
+        artifactId:
+          type: string
+          example: "indexer-service"
+          nullable: true
+        version:
+          type: string
+          example: "2.0.0"
+          nullable: true
+        buildTime:
+          type: string
+          format: date-time
+          example: "2023-11-01T14:00:00Z"
+          nullable: true
+        branch:
+          type: string
+          example: "main"
+          nullable: true
+        commitId:
+          type: string
+          example: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+          nullable: true
+        commitMessage:
+          type: string
+          example: "feat: Implemented record-level re-indexing"
+          nullable: true
+        connectedOuterServices:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConnectedOuterService'
+          nullable: true
+  securitySchemes:
+    Authorization:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Bearer token for authorization. Example: \"Bearer {token}\""
+  parameters:
+    DataPartitionIdHeader:
+      name: data-partition-id
+      in: header
+      description: Tenant Identifier (Data Partition ID) for data isolation and access control.
+      required: true
+      schema:
+        type: string
+        example: "opendes-tenant1"
+    KindQueryParam:
+      name: kind
+      in: query
+      description: The OSDU kind string (e.g., `opendes:wks:master-data--Well:1.0.0`).
+      required: true
+      schema:
+        type: string
+        example: "opendes:wks:master-data--Well:1.0.0"
+    ForceCleanQueryParam:
+      name: forceClean # Standardized to camelCase
+      in: query
+      description: If true, forces a clean re-index, potentially deleting the existing index before rebuilding. Use with caution.
+      required: false
+      schema:
+        type: boolean
+        default: false
+  responses:
+    BadRequest:
+      description: Bad Request. The request was invalid, malformed, or missing required parameters. Check the response body for details.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    Unauthorized:
+      description: Unauthorized. Authentication is required and has failed or has not yet been provided. Ensure a valid bearer token is included in the `Authorization` header.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    Forbidden:
+      description: Forbidden. The authenticated user does not have the necessary permissions to perform this action.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    NotFound:
+      description: Not Found. The requested resource (e.g., kind, index, record) could not be found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    Conflict: # Added general conflict response
+      description: Conflict. The request could not be completed due to a conflict with the current state of the resource (e.g., partition already provisioned and operation is not idempotent).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    InternalServerError:
+      description: Internal Server Error. An unexpected condition was encountered on the server.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    BadGateway:
+      description: Bad Gateway. The server, while acting as a gateway or proxy, received an invalid response from an upstream server (e.g., search engine service).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    ServiceUnavailable:
+      description: Service Unavailable. The server is currently unable to handle the request due to a temporary overload or scheduled maintenance.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'

@@ -1,0 +1,299 @@
+openapi: 3.0.3
+info:
+  title: Azure Data Manager for Energy - Notification Service API
+  version: 1.0.0
+  description: The Notification service, in conjunction with a registration service, allows interested consumers to subscribe to data and metadata changes using a publisher/subscriber pattern. This API primarily exposes endpoints for receiving notifications.
+  contact:
+    name: Microsoft Support
+    email: support@microsoft.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: /api/notification/v1
+tags:
+  - name: HealthChecks
+    description: Endpoints for service health and operational status checks.
+  - name: Info
+    description: Endpoint for retrieving service version and build information.
+  - name: RecordNotifications
+    description: Endpoints for receiving and processing record change notifications.
+security:
+  - Authorization: [] # Global security requirement, can be overridden per operation
+paths:
+  /_ah/warmup: # Path kept as per original, often used in GAE for liveness/readiness
+    get:
+      tags:
+        - HealthChecks
+      summary: Service Warmup/Liveness Check
+      description: For deployment, a publicly available `/_ah/warmup` endpoint to verify the service is operational. This often serves as a liveness or startup check.
+      operationId: GetWarmupCheck
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader' # Included for consistency, may be ignored by public endpoints
+      responses:
+        '200':
+          description: Service is operational.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Notification Service is active."
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+      security: [] # Explicitly public
+  /info:
+    get:
+      tags:
+        - Info
+      summary: Get service build and version information
+      description: For deployment, a publicly available `/info` endpoint that provides build and git related information for the Notification Service.
+      operationId: GetInfo
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader' # Included for consistency
+      responses:
+        '200':
+          description: Successfully retrieved service version information.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionInfo'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+      security: [] # Explicitly public
+  /push-handlers/records-changed:
+    post:
+      tags:
+        - RecordNotifications
+      summary: Notify the service of record change events
+      description: 'Endpoint to receive notifications about created, updated, or deleted records. Required Roles: `users.datalake.ops` or `notification.pubsub`.'
+      operationId: NotifyRecordChangedEvents
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      requestBody:
+        description: A message containing details of the record change events.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecordChangedEventMessage'
+      responses:
+        '200': # Using 200 for successful synchronous processing
+          description: Notification successfully received and processed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationAckResponse'
+        '201': # Could be used if the notification creates a resource (e.g., an event log entry)
+          description: Notification accepted and resource created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationAckResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        # 404 Not Found might not be typical for a push handler unless it's for a specific sub-resource
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+      security:
+        - Authorization: [] # This endpoint requires authorization
+components:
+  schemas:
+    AppError:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+          example: 400
+        message:
+          type: string
+          example: "Invalid notification payload."
+        reason:
+          type: string
+          example: "Missing 'data.recordIds' in notification message."
+    ConnectedOuterService:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Google Pub/Sub"
+          nullable: true
+        version:
+          type: string
+          example: "v1"
+          nullable: true
+    RecordChangeEventData:
+      type: object
+      description: Details of a single record change event.
+      required:
+        - op
+        - kind
+        - id
+      properties:
+        id:
+          type: string
+          description: The ID of the record that changed.
+          example: "opendes:master-data--Well:unique-well-id-123"
+        version: # Optional, but often included
+          type: integer
+          format: int64
+          description: The new version of the record, if applicable.
+          example: 1621350254300957
+          nullable: true
+        kind:
+          type: string
+          description: The OSDU kind of the record.
+          example: "opendes:wks:master-data--Well:1.0.0"
+        op:
+          type: string
+          description: The operation performed on the record.
+          enum: [create, update, patch, delete]
+          example: "create"
+    RecordChangedEventMessage:
+      type: object
+      description: Structure of the message received for record change notifications.
+      required:
+        - messageId
+        - publishTime
+        - data
+      properties:
+        messageId:
+          type: string
+          description: Unique identifier for this notification message.
+          example: "msg-abc-123-xyz-789"
+        publishTime:
+          type: string
+          format: date-time
+          description: Timestamp indicating when the notification was published.
+          example: "2023-11-15T10:30:00Z"
+        data:
+          type: array
+          description: An array of record change events included in this message.
+          items:
+            $ref: '#/components/schemas/RecordChangeEventData'
+          minItems: 1 # A notification should have at least one event
+    NotificationAckResponse:
+      type: object
+      description: Response acknowledging the receipt and processing of a notification.
+      properties:
+        status:
+          type: string
+          enum: [success, accepted, failed_to_process]
+          description: Status of the notification processing.
+          example: "success"
+        message:
+          type: string
+          description: A human-readable message about the processing outcome.
+          example: "Notification processed successfully."
+          nullable: true
+        processedEventCount: # Optional
+          type: integer
+          format: int32
+          description: Number of events successfully processed from the message.
+          example: 1
+          nullable: true
+    VersionInfo:
+      type: object
+      properties:
+        groupId:
+          type: string
+          example: "org.osdu"
+          nullable: true
+        artifactId:
+          type: string
+          example: "notification-service"
+          nullable: true
+        version:
+          type: string
+          example: "1.0.0"
+          nullable: true
+        buildTime:
+          type: string
+          format: date-time
+          example: "2023-11-01T16:00:00Z"
+          nullable: true
+        branch:
+          type: string
+          example: "main"
+          nullable: true
+        commitId:
+          type: string
+          example: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+          nullable: true
+        commitMessage:
+          type: string
+          example: "Initial implementation of notification push handler"
+          nullable: true
+        connectedOuterServices:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConnectedOuterService'
+          nullable: true
+  securitySchemes:
+    Authorization:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Bearer token for authorization. Example: \"Bearer {token}\""
+  parameters:
+    DataPartitionIdHeader:
+      name: data-partition-id
+      in: header
+      description: Tenant Identifier (Data Partition ID) for data isolation and context. This header is expected on all API calls.
+      required: true # As per general instruction
+      schema:
+        type: string
+        example: "opendes-tenant1"
+  responses:
+    BadRequest:
+      description: Bad Request. The request was invalid, malformed (e.g., invalid JSON in push notification), or missing required parameters.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    Unauthorized:
+      description: Unauthorized. Authentication is required and has failed or has not yet been provided.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    Forbidden:
+      description: Forbidden. The authenticated user does not have the necessary permissions to perform this action (e.g., push notifications).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    NotFound: # Generally less common for a push endpoint itself, but could be for sub-resources if applicable
+      description: Not Found. The requested resource or endpoint path could not be found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    InternalServerError:
+      description: Internal Server Error. An unexpected condition was encountered on the server while processing the notification.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    BadGateway:
+      description: Bad Gateway. The server, while acting as a gateway or proxy, received an invalid response from an upstream service (e.g., a message queue or event processing backend).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    ServiceUnavailable:
+      description: Service Unavailable. The server is currently unable to handle the request due to a temporary overload or scheduled maintenance.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'

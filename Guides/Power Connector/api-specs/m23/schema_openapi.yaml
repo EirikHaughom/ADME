@@ -1,0 +1,707 @@
+openapi: 3.0.3
+info:
+  title: Azure Data Manager for Energy - Schema Service API
+  version: v1.0.0
+  description: >-
+    Schema Service enables a centralized governance and management of schema in
+    the Data Ecosystem. It offers an implementation of the schema standard.
+
+
+    Schema Service provides all necessary APIs to Fetch, create, update and mark
+    a schema obsolete.
+  contact:
+    name: Microsoft Support
+    email: support@microsoft.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: https://contoso.energy.azure.com/api/schema-service/v1
+    description: Azure Data Manager for Energy - Contoso Environment (Schema Service v1)
+tags:
+  - name: Schema
+    description: Schema API - Core Schema related endpoints
+  - name: SystemSchema
+    description: System Schema API - System Schema related endpoints
+  - name: HealthCheck
+    description: Health Check API
+  - name: Information
+    description: Version information endpoint
+components:
+  schemas:
+    AppError:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+          description: The HTTP error code.
+        message:
+          type: string
+          description: A human-readable error message.
+        reason:
+          type: string
+          description: A more specific reason for the error.
+      example:
+        code: 400
+        message: "Validation error"
+        reason: "Required field 'name' is missing."
+    ConnectedOuterService:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Dependency Service X"
+        version:
+          type: string
+          example: "2.1.0"
+    SchemaIdentity:
+      title: SchemaIdentity
+      description: Schema authority source and type description
+      type: object
+      properties:
+        authority:
+          type: string
+          description: Entity authority
+          pattern: ^[\w\-\.]+$
+          example: osdu
+        entityType:
+          type: string
+          description: EntityType Code
+          pattern: ^[\w\-\.]+$
+          example: wellbore
+        id:
+          type: string
+          description: A read-only system defined id used for referencing of a schema.
+          example: osdu:wks:wellbore:1.0.0
+          readOnly: true
+        schemaVersionMajor:
+          type: integer
+          format: int64
+          description: Major Schema Version Number
+          example: 1
+        schemaVersionMinor:
+          type: integer
+          format: int64
+          description: Minor Schema Version Number
+          example: 1
+        schemaVersionPatch:
+          type: integer
+          format: int64
+          description: Patch Schema Version Number
+          example: 0
+        source:
+          type: string
+          description: Entity source
+          pattern: ^[\w\-\.]+$
+          example: wks
+      required:
+        - authority
+        - entityType
+        - schemaVersionMajor
+        - schemaVersionMinor
+        - schemaVersionPatch
+        - source
+    SchemaInfo:
+      title: Schema Info
+      description: Represents a model to Schema Info including status, creation and schemaIdentity
+      type: object
+      properties:
+        createdBy:
+          type: string
+          description: The user who created the schema. This value is taken from API caller token.
+          example: user@contoso.energy
+          readOnly: true
+        dateCreated:
+          type: string
+          format: date-time
+          description: The UTC date time of the entity creation
+          example: '2023-01-15T11:16:03Z'
+          readOnly: true
+        schemaIdentity:
+          $ref: '#/components/schemas/SchemaIdentity'
+        scope:
+          title: Schema Scope
+          type: string
+          description: 'Schema Scope - is it internal or shared. This is a system defined attribute based on partition-id passed.'
+          enum:
+            - INTERNAL
+            - SHARED
+          example: INTERNAL
+          readOnly: true
+        status:
+          title: SchemaStatus
+          type: string
+          description: Schema lifecycle status
+          enum:
+            - PUBLISHED
+            - OBSOLETE
+            - DEVELOPMENT
+          example: PUBLISHED
+        supersededBy:
+          $ref: '#/components/schemas/SchemaIdentity'
+          nullable: true # Assuming it can be null if not superseded
+          readOnly: true
+      required:
+        - schemaIdentity
+        - status
+    SchemaInfoResponse:
+      title: Schema Info Response
+      description: The response for a GET schema request
+      type: object
+      properties:
+        offset:
+          type: integer
+          format: int32
+          description: The offset for the next query.
+          minimum: 0
+          example: 0
+        count:
+          type: integer
+          format: int32
+          description: The number of schema versions in this response.
+          minimum: 0
+          example: 10
+        totalCount:
+          type: integer
+          format: int32
+          description: The total number of schema items matching the query.
+          minimum: 0
+          example: 100
+        schemaInfos:
+          type: array
+          items:
+            $ref: '#/components/schemas/SchemaInfo'
+    SchemaRequest:
+      description: Represents a model to Schema Request
+      type: object
+      properties:
+        schemaInfo:
+          $ref: '#/components/schemas/SchemaInfo'
+        schema:
+          type: object
+          description: The JSON schema definition itself.
+          additionalProperties: true
+          example:
+            type: "object"
+            properties:
+              wellName:
+                type: "string"
+                description: "Name of the well."
+      required:
+        - schemaInfo
+        - schema
+    VersionInfo:
+      type: object
+      properties:
+        version:
+          type: string
+          example: "1.0.0"
+        commitId:
+          type: string
+          example: "abcdef1234567890"
+        buildTime:
+          type: string
+          format: date-time # Assuming it's a timestamp
+          example: "2023-01-01T10:00:00Z"
+        branch:
+          type: string
+          example: "main"
+        commitMessage:
+          type: string
+          example: "Initial release"
+        groupId:
+          type: string
+          example: "com.contoso.energy"
+        artifactId:
+          type: string
+          example: "schema-service"
+        connectedOuterServices:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConnectedOuterService'
+    RawSchemaDefinition:
+      type: object
+      description: The JSON schema definition.
+      additionalProperties: true
+      example:
+        $schema: "http://json-schema.org/draft-07/schema#"
+        title: "Wellbore"
+        type: "object"
+        properties:
+          name:
+            type: "string"
+          depth:
+            type: "number"
+
+  parameters:
+    DataPartitionIdHeader:
+      name: data-partition-id
+      in: header
+      description: >-
+        The identifier of the data partition to identify the instance of the
+        data store. Often a tenant or account ID.
+      required: true
+      schema:
+        type: string
+      example: 'example-partition-id'
+
+  responses:
+    AppErrorResponse:
+      description: An error occurred. Specific error code and message will be in the response body.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    UnauthorizedError:
+      description: Unauthorized. The client has not provided valid authentication credentials.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    ForbiddenError:
+      description: Forbidden. The client is authenticated but does not have permission to perform this action.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    NotFoundError:
+      description: Not Found. The requested resource could not be found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    BadRequestError:
+      description: Bad Request. The server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, invalid request message framing, or deceptive request routing).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    InternalServerError:
+      description: Internal Server Error. The server encountered an unexpected condition that prevented it from fulfilling the request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    BadGatewayError:
+      description: Bad Gateway. The server, while acting as a gateway or proxy, received an invalid response from an inbound server it accessed while attempting to fulfill the request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    ServiceUnavailableError:
+      description: Service Unavailable. The server is currently unable to handle the request due to a temporary overload or scheduled maintenance, which will likely be alleviated after some delay.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+
+  securitySchemes:
+    oAuth2AuthCode:
+      type: oauth2
+      flows:
+        authorizationCode: # Or clientCredentials if more appropriate for service-to-service
+          authorizationUrl: https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/authorize
+          tokenUrl: https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token
+          scopes:
+            'api://contoso.energy.azure.com/data.read': Read access to ADME data
+            'api://contoso.energy.azure.com/data.write': Write access to ADME data
+            # Add specific scopes if needed, e.g.
+            # 'api://contoso.energy.azure.com/Schema.Read': Read access to schemas
+            # 'api://contoso.energy.azure.com/Schema.Write': Write access to schemas
+
+security:
+  - oAuth2AuthCode:
+      - 'api://contoso.energy.azure.com/data.read'
+      - 'api://contoso.energy.azure.com/data.write'
+
+paths:
+  /info:
+    get:
+      tags:
+        - Information
+      summary: Get Service Version Information
+      description: >-
+        Provides build and git related information about the deployed service.
+        This is a public endpoint.
+      operationId: GetInfo
+      security: [] # Explicitly mark as unauthenticated
+      responses:
+        '200':
+          description: Successfully retrieved version information.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionInfo'
+        default:
+          $ref: '#/components/responses/AppErrorResponse'
+
+  /liveness_check:
+    get:
+      tags:
+        - HealthCheck
+      summary: Perform a Liveness Check
+      description: >-
+        Verifies the operational status of the Schema Service. This is a public
+        endpoint.
+      operationId: GetLivenessCheck
+      security: [] # Explicitly mark as unauthenticated
+      responses:
+        '200':
+          description: OK. The service is operational.
+          content:
+            text/plain: # Or application/json if it returns a JSON object
+              schema:
+                type: string
+                example: "Service is alive"
+        '502':
+          $ref: '#/components/responses/BadGatewayError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+        default:
+          $ref: '#/components/responses/AppErrorResponse'
+
+  /schema:
+    get:
+      tags:
+        - Schema
+      summary: List Schema Information
+      description: >-
+        Searches for information of available schemas (SchemaInfo) in the schema
+        repository. Supports filtering options.
+
+
+        Required roles: `service.schema-service.viewers` or equivalent.
+      operationId: ListSchemaInfo
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - name: authority
+          in: query
+          description: Filter by a specific authority.
+          required: false
+          schema:
+            type: string
+            default: '*'
+          example: osdu
+        - name: source
+          in: query
+          description: Filter by a specific source.
+          required: false
+          schema:
+            type: string
+            default: '*'
+          example: wks
+        - name: entityType
+          in: query
+          description: Filter by a specific entityType.
+          required: false
+          schema:
+            type: string
+            default: '*'
+          example: wellbore
+        - name: schemaVersionMajor
+          in: query
+          description: Filter by a specific schemaVersionMajor.
+          required: false
+          schema:
+            type: string # Kept as string to allow '*' default, service must parse
+            default: '*'
+          example: "1"
+        - name: schemaVersionMinor
+          in: query
+          description: Filter by a specific schemaVersionMinor.
+          required: false
+          schema:
+            type: string # Kept as string to allow '*' default, service must parse
+            default: '*'
+          example: "0"
+        - name: schemaVersionPatch
+          in: query
+          description: Filter by a specific schemaVersionPatch.
+          required: false
+          schema:
+            type: string # Kept as string to allow '*' default, service must parse
+            default: '*'
+          example: "0"
+        - name: status
+          in: query
+          description: Filter by schema status.
+          required: false
+          schema:
+            type: string
+            enum: [PUBLISHED, OBSOLETE, DEVELOPMENT, '*']
+            default: PUBLISHED
+          example: PUBLISHED
+        - name: scope
+          in: query
+          description: Filter by schema scope or visibility.
+          required: false
+          schema:
+            type: string
+            enum: [INTERNAL, SHARED, '*']
+            default: INTERNAL
+          example: INTERNAL
+        - name: latestVersion
+          in: query
+          description: If true, only return the latest version of each schema kind.
+          required: false
+          schema:
+            type: boolean
+            default: false
+          example: true
+        - name: limit
+          in: query
+          description: Maximum number of schema records to return.
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 1000 # Adjusted maximum based on common practice
+            default: 100
+          example: 50
+        - name: offset
+          in: query
+          description: Number of records to skip for pagination.
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            default: 0
+          example: 0
+      responses:
+        '200':
+          description: Successfully retrieved list of schema information.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaInfoResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError' # If nothing matches, but usually 200 with empty list
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGatewayError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+        default:
+          $ref: '#/components/responses/AppErrorResponse'
+    post:
+      tags:
+        - Schema
+      summary: Create a New Schema
+      description: >-
+        Adds a new schema to the schema repository. The schemaIdentity must be
+        unique. `authority`, `source`, and `entityType` will be registered if not present.
+
+
+        If lower minor versions are registered, the service validates the new schema
+        against breaking changes; if breaking changes are discovered, the request fails.
+
+
+        **Note:** The schema must not reference other schemas with status `DEVELOPMENT`.
+        Scope will be set by the system based on `data-partition-id` (`SHARED` for
+        common/shared partition, `INTERNAL` for private partition).
+
+
+        Required roles: `service.schema-service.editors` or equivalent.
+      operationId: CreateSchema
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      requestBody:
+        description: Schema object to create.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchemaRequest'
+      responses:
+        '201':
+          description: Schema created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaInfo'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '409': # Conflict if schemaIdentity already exists and not updatable via POST
+          description: Conflict. A schema with the same identity already exists or violates uniqueness constraints.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGatewayError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+        default:
+          $ref: '#/components/responses/AppErrorResponse'
+    put:
+      tags:
+        - Schema
+      summary: Create or Update a Schema in Development Status
+      description: >-
+        Creates a new schema or updates an existing schema with status `DEVELOPMENT`.
+        Attempting to update a schema with a status other than `DEVELOPMENT` via this
+        operation will result in an error.
+
+
+        Any schema instance with the same `schemaIdentity` is replaced (contrasting
+        with the immutability of `PUBLISHED` or `OBSOLETE` schemas).
+        A schema's state can be changed from `DEVELOPMENT` to `PUBLISHED` or `OBSOLETE`
+        during this update.
+
+
+        **Note:** The schema may refer to other schema definitions in `DEVELOPMENT` state.
+        Scope for a schema cannot be updated; it's a system-defined value.
+
+
+        Required roles: `service.schema-service.editors` or equivalent.
+      operationId: UpsertSchema
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      requestBody:
+        description: Schema object to create or update.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchemaRequest'
+      responses:
+        '200':
+          description: Schema updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaInfo'
+        '201':
+          description: Schema created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaInfo'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError' # If attempting to update non-existent in certain modes
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGatewayError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+        default:
+          $ref: '#/components/responses/AppErrorResponse'
+
+  /schema/{id}:
+    get:
+      tags:
+        - Schema
+      summary: Get a Specific Schema by ID
+      description: >-
+        Retrieves a schema definition using its system-defined ID.
+
+
+        Required roles: `service.schema-service.viewers` or equivalent.
+      operationId: GetSchemaById
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - name: id
+          in: path
+          description: The system-generated unique ID of the schema (e.g., osdu:wks:wellbore:1.0.0).
+          required: true
+          schema:
+            type: string
+          example: osdu:wks:wellbore:1.0.0
+      responses:
+        '200':
+          description: Successfully retrieved the schema definition.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RawSchemaDefinition'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGatewayError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+        default:
+          $ref: '#/components/responses/AppErrorResponse'
+
+  /schemas/system: # Note: Path changed from /schema/system to /schemas/system for plurality consistency
+    put:
+      tags:
+        - SystemSchema
+      summary: Create or Update a System Schema
+      description: >-
+        Creates a new schema or updates an existing schema for system-level definitions.
+        This endpoint may have different authorization requirements (e.g., service principal)
+        and behavior, such as automatically setting the scope to `SHARED`.
+
+
+        Use this endpoint with caution, typically for administrative or bootstrap operations.
+      operationId: UpsertSystemSchema
+      # data-partition-id might not be required or handled differently for system schemas.
+      # If still needed, add: parameters: [ { $ref: '#/components/parameters/DataPartitionIdHeader' } ]
+      requestBody:
+        description: System schema object to create or update.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchemaRequest'
+      responses:
+        '200':
+          description: System schema updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaInfo'
+        '201':
+          description: System schema created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaInfo'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGatewayError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+        default:
+          $ref: '#/components/responses/AppErrorResponse'

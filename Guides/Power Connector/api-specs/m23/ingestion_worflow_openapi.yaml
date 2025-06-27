@@ -1,0 +1,801 @@
+openapi: 3.0.3
+info:
+  title: Azure Data Manager for Energy - Workflow Service API
+  version: 2.0.5
+  description: "Workflow Service API is a wrapper API on existing orchestrator services (e.g., Airflow) tailored for domain-specific workflow needs within the Azure Data Manager for Energy. It handles operational tasks like starting, stopping, and pausing workflows, as well as their creation and maintenance.\n ## Key Points:\n **Workflow** - A collection of steps executed in a specific order to perform meaningful tasks, such as ingesting a CSV file. Each workflow is uniquely identified by a `workflowId` and represented as a Directed Acyclic Graph (DAG).\n \n **Workflow Run** - A single execution instance of a workflow. Each workflow run has a unique `runId`."
+  contact:
+    name: Microsoft Support
+    email: support@microsoft.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: /api/workflow # Assuming this is the base path for all v1 and health endpoints
+tags:
+  - name: Health
+    description: Service health and readiness checks.
+  - name: Info
+    description: Service version and build information.
+  - name: WorkflowManagement
+    description: Endpoints for creating, listing, retrieving, and deleting workflow definitions.
+  - name: WorkflowSystemManagement
+    description: Endpoints for managing system-level workflow definitions.
+  - name: WorkflowExecution
+    description: Endpoints for triggering and managing workflow run instances.
+security:
+  - Authorization: []
+paths:
+  /liveness_check:
+    get:
+      tags:
+        - Health
+      summary: Liveness Check endpoint
+      description: For deployment, a publicly available `/liveness_check` endpoint that provides a `Workflow service is alive` message.
+      operationId: GetLivenessCheck
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      responses:
+        '200':
+          description: Workflow service is alive.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Workflow service is alive"
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+      security: []
+  /readiness_check:
+    get:
+      tags:
+        - Health
+      summary: Readiness Check endpoint
+      description: For deployment, a publicly available `/readiness_check` endpoint that provides a `Workflow service is ready` message.
+      operationId: GetReadinessCheck
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      responses:
+        '200':
+          description: Workflow service is ready.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Workflow service is ready"
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+      security: []
+  /v1/info:
+    get:
+      tags:
+        - Info
+      summary: Get service build and version information
+      description: For deployment, a publicly available `/info` endpoint that provides build and git related information for the Workflow Service.
+      operationId: GetInfo
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      responses:
+        '200':
+          description: Successfully retrieved service version information.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionInfo'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+      security: []
+  /v1/workflow:
+    get:
+      tags:
+        - WorkflowManagement
+      summary: List all workflows for the current tenant
+      description: "Retrieves a list of all workflow definitions applicable to the current tenant, optionally filtered by a name prefix. **Required roles**: `service.workflow.viewer`."
+      operationId: ListWorkflows
+      parameters:
+        - $ref: '#/components/parameters/PrefixQueryParam'
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      responses:
+        '200':
+          description: Successfully retrieved the list of workflows.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowMetadataList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+    post:
+      tags:
+        - WorkflowManagement
+      summary: Create or update a workflow definition
+      description: "Creates a new workflow definition or updates an existing one using standard operators of the underlying orchestrator. **Required roles**: `service.workflow.admin`."
+      operationId: CreateWorkflow
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      requestBody:
+        description: Details of the workflow to be created or updated.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWorkflowRequest'
+      responses:
+        '200': # Or 201 for creation
+          description: Workflow created or updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowMetadata'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict' # If workflowName already exists and update logic isn't idempotent based on content.
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /v1/workflow/system:
+    post:
+      tags:
+        - WorkflowSystemManagement
+      summary: Create or update a system workflow definition
+      description: "Creates a new system-level workflow definition or updates an existing one. System workflows might have special privileges or be used for platform operations. **Required roles**: `service.workflow.admin`."
+      operationId: CreateSystemWorkflow
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader' # data-partition-id might be 'system' or similar for system workflows
+      requestBody:
+        description: Details of the system workflow to be created or updated.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWorkflowRequest'
+      responses:
+        '200': # Or 201 for creation
+          description: System workflow created or updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowMetadata'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /v1/workflow/system/{workflowName}:
+    parameters:
+      - $ref: '#/components/parameters/WorkflowNamePathParam'
+      - $ref: '#/components/parameters/DataPartitionIdHeader' # As above, might be specific for system workflows
+    delete:
+      tags:
+        - WorkflowSystemManagement
+      summary: Delete a system workflow definition by name
+      description: "Deletes a system workflow definition identified by its name. **Required roles**: `service.workflow.admin`."
+      operationId: DeleteSystemWorkflowByName
+      responses:
+        '204':
+          description: System workflow deleted successfully.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /v1/workflow/{workflowName}:
+    parameters:
+      - $ref: '#/components/parameters/WorkflowNamePathParam'
+      - $ref: '#/components/parameters/DataPartitionIdHeader'
+    get:
+      tags:
+        - WorkflowManagement
+      summary: Get a workflow definition by name
+      description: "Retrieves the complete details for a specific workflow definition by its name. **Required roles**: `service.workflow.viewer`."
+      operationId: GetWorkflowDefinitionByName
+      responses:
+        '200':
+          description: Successfully retrieved workflow details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowMetadata'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+    delete:
+      tags:
+        - WorkflowManagement
+      summary: Delete a workflow definition by name
+      description: "Deletes a workflow definition identified by its name. **Required roles**: `service.workflow.admin`."
+      operationId: DeleteWorkflowByName
+      responses:
+        '204':
+          description: Workflow deleted successfully.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /v1/workflow/{workflowName}/workflowRun:
+    parameters:
+      - $ref: '#/components/parameters/WorkflowNamePathParam'
+      - $ref: '#/components/parameters/DataPartitionIdHeader'
+    get:
+      tags:
+        - WorkflowExecution
+      summary: List all run instances for a workflow
+      description: "Retrieves a history of all run instances for a specific workflow, potentially filtered by parameters. **Required roles**: `service.workflow.viewer`."
+      operationId: ListWorkflowRuns
+      parameters:
+        - $ref: '#/components/parameters/WorkflowRunParamsQueryParam'
+      responses:
+        '200':
+          description: Successfully retrieved the history of workflow runs.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowRunList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound' # Workflow name not found
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+    post:
+      tags:
+        - WorkflowExecution
+      summary: Trigger a new run for a workflow
+      description: "Initiates a new run for the specified workflow, optionally with a custom run ID and execution context. **Required roles**: `service.workflow.creator`."
+      operationId: TriggerWorkflowRun
+      requestBody:
+        description: Parameters for triggering the workflow run, including execution context and an optional run ID.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TriggerWorkflowRequest'
+      responses:
+        '200': # Or 202 if accepted for asynchronous execution
+          description: Workflow run successfully triggered.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowRunResponse' # Returns details of the triggered run
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound' # Workflow name not found
+        '409': # If runId is provided and already exists
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /v1/workflow/{workflowName}/workflowRun/{runId}:
+    parameters:
+      - $ref: '#/components/parameters/WorkflowNamePathParam'
+      - $ref: '#/components/parameters/WorkflowRunIdPathParam'
+      - $ref: '#/components/parameters/DataPartitionIdHeader'
+    get:
+      tags:
+        - WorkflowExecution
+      summary: Get details for a specific workflow run instance
+      description: "Retrieves detailed information about a specific workflow run instance, identified by its workflow name and run ID. **Required roles**: `service.workflow.viewer`."
+      operationId: GetWorkflowRunDetails
+      responses:
+        '200':
+          description: Successfully retrieved workflow execution details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowRunResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound' # Workflow or run ID not found
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+    put:
+      tags:
+        - WorkflowExecution
+      summary: Update the status of a workflow run instance
+      description: "Updates the status of an existing workflow run instance (e.g., to mark it as finished, failed). This is typically used by the workflow engine or an admin. **Required roles**: `service.workflow.creator` (or a more privileged role like `service.workflow.admin`)."
+      operationId: UpdateWorkflowRunStatus
+      requestBody:
+        description: The new status for the workflow run.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateWorkflowRunRequest'
+      responses:
+        '200':
+          description: Workflow run status updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowRunResponse' # Returns the updated workflow run
+        '400':
+          $ref: '#/components/responses/BadRequest' # e.g., invalid status transition
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound' # Workflow or run ID not found
+        '409': # If status update is not allowed (e.g., trying to update a completed run)
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+components:
+  schemas:
+    AppError:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+          example: 400
+        message:
+          type: string
+          example: "Invalid workflow name."
+        reason:
+          type: string
+          example: "Workflow name cannot contain special characters."
+    ConnectedOuterService:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Apache Airflow"
+          nullable: true
+        version:
+          type: string
+          example: "2.2.3"
+          nullable: true
+    CreateWorkflowRequest:
+      type: object
+      description: Request body for creating or updating a workflow definition.
+      properties:
+        workflowName:
+          type: string
+          description: User-provided name for the workflow. Should be unique.
+          example: "daily_ingestion_pipeline"
+          nullable: true # Though likely required
+        description:
+          type: string
+          description: Description of the workflow's purpose and functionality.
+          example: "Daily pipeline to ingest sales data from source X and transform it."
+          nullable: true
+        registrationInstructions:
+          type: object
+          additionalProperties:
+            type: object # Allows for flexible, orchestrator-specific instructions
+          description: Orchestrator-specific registration instructions. This could include the name of an already registered Airflow DAG, the content of a Python DAG file, or other configuration details.
+          example:
+            airflowDagName: "osdu_daily_ingestion_v1"
+            # Or for dynamic DAG creation:
+            # dagFileContent: "from airflow import DAG\n..."
+            # scheduleInterval: "@daily"
+          nullable: true
+    TriggerWorkflowRequest:
+      type: object
+      description: Request body for triggering a workflow run.
+      properties:
+        runId:
+          type: string
+          description: Optional. An explicit ID for the workflow run. If not provided, one will be generated.
+          example: "manual_run_20231115_sales_data"
+          nullable: true
+        executionContext:
+          type: object
+          additionalProperties:
+            type: object # Values can be simple types or nested objects
+          description: A map of key-value pairs to configure workflow-specific parameters for this run.
+          example:
+            sourceFile: "/path/to/sales_20231114.csv"
+            targetTable: "daily_sales_transformed"
+            notificationEmail: "ops@example.com"
+          nullable: true
+    UpdateWorkflowRunRequest:
+      type: object
+      description: Request body for updating the status of a workflow run.
+      properties:
+        status:
+          type: string
+          enum: [submitted, running, finished, failed, success, queued]
+          description: The new status of the workflow run.
+          example: success
+    WorkflowMetadata:
+      type: object
+      description: Metadata describing a workflow definition.
+      properties:
+        workflowId:
+          type: string
+          description: System-generated unique ID for the workflow definition.
+          example: "wf_0c1a2b3d4e5f"
+          readOnly: true
+          nullable: true
+        workflowName:
+          type: string
+          description: User-provided name for the workflow.
+          example: "daily_ingestion_pipeline"
+          nullable: true
+        description:
+          type: string
+          description: Description of the workflow.
+          example: "Daily pipeline to ingest sales data."
+          nullable: true
+        version:
+          type: integer
+          format: int32
+          description: Semantic version of the workflow definition, incremented on modifications.
+          example: 3
+          readOnly: true
+          nullable: true
+        creationTimestamp:
+          type: integer
+          format: int64
+          description: Epoch timestamp of when the workflow definition was created.
+          example: 1678886400000 # Example: 2023-03-15T12:00:00Z
+          readOnly: true
+          nullable: true
+        createdBy:
+          type: string
+          description: User or system principal that created the workflow definition.
+          example: "user.admin@example.com"
+          readOnly: true
+          nullable: true
+        registrationInstructions:
+          type: object
+          additionalProperties:
+            type: object
+          description: Orchestrator-specific registration instructions.
+          example:
+            airflowDagId: "osdu_daily_ingestion_v1"
+          nullable: true
+        isSystemWorkflow: # System internal flag
+          type: boolean
+          description: Indicates if this is a system workflow.
+          writeOnly: true # Usually not exposed directly to end-users in GET
+          default: false
+          nullable: true
+        isDeployedThroughWorkflowService: # System internal flag
+          type: boolean
+          description: Indicates if the workflow was deployed via this service.
+          writeOnly: true # Usually not exposed directly to end-users in GET
+          default: true
+          nullable: true
+    WorkflowMetadataList:
+      type: object
+      description: A list of workflow metadata definitions.
+      properties:
+        workflows:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowMetadata'
+          description: Array of workflow metadata objects.
+          nullable: true
+        totalCount: # Optional, for pagination if supported
+          type: integer
+          format: int32
+          description: Total number of workflows available.
+          example: 25
+          nullable: true
+    WorkflowRun:
+      type: object
+      description: Represents a single execution instance of a workflow.
+      properties:
+        workflowId:
+          type: string
+          description: ID of the workflow definition being run.
+          example: "wf_0c1a2b3d4e5f"
+          nullable: true
+        workflowName: # Often useful to include workflowName as well for context
+          type: string
+          description: Name of the workflow definition.
+          example: "daily_ingestion_pipeline"
+          nullable: true
+        runId:
+          type: string
+          description: Unique ID for this workflow run instance.
+          example: "run_a1b2c3d4e5_20231115"
+          nullable: true
+        status:
+          type: string
+          description: Current execution status of the workflow run.
+          enum: [submitted, running, finished, failed, success, queued]
+          example: running
+          nullable: true
+        startTimeStamp:
+          type: integer
+          format: int64
+          description: Epoch timestamp when the workflow run started.
+          example: 1678890000000 # Example: 2023-03-15T13:00:00Z
+          nullable: true
+        endTimeStamp:
+          type: integer
+          format: int64
+          description: Epoch timestamp when the workflow run ended (if completed).
+          example: 1678893600000 # Example: 2023-03-15T14:00:00Z
+          nullable: true
+        submittedBy:
+          type: string
+          description: User or system principal that triggered this workflow run.
+          example: "scheduler@example.com"
+          nullable: true
+        workflowEngineExecutionDate: # Specific to Airflow's execution_date concept
+          type: string
+          format: date-time # Assuming it's an ISO 8601 string
+          description: The logical execution date from the workflow engine (e.g., Airflow's execution_date).
+          example: "2023-03-15T00:00:00Z"
+          nullable: true
+    WorkflowRunList:
+      type: object
+      description: A list of workflow run instances.
+      properties:
+        workflowRuns:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowRun'
+          description: Array of workflow run objects.
+          nullable: true
+        totalCount: # Optional, for pagination if supported
+          type: integer
+          format: int32
+          description: Total number of workflow runs matching the criteria.
+          example: 150
+          nullable: true
+    WorkflowRunResponse: # This seems to be a summary for client consumption after triggering/getting status
+      type: object
+      description: Response providing details or status of a workflow run.
+      properties:
+        workflowId:
+          type: string
+          description: ID of the workflow definition.
+          example: "wf_0c1a2b3d4e5f"
+          nullable: true
+        runId:
+          type: string
+          description: Unique ID of the workflow run instance.
+          example: "run_a1b2c3d4e5_20231115"
+          nullable: true
+        status:
+          type: string
+          description: "Current or resulting status of the workflow run. Note: Enum values differ from WorkflowRun.status."
+          enum: [INPROGRESS, PARTIAL_SUCCESS, SUCCESS, FAILED, SUBMITTED]
+          example: SUBMITTED
+          nullable: true
+        startTimeStamp:
+          type: integer
+          format: int64
+          description: Epoch timestamp when the workflow run started.
+          example: 1678890000000
+          nullable: true
+        endTimeStamp:
+          type: integer
+          format: int64
+          description: Epoch timestamp when the workflow run ended (if applicable).
+          example: 1678893600000
+          nullable: true
+        submittedBy:
+          type: string
+          description: User or system principal that triggered this workflow run.
+          example: "user.creator@example.com"
+          nullable: true
+    VersionInfo:
+      type: object
+      properties:
+        groupId:
+          type: string
+          example: "org.osdu"
+          nullable: true
+        artifactId:
+          type: string
+          example: "workflow-service"
+          nullable: true
+        version:
+          type: string
+          example: "2.0.5"
+          nullable: true
+        buildTime:
+          type: string
+          format: date-time
+          example: "2023-11-01T15:00:00Z"
+          nullable: true
+        branch:
+          type: string
+          example: "main"
+          nullable: true
+        commitId:
+          type: string
+          example: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+          nullable: true
+        commitMessage:
+          type: string
+          example: "feat: Added support for custom run IDs"
+          nullable: true
+        connectedOuterServices:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConnectedOuterService'
+          nullable: true
+  securitySchemes:
+    Authorization:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Bearer token for authorization. Example: \"Bearer {token}\""
+  parameters:
+    DataPartitionIdHeader:
+      name: data-partition-id
+      in: header
+      description: Tenant Identifier (Data Partition ID) for data isolation and access control.
+      required: true
+      schema:
+        type: string
+        example: "opendes-tenant1"
+    WorkflowNamePathParam:
+      name: workflowName # Changed from workflow_name
+      in: path
+      description: The name of the workflow.
+      required: true
+      schema:
+        type: string
+        example: "daily_ingestion_pipeline"
+    WorkflowRunIdPathParam:
+      name: runId
+      in: path
+      description: The unique identifier of the workflow run instance.
+      required: true
+      schema:
+        type: string
+        example: "run_a1b2c3d4e5_20231115"
+    PrefixQueryParam:
+      name: prefix
+      in: query
+      description: Optional prefix to filter workflow names.
+      required: false
+      schema:
+        type: string
+        example: "daily_"
+    WorkflowRunParamsQueryParam:
+      name: params # This is an unusual way to pass complex params in GET.
+      in: query
+      description: Optional parameters to filter workflow runs (e.g., based on execution context). The exact structure is orchestrator-dependent. Not recommended for complex filtering; consider a POST-based search instead.
+      required: false # Was true in original spec, but GET params are often optional.
+      schema:
+        type: object # Allows for key-value pairs
+        additionalProperties:
+          type: object # Values could be simple strings or nested objects.
+        example: {"status": "failed", "dateRange": {"start": "2023-11-01", "end": "2023-11-15"}}
+      style: form # How the object is serialized in the query string
+      explode: true
+  responses:
+    BadRequest:
+      description: Bad Request. The request was invalid, malformed, or missing required parameters. Check the response body for details.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    Unauthorized:
+      description: Unauthorized. Authentication is required and has failed or has not yet been provided. Ensure a valid bearer token is included in the `Authorization` header.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    Forbidden:
+      description: Forbidden. The authenticated user does not have the necessary permissions to perform this action.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    NotFound:
+      description: Not Found. The requested resource (e.g., workflow definition, workflow run) could not be found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    Conflict:
+      description: Conflict. The request could not be completed due to a conflict with the current state of the resource (e.g., a workflow with the given name already exists, or an attempt to update a completed run).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    InternalServerError:
+      description: Internal Server Error. An unexpected condition was encountered on the server.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    BadGateway:
+      description: Bad Gateway. The server, while acting as a gateway or proxy, received an invalid response from an upstream server (e.g., the underlying orchestrator like Airflow).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    ServiceUnavailable:
+      description: Service Unavailable. The server is currently unable to handle the request due to a temporary overload or scheduled maintenance.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'

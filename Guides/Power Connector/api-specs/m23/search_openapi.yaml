@@ -1,0 +1,653 @@
+openapi: 3.0.3
+info:
+  title: Azure Data Manager for Energy - Search Service API
+  version: v2.0 # From original spec's version and server path
+  description: >-
+    Search service that provides a set of APIs to search records against an
+    underlying search engine (e.g., Elasticsearch) within the Azure Data Manager
+    for Energy platform.
+  contact:
+    name: Microsoft Support
+    email: support@microsoft.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: https://contoso.energy.azure.com/api/search/v2
+    description: Azure Data Manager for Energy - Contoso Environment (Search Service v2)
+tags:
+  - name: Search
+    description: Service endpoints to search data in the data lake.
+  - name: HealthCheck
+    description: API endpoints for service health checks.
+  - name: Information
+    description: API endpoint for service version information.
+components:
+  schemas:
+    AppError:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+          description: The HTTP error code.
+        message:
+          type: string
+          description: A human-readable error message.
+        reason:
+          type: string
+          description: A more specific reason for the error, if available.
+      example:
+        code: 400
+        message: "Invalid query parameter"
+        reason: "The 'limit' parameter must be a positive integer."
+    Point:
+      type: object
+      description: Represents a geographical point with latitude and longitude.
+      properties:
+        latitude:
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+          description: Latitude of the point.
+          example: 40.7128
+        longitude:
+          type: number
+          format: double
+          minimum: -180 # Standard longitude range
+          maximum: 180  # Standard longitude range
+          description: Longitude of the point.
+          example: -74.0060
+      required:
+        - latitude
+        - longitude
+    Polygon:
+      type: object
+      description: Represents a polygon defined by a list of points.
+      properties:
+        points:
+          type: array
+          items:
+            $ref: '#/components/schemas/Point'
+          description: An array of points defining the polygon's vertices.
+      required:
+        - points
+    ByBoundingBox:
+      type: object
+      description: Spatial filter criterion based on a bounding box.
+      properties:
+        topLeft:
+          $ref: '#/components/schemas/Point'
+          description: The top-left corner of the bounding box.
+        bottomRight:
+          $ref: '#/components/schemas/Point'
+          description: The bottom-right corner of the bounding box.
+      required:
+        - topLeft
+        - bottomRight
+    ByDistance:
+      type: object
+      description: Spatial filter criterion based on distance from a point.
+      properties:
+        point:
+          $ref: '#/components/schemas/Point'
+          description: The central point for the distance calculation.
+        distance:
+          type: number
+          format: double
+          description: The distance from the central point (units depend on service configuration, e.g., meters or kilometers).
+          example: 10.5
+      required:
+        - point
+        - distance
+    ByGeoPolygon:
+      type: object
+      description: Spatial filter criterion based on a geographical polygon. The spatial relation is typically 'intersects' or 'within'.
+      properties:
+        points:
+          type: array
+          items:
+            $ref: '#/components/schemas/Point'
+          description: An array of points defining the polygon's vertices.
+      required:
+        - points
+    ByIntersection: # This seems to be a more specific geo-operation, maybe related to pre-defined named polygons?
+      type: object
+      description: Spatial filter criterion based on intersection with specified polygons.
+      properties:
+        polygons:
+          type: array
+          items:
+            $ref: '#/components/schemas/Polygon' # Assuming 'Polygon' not a named one stored in the system.
+          description: An array of polygons to check for intersection.
+      required:
+        - polygons
+    ByWithinPolygon: # This seems redundant if ByGeoPolygon implies 'within'. If it's different, needs clarification.
+      type: object
+      description: Spatial filter criterion to find geometries completely within the specified polygon.
+      properties:
+        points:
+          type: array
+          items:
+            $ref: '#/components/schemas/Point'
+          description: An array of points defining the containing polygon's vertices.
+      required:
+        - points
+    SpatialFilter:
+      type: object
+      description: Defines a spatial filter to be applied to a search query. Only one of the 'by...' properties should be used.
+      properties:
+        field:
+          type: string
+          description: The document field on which the spatial filter is applied (e.g., 'data.location.coordinates').
+          example: "data.location.wgs84"
+        byBoundingBox:
+          $ref: '#/components/schemas/ByBoundingBox'
+        byDistance:
+          $ref: '#/components/schemas/ByDistance'
+        byGeoPolygon:
+          $ref: '#/components/schemas/ByGeoPolygon'
+        # The following two seem very specific; often geo-queries have options like 'intersects', 'within', 'contains' on a single geometry.
+        # Keeping them as per input for now.
+        byIntersection:
+          $ref: '#/components/schemas/ByIntersection'
+        byWithinPolygon:
+          $ref: '#/components/schemas/ByWithinPolygon'
+      required:
+        - field
+    SortQuery:
+      type: object
+      description: Defines the sorting criteria for search results.
+      properties:
+        field:
+          type: array
+          items:
+            type: string
+          description: An array of field names to sort by.
+          example: ["data.wellName", "header.createdDate"]
+        order:
+          type: array
+          items:
+            type: string
+            enum: [ASC, DESC]
+          description: An array of sort orders corresponding to the fields (ASC for ascending, DESC for descending).
+          example: ["ASC", "DESC"]
+        # 'filter' in a sort context is unusual. Keeping it as per input but it might need clarification.
+        # It could potentially refer to filtering on sorted aggregation buckets, but its current placement is ambiguous.
+        filter:
+          type: array
+          items:
+            type: string
+          description: "Filter applied to sorted results (usage context unclear, often part of the main query)."
+          example: ["status:active"]
+    QueryBase:
+      type: object
+      properties:
+        kind: # Changed from 'type: object'
+          type: array
+          items:
+            type: string
+          description: >-
+            The kind of data to search, in the format 'authority:source:type:version'
+            (e.g., 'osdu:wks:wellbore:1.0.0'). Wildcards (*) are supported.
+          example: ["osdu:wks:master-data--Wellbore:1.*", "contoso:crm:customer-data--Contact:2.1.0"]
+        query:
+          type: string
+          description: >-
+            The search query string, typically using Lucene query syntax or a
+            similar domain-specific language supported by the search engine.
+          example: "data.wellName:\"Horizon*\" AND data.facilityId:\"FP-001\""
+        returnedFields:
+          type: array
+          items:
+            type: string
+          description: A list of fields to include in the search results.
+          example: ["id", "data.wellName", "data.spudDate"]
+        highlightedFields:
+          type: array
+          items:
+            type: string
+          description: A list of fields for which to return highlighted snippets if the query matches.
+          example: ["data.abstract", "data.remarks"]
+        sort:
+          $ref: '#/components/schemas/SortQuery'
+        spatialFilter:
+          $ref: '#/components/schemas/SpatialFilter'
+        queryAsOwner:
+          type: boolean
+          default: false
+          description: >-
+            If true, the query is executed with owner privileges, potentially
+            bypassing some access control checks (use with caution).
+          example: false
+        trackTotalCount:
+          type: boolean
+          default: true # Assuming true is a common default
+          description: If true, the response will include the total number of matching documents.
+          example: true
+        suggestPhrase:
+          type: string
+          description: A phrase to get suggestions for (e.g., for "did you mean" functionality).
+          example: "wellbore traject"
+      required:
+        - kind
+    QueryRequest:
+      allOf:
+        - $ref: '#/components/schemas/QueryBase'
+      type: object
+      description: Request body for a standard search query.
+      properties:
+        offset:
+          type: integer
+          format: int32
+          minimum: 0
+          default: 0
+          description: The number of initial results to skip (for pagination).
+          example: 0
+        limit:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000 # Typical max limit
+          default: 10
+          description: The maximum number of results to return.
+          example: 20
+        aggregateBy:
+          type: string
+          description: A field name to aggregate results by (e.g., for faceting).
+          example: "data.status"
+    CursorQueryRequest:
+      allOf:
+        - $ref: '#/components/schemas/QueryBase'
+      type: object
+      description: Request body for a search query using a cursor for deep pagination.
+      properties:
+        cursor:
+          type: string
+          description: >-
+            The cursor string obtained from a previous response to fetch the
+            next set of results. For the initial request, this is typically omitted or empty.
+          example: "CURSOR_TOKEN_XYZ123"
+        limit: # Limit here is for each fetch with cursor
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000 # Typical max limit
+          default: 100
+          description: The maximum number of results to return per cursor request.
+          example: 100
+    SearchResultItem:
+      type: object
+      description: A single item returned in the search results. The structure is dynamic based on the 'kind' queried and 'returnedFields'.
+      additionalProperties: true # Allows for any fields
+      example:
+        id: "osdu:wks:work-product-component--WellLog:12345"
+        version: 1622548800000
+        kind: "osdu:wks:work-product-component--WellLog:1.0.0"
+        acl:
+          viewers: ["data.default.viewers@osdu.group"]
+          owners: ["data.default.owners@osdu.group"]
+        legal:
+          legaltags: ["osdu-public-usa-dataset-1"]
+          otherRelevantDataCountries: ["US"]
+        data:
+          FacilityName: "Well A"
+          Wgs84Coordinates:
+            type: "Feature"
+            geometry:
+              type: "Point"
+              coordinates: [-100.0, 40.0]
+    AggregationResponse:
+      type: object
+      description: Represents a single aggregation bucket in the search results.
+      properties:
+        key:
+          type: string
+          description: The key or value of the aggregation bucket.
+          example: "Active"
+        count:
+          type: integer
+          format: int64
+          description: The number of documents in this aggregation bucket.
+          example: 150
+    QueryResponse:
+      type: object
+      description: Response body for a standard search query.
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchResultItem'
+          description: An array of search result items.
+        totalCount:
+          type: integer
+          format: int64
+          description: The total number of documents matching the query (if `trackTotalCount` was true).
+          example: 1234
+        aggregations:
+          type: array
+          items:
+            $ref: '#/components/schemas/AggregationResponse'
+          description: An array of aggregation results, if `aggregateBy` was specified.
+        phraseSuggestions: # New based on 'suggestPhrase' in request
+          type: array
+          items:
+            type: string
+          description: Suggested alternative phrases if 'suggestPhrase' was provided in the request.
+          example: ["wellbore trajectory"]
+    CursorQueryResponse:
+      type: object
+      description: Response body for a cursor-based search query.
+      properties:
+        cursor:
+          type: string
+          nullable: true
+          description: >-
+            The cursor string to use for fetching the next set of results.
+            Null or absent if there are no more results.
+          example: "NEXT_CURSOR_TOKEN_ABC789"
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchResultItem'
+          description: An array of search result items.
+        totalCount: # Often included in cursor responses as well for the overall query
+          type: integer
+          format: int64
+          description: The total number of documents matching the query (if `trackTotalCount` was true).
+          example: 5678
+    ConnectedOuterService:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Underlying Search Engine"
+        version:
+          type: string
+          example: "8.5.1"
+    VersionInfo:
+      type: object
+      properties:
+        version:
+          type: string
+          example: "v2.0.1"
+        commitId:
+          type: string
+          example: "a1b2c3d4e5f67890"
+        buildTime:
+          type: string
+          format: date-time # Assuming it's a timestamp
+          example: "2023-10-26T14:30:00Z"
+        branch:
+          type: string
+          example: "release/v2.0"
+        commitMessage:
+          type: string
+          example: "Feature: Enhanced spatial querying"
+        groupId:
+          type: string
+          example: "com.contoso.energy.search"
+        artifactId:
+          type: string
+          example: "search-service"
+        connectedOuterServices:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConnectedOuterService'
+
+  parameters:
+    DataPartitionIdHeader:
+      name: data-partition-id
+      in: header
+      description: >-
+        The identifier of the data partition to identify the instance of the
+        data store. Often a tenant or account ID.
+      required: true
+      schema:
+        type: string
+      example: 'contoso-opendes'
+
+  responses:
+    AppErrorResponse:
+      description: An error occurred. Specific error code and message will be in the response body.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    UnauthorizedError:
+      description: Unauthorized. The client has not provided valid authentication credentials.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    ForbiddenError:
+      description: Forbidden. The client is authenticated but does not have permission to perform this action.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    NotFoundError:
+      description: Not Found. The requested resource could not be found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    BadRequestError:
+      description: Bad Request. The server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, invalid request message framing, or deceptive request routing).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    InternalServerError:
+      description: Internal Server Error. The server encountered an unexpected condition that prevented it from fulfilling the request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    BadGatewayError:
+      description: Bad Gateway. The server, while acting as a gateway or proxy, received an invalid response from an inbound server it accessed while attempting to fulfill the request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    ServiceUnavailableError:
+      description: Service Unavailable. The server is currently unable to handle the request due to a temporary overload or scheduled maintenance, which will likely be alleviated after some delay.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+
+  securitySchemes:
+    oAuth2AuthCode:
+      type: oauth2
+      description: OAuth2 authentication using Authorization Code flow with Azure AD.
+      flows:
+        authorizationCode:
+          authorizationUrl: https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/authorize
+          tokenUrl: https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token
+          scopes:
+            'api://contoso.energy.azure.com/data.read': Read access to ADME data including search.
+            'api://contoso.energy.azure.com/data.write': Write access (not typically used for search reads).
+            # For ADME, user_impersonation is also common, e.g. for resource-specific API
+            # 'https://{adme-instance-name}.energy.azure.com/user_impersonation': Impersonate user
+security:
+  - oAuth2AuthCode:
+      - 'api://contoso.energy.azure.com/data.read'
+
+paths:
+  /info:
+    get:
+      tags:
+        - Information
+      summary: Get Service Version Information
+      description: >-
+        Provides build and git related information about the deployed search service.
+        This is typically a public endpoint and does not require authentication.
+      operationId: GetInfo
+      security: [] # Explicitly mark as unauthenticated
+      responses:
+        '200':
+          description: Successfully retrieved version information.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionInfo'
+        default:
+          $ref: '#/components/responses/AppErrorResponse'
+
+  /liveness_check:
+    get:
+      tags:
+        - HealthCheck
+      summary: Perform a Liveness Check
+      description: >-
+        Checks if the search service is alive and responding. This is typically a public
+        endpoint and does not require authentication or data-partition-id.
+      operationId: GetLivenessCheck
+      security: [] # Explicitly mark as unauthenticated
+      responses:
+        '200':
+          description: OK. The service is operational.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Service is alive"
+        '502':
+          $ref: '#/components/responses/BadGatewayError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+        default:
+          $ref: '#/components/responses/AppErrorResponse'
+
+  /readiness_check:
+    get:
+      tags:
+        - HealthCheck
+      summary: Perform a Readiness Check
+      description: >-
+        Checks if the search service is ready to accept traffic (e.g., dependencies are available).
+        This is typically a public endpoint and does not require authentication or data-partition-id.
+      operationId: GetReadinessCheck
+      security: [] # Explicitly mark as unauthenticated
+      responses:
+        '200':
+          description: OK. The service is ready.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Service is ready"
+        '502':
+          $ref: '#/components/responses/BadGatewayError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+        default:
+          $ref: '#/components/responses/AppErrorResponse'
+
+  /query:
+    post:
+      tags:
+        - Search
+      summary: Query Records with Pagination
+      description: >-
+        The API supports full text search on string fields, range queries
+        on date, numeric or string fields, along with geo-spatial search.
+        Results are paginated using offset and limit.
+
+
+        Required roles: `users.datalake.viewers` or equivalent, and membership
+        in relevant data groups.
+      operationId: QueryRecords
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      requestBody:
+        description: The search query request.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QueryRequest'
+      responses:
+        '200':
+          description: Successfully executed the query.
+          content:
+            application/json: # Changed from */*
+              schema:
+                $ref: '#/components/schemas/QueryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError' # Can occur if 'kind' doesn't exist
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          description: >-
+            Bad Gateway. Search service scale-up or dependency issue.
+            Wait a few moments and retry.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+        default:
+          $ref: '#/components/responses/AppErrorResponse'
+
+  /query_with_cursor:
+    post:
+      tags:
+        - Search
+      summary: Query Records with Cursor
+      description: >-
+        The API supports full text search on string fields, range queries
+        on date, numeric or string fields, along with geo-spatial search.
+        It uses a cursor for efficient deep pagination of large result sets.
+
+
+        Required roles: `users.datalake.viewers` or equivalent, and membership
+        in relevant data groups.
+      operationId: QueryWithCursor
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      requestBody:
+        description: The search query request using a cursor.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CursorQueryRequest'
+      responses:
+        '200':
+          description: Successfully executed the query and retrieved a set of results.
+          content:
+            application/json: # Changed from */*
+              schema:
+                $ref: '#/components/schemas/CursorQueryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError' # Can occur if 'kind' doesn't exist or cursor is invalid
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          description: >-
+            Bad Gateway. Search service scale-up or dependency issue.
+            Wait a few moments and retry.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailableError'
+        default:
+          $ref: '#/components/responses/AppErrorResponse'

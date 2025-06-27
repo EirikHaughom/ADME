@@ -1,0 +1,522 @@
+openapi: 3.0.3
+info:
+  title: Azure Data Manager for Energy - Petrel DMS API
+  version: '1.0'
+  description: API for managing Petrel projects within the Azure Data Manager for Energy, including retrieval, update, and versioning.
+  # Contact and license kept from original
+  contact:
+    name: Microsoft Support
+    email: support@microsoft.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: / # Assuming API base path is root, if it's /api/petreldms/v1, it should be defined here.
+    description: Main API server
+paths:
+  /api/petreldms/v1/projects/{projectId}:
+    parameters:
+      - $ref: '#/components/parameters/DataPartitionIdHeader'
+      - $ref: '#/components/parameters/AuthorizationHeader'
+      - $ref: '#/components/parameters/ProjectIdPathParam'
+    get:
+      tags:
+        - Projects
+      summary: Get a specific project record by its ID
+      description: Retrieves the metadata record for a single Petrel project.
+      operationId: GetProjectById
+      parameters:
+        - $ref: '#/components/parameters/AttributeQueryParam'
+      responses:
+        '200':
+          description: The project metadata was successfully retrieved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OsduRecord'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags:
+        - Projects
+      summary: Update specific properties of a project
+      description: Partially updates a project's properties using a set of field operations (e.g., replace).
+      operationId: PatchProjectById
+      requestBody:
+        description: The patch operations to apply to the project.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectPatchRequest'
+      responses:
+        '200': # PATCH usually returns 200 OK with the updated resource or 204 No Content
+          description: The project was successfully updated.
+          # Optionally, include the updated OsduRecord in the response body:
+          # content:
+          #   application/json:
+          #     schema:
+          #       $ref: '#/components/schemas/OsduRecord'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post: # This POST is used for deletion in the original spec
+      tags:
+        - Projects
+      summary: Delete specific records within a project (or the project itself)
+      description: "Deletes specified records within a project, or potentially the entire project if the interpretation of the request body implies that. (Note: Using POST for deletion is non-standard; DELETE verb is preferred)."
+      operationId: DeleteProjectOrRecordsById # Renamed to reflect ambiguity/function
+      requestBody:
+        description: An array of record identifiers to be deleted from the project. If this implies deleting the project record itself, the behavior should be clearly documented.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+                example: "opendes:work-product-component--WellLog:abc"
+      responses:
+        '200': # Or 204 No Content if nothing is returned
+          description: The specified records (or project) were successfully deleted. The response contains a list of IDs that were processed.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                example: ["opendes:work-product-component--WellLog:abc"]
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound' # Project or some specified records not found
+  /api/petreldms/v1/projects/{projectId}/download:
+    parameters:
+      - $ref: '#/components/parameters/DataPartitionIdHeader'
+      - $ref: '#/components/parameters/AuthorizationHeader'
+      - $ref: '#/components/parameters/ProjectIdPathParam'
+    get:
+      tags:
+        - Projects
+      summary: Get a download URL for a specific project
+      description: Generates a time-limited signed URL that can be used to download the project's data.
+      operationId: GetProjectDownloadUrl
+      responses:
+        '200':
+          description: The project download URL was successfully generated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDownloadResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/petreldms/v1/projects/{projectId}/update: # This path implies a full update via PUT
+    parameters:
+      - $ref: '#/components/parameters/DataPartitionIdHeader'
+      - $ref: '#/components/parameters/AuthorizationHeader'
+      - $ref: '#/components/parameters/ProjectIdPathParam'
+    put:
+      tags:
+        - Projects
+      summary: Update an entire project (full replacement or significant update)
+      description: Updates an existing project. This typically involves replacing the project's data or metadata entities.
+      operationId: UpdateProjectById
+      requestBody:
+        description: The project update request, which may include new records or a signed URL for data replacement.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectUpdateRequest'
+      responses:
+        '200': # 200 OK if resource updated and returned, or 204 No Content if update is successful without returning body.
+          description: The project was successfully updated.
+          # Optionally, return the updated OsduRecord:
+          # content:
+          #   application/json:
+          #     schema:
+          #       $ref: '#/components/schemas/OsduRecord'
+        '201': # If this operation can also create a project (upsert)
+          description: The project was successfully created or updated.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/petreldms/v1/projects/{projectId}/upload:
+    parameters:
+      - $ref: '#/components/parameters/DataPartitionIdHeader'
+      - $ref: '#/components/parameters/AuthorizationHeader'
+      - $ref: '#/components/parameters/ProjectIdPathParam'
+    post:
+      tags:
+        - Projects
+      summary: Get upload and download URLs for a project
+      description: Generates time-limited signed URLs for both uploading data to and downloading data from a specific project. This is often an initial step before a PUT update or for direct data manipulation.
+      operationId: GetProjectUploadAndDownloadUrls # Renamed to reflect response
+      responses:
+        '200':
+          description: The project upload/download URLs were successfully generated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectUploadResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound' # Project not found
+  /api/petreldms/v1/projects/{projectId}/versions/{versionId}:
+    parameters:
+      - $ref: '#/components/parameters/DataPartitionIdHeader'
+      - $ref: '#/components/parameters/AuthorizationHeader'
+      - $ref: '#/components/parameters/ProjectIdPathParam'
+      - $ref: '#/components/parameters/VersionIdPathParam'
+    get:
+      tags:
+        - Projects
+      summary: Get a specific version of a project record
+      description: Retrieves a specific version of a project's metadata record.
+      operationId: GetProjectVersionById
+      parameters:
+        - $ref: '#/components/parameters/AttributeQueryParam'
+      responses:
+        '200':
+          description: The project version metadata was successfully retrieved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OsduRecord' # Assuming a versioned record still conforms to OsduRecord schema
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound' # Project or version not found
+components:
+  schemas:
+    ErrorDetails:
+      type: object
+      additionalProperties: false
+      properties:
+        statusCode:
+          type: integer
+          format: int32
+          example: 400
+        message:
+          type: string
+          nullable: true
+          example: "Invalid project ID format."
+        details:
+          type: string
+          nullable: true
+          example: "Project ID must be a valid GUID."
+        correlationId:
+          type: string
+          nullable: true
+          example: "b3a9c2d0-7e9a-4b8c-8f2e-1d5a9c0b3e4d"
+        error: # 'error' is vague, consider 'errorCode' or 'errorType' if more specific
+          nullable: true
+          type: object # Or string if it's just a code
+          example: {"code": "VALIDATION_ERROR"}
+        errorId: # Different from correlationId?
+          type: string
+          nullable: true
+          example: "ERR-PROJECT-001"
+    FieldOperation:
+      type: object
+      additionalProperties: false
+      description: Represents a single operation (e.g., replace) on a field within a project.
+      required:
+        - name
+        - value # A value should be provided for an operation like "replace"
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: The name of the field to operate on (e.g., "data.Description").
+          example: "data.Description"
+        value:
+          nullable: true # Can be any valid JSON type depending on the field
+          description: The new value for the field.
+          example: "Updated project description."
+    OsduAcl:
+      type: object
+      additionalProperties: false
+      description: OSDU Access Control List.
+      properties:
+        owners:
+          type: array
+          items:
+            type: string
+            format: email
+            example: "data.default.owners@opendes.contoso.com"
+          nullable: true
+          description: An array of owner identifiers (user or group emails).
+        viewers:
+          type: array
+          items:
+            type: string
+            format: email
+            example: "data.default.viewers@opendes.contoso.com"
+          nullable: true
+          description: An array of viewer identifiers (user or group emails).
+    OsduLegalTag:
+      type: object
+      additionalProperties: false
+      description: OSDU Legal Tags.
+      properties:
+        legaltags:
+          type: array
+          items:
+            type: string
+            example: "opendes-public-usa-dataset"
+          nullable: true
+          description: An array of legal tag names.
+        otherRelevantDataCountries:
+          type: array
+          items:
+            type: string
+            example: "US"
+          nullable: true
+          description: An array of other relevant data country codes (ISO 3166-1 alpha-2).
+    OsduRecord:
+      type: object
+      additionalProperties: false
+      description: Represents a generic OSDU record structure, used for Petrel projects.
+      properties:
+        id:
+          type: string
+          nullable: true
+          description: The unique identifier of the OSDU record.
+          example: "opendes:master-data--PetrelProject:myProject123"
+        version:
+          type: integer # Changed from string to integer/int64
+          format: int64
+          nullable: true
+          description: The version number of the OSDU record.
+          example: 1621350254300957
+        kind:
+          type: string
+          nullable: true
+          description: The kind of the OSDU record.
+          example: "opendes:wks:master-data--PetrelProject:1.0.0"
+        acl:
+          $ref: '#/components/schemas/OsduAcl'
+        legal:
+          $ref: '#/components/schemas/OsduLegalTag'
+        data:
+          type: object # Assuming data is a flexible object
+          nullable: true
+          additionalProperties: true # Allows any structure within data
+          description: The main data payload of the record, specific to the Petrel project.
+          example:
+            ProjectName: "North Sea Exploration Block A"
+            SoftwareVersion: "Petrel 2023.1"
+            CoordinateSystem: "EPSG:23031"
+        meta:
+          type: array
+          items:
+            type: object # Each item in meta is an object
+            additionalProperties: true # Allowing flexible key-value pairs within each meta item
+          nullable: true
+          description: An array of metadata blocks providing additional context.
+          example:
+            - kind: "GeoSpatialInfo"
+              Region: "North Sea"
+              Country: "UK"
+        createUser:
+          type: string
+          nullable: true
+          readOnly: true
+          description: The user who created the record.
+          example: "user.creator@example.com"
+        createTime:
+          type: string
+          format: date-time # Assuming ISO 8601 format
+          nullable: true
+          readOnly: true
+          description: The timestamp when the record was created.
+          example: "2023-01-15T10:00:00Z"
+        modifyUser:
+          type: string
+          nullable: true
+          readOnly: true
+          description: The user who last modified the record.
+          example: "user.modifier@example.com"
+        modifyTime:
+          type: string
+          format: date-time # Assuming ISO 8601 format
+          nullable: true
+          readOnly: true
+          description: The timestamp when the record was last modified.
+          example: "2023-01-16T14:30:00Z"
+    ProjectDownloadResponse:
+      type: object
+      additionalProperties: false
+      description: Response containing a download URL for the project.
+      properties:
+        downloadUrl:
+          type: string
+          format: url
+          nullable: true
+          description: A time-limited signed URL to download the project data.
+          example: "https://storage.example.com/download/project123?token=xyz"
+        providerKey:
+          type: string
+          nullable: true
+          readOnly: true
+          description: Identifier for the storage provider.
+          example: "azure-blob-storage"
+    ProjectPatchRequest:
+      type: object
+      additionalProperties: false
+      description: Request body for patching specific fields of a project.
+      required:
+        - id
+        - fields
+      properties:
+        id:
+          type: string
+          minLength: 1
+          description: The ID of the project to patch.
+          example: "opendes:master-data--PetrelProject:myProject123"
+        fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/FieldOperation'
+          description: An array of operations to apply to the project's fields.
+          minItems: 1
+    ProjectUpdateRequest:
+      type: object
+      additionalProperties: false
+      description: Request body for updating a project, potentially including new records or a signed URL for data replacement.
+      properties:
+        signedUrl: # This suggests an out-of-band data update mechanism
+          type: string
+          format: url
+          nullable: true
+          description: A pre-signed URL pointing to the updated project data package to be ingested.
+          example: "https://storage.example.com/upload/project123_updated_package?token=abc"
+        records: # This suggests in-band metadata record updates
+          type: array
+          items:
+            $ref: '#/components/schemas/OsduRecord'
+          nullable: true
+          description: An array of OSDU records to be updated or added as part of the project update.
+    ProjectUploadResponse:
+      type: object
+      additionalProperties: false
+      description: Response containing URLs for uploading and potentially downloading project data.
+      properties:
+        uploadUrl:
+          type: string
+          format: url
+          nullable: true
+          description: A time-limited signed URL to upload project data.
+          example: "https://storage.example.com/upload/project123?token=abc"
+        downloadUrl: # Optional, if the same endpoint provides both
+          type: string
+          format: url
+          nullable: true
+          description: A time-limited signed URL to download the project data (potentially after upload or for current version).
+          example: "https://storage.example.com/download/project123?token=xyz"
+        providerKey:
+          type: string
+          nullable: true
+          readOnly: true
+          description: Identifier for the storage provider.
+          example: "azure-blob-storage"
+  securitySchemes:
+    login: # OAuth2 Authorization Code Flow
+      type: oauth2
+      description: OAuth2 Authorization Code flow for user authentication.
+      flows:
+        authorizationCode:
+          authorizationUrl: https://p4d.csi.cloud.slb-ds.com/v2/auth
+          tokenUrl: https://p4d.csi.cloud.slb-ds.com/v2/token
+          scopes:
+            # The scope name '963f2cc6915e479fa0fcb73ec2ec90e7' is a client ID.
+            # Scopes usually represent permissions. This is kept as per original.
+            963f2cc6915e479fa0fcb73ec2ec90e7: OSDU Client ID
+            openid: Request access to the End-User's default profile Claims.
+    manual: # HTTP Bearer Token
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Manual JWT Bearer token authentication.
+  parameters:
+    DataPartitionIdHeader:
+      name: data-partition-id # Standardized case
+      in: header
+      description: Identifier of the data partition to operate on.
+      required: true
+      schema:
+        type: string
+        example: "opendes-tenant1"
+    AuthorizationHeader:
+      name: Authorization
+      in: header
+      description: Bearer token for authentication (e.g., "Bearer {your_jwt_token}").
+      required: true
+      schema:
+        type: string
+        example: "Bearer eyJhbGciOiJSUzI1NiIsI..."
+    ProjectIdPathParam:
+      name: projectId
+      in: path
+      description: The unique identifier of the Petrel project.
+      required: true
+      schema:
+        type: string
+        example: "opendes:master-data--PetrelProject:myProjectXYZ"
+    VersionIdPathParam:
+      name: versionId
+      in: path
+      description: The specific version identifier of the project record.
+      required: true
+      schema:
+        type: string # Or integer if versions are numeric
+        example: "1621350254300957"
+    AttributeQueryParam:
+      name: attribute
+      in: query
+      description: 'Filter attributes to restrict the returned fields of the record. Usage: `data.{record-data-field-name}`.'
+      required: false
+      schema:
+        type: string
+        example: "data.ProjectName,data.SoftwareVersion"
+  responses:
+    BadRequest:
+      description: The request is invalid (e.g., malformed JSON, missing required parameters, invalid values).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorDetails'
+    Forbidden:
+      description: Access Denied. The authenticated user does not have the necessary permissions for the requested operation or resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorDetails' # Providing ErrorDetails for consistency
+    NotFound:
+      description: Not Found. The requested project or resource does not exist.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorDetails'

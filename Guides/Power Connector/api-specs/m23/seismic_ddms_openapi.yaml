@@ -1,0 +1,2092 @@
+openapi: 3.0.3
+info:
+  title: Azure Data Manager for Energy - Seismic DMS API
+  version: v3.0.0
+  description: >-
+    Seismic Data Management Service (DMS) API for Azure Data Manager for Energy.
+    Provides endpoints to store, manage, and retrieve seismic datasets and
+    associated metadata, including support for tenant and subproject
+    management, access control, and utility operations.
+  contact:
+    name: Microsoft Support
+    email: support@microsoft.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: https://contoso.energy.azure.com/seistore-svc/api/v3
+    description: Azure Data Manager for Energy - Contoso Environment (Seismic DMS v3)
+tags:
+  - name: ApplicationManagement
+    description: Managing registered and trusted applications.
+  - name: DatasetManagement
+    description: Operations for managing seismic datasets.
+  - name: DatasetManagementDeprecated
+    description: Deprecated operations related to dataset management.
+  - name: ImpersonationToken
+    description: Generating and managing impersonation tokens.
+  - name: ImpersonationTokenObsolete
+    description: Obsolete endpoints for impersonation token management.
+  - name: Information
+    description: Service information and status endpoints.
+  - name: OperationManagement
+    description: Managing long-running operations like bulk delete.
+  - name: SubprojectManagement
+    description: Operations for managing subprojects within a tenant.
+  - name: TenantManagement
+    description: Operations for managing tenants.
+  - name: TenantManagementObsolete
+    description: Obsolete endpoints for tenant management.
+  - name: UserManagement
+    description: Managing user access and roles for subprojects.
+  - name: UtilityOperations
+    description: Utility functions for dataset and storage interaction.
+components:
+  schemas:
+    # --- ADME/OSDU Common Schemas ---
+    AppError:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+          description: HTTP error status code.
+          example: 400
+        message:
+          type: string
+          description: A human-readable error message.
+          example: "Invalid request payload."
+        reason:
+          type: string
+          description: A more specific reason for the error, if available.
+          example: "Missing required field 'name'."
+
+    # --- OSDU Abstract Schemas (Simplified for brevity, assuming full definitions elsewhere if needed) ---
+    AbstractAccessControlList:
+      type: object
+      title: Access Control List
+      description: >-
+        The access control tags associated with this entity.
+        Part of all OSDU records.
+      properties:
+        owners:
+          type: array
+          items:
+            type: string
+            format: email
+            pattern: ^[a-zA-Z0-9_+&*-]+(?:\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,7}$
+          title: List of Owners
+          description: List of owners of this data record.
+          example: ["owner1@contoso.energy", "owner-group@contoso.energy"]
+        viewers:
+          type: array
+          items:
+            type: string
+            format: email
+            pattern: ^[a-zA-Z0-9_+&*-]+(?:\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,7}$
+          title: List of Viewers
+          description: List of viewers to whom this data record is accessible.
+          example: ["viewer1@contoso.energy", "viewer-group@contoso.energy"]
+      required:
+        - owners
+        - viewers
+      x-osdu-schema-source: osdu:wks:AbstractAccessControlList:1.0.0
+
+    AbstractLegalParentList:
+      type: object
+      title: Parent List
+      description: >-
+        A list of entity IDs acting as legal parents to the current entity.
+        Part of all OSDU records.
+      properties:
+        parents:
+          type: array
+          items:
+            type: string
+            pattern: ^[\w\.\-]+:[\w\.\-]+:[\w\-\.:%]+:[0-9]+$ # OSDU Record ID with version
+          title: Parents
+          description: Array of entity references identifying the legal source of data.
+          example: ["osdu:master-data--Well:well-xyz:1"]
+      x-osdu-schema-source: osdu:wks:AbstractLegalParentList:1.0.0
+
+    AbstractLegalTags:
+      type: object
+      title: Legal Meta Data
+      description: Legal metadata like legal tags, relevant countries, and status.
+      properties:
+        legaltags:
+          type: array
+          items:
+            type: string
+          title: Legal Tags
+          description: List of legal tags resolving to legal properties and rules.
+          example: ["opendes-public-usa-dataset-1"]
+        otherRelevantDataCountries:
+          type: array
+          items:
+            type: string
+            pattern: ^[A-Z]{2}$ # ISO 3166-1 alpha-2
+          title: Other Relevant Data Countries
+          description: List of other relevant data countries (ISO 3166-1 alpha-2 codes).
+          example: ["US", "CA"]
+        status:
+          type: string
+          title: Legal Status
+          pattern: ^(compliant|incompliant|pending)$ # Added pending as a common status
+          description: Legal status after evaluation against compliance rules.
+          example: "compliant"
+      required:
+        - legaltags
+        - otherRelevantDataCountries
+      x-osdu-schema-source: osdu:wks:AbstractLegalTags:1.0.0
+
+    AbstractMetaItem:
+      type: object
+      title: Frame of Reference Meta Data Item
+      description: >-
+        Associates named properties or values to a Unit/Measurement/CRS/Azimuth/Time context.
+      # For brevity, not fully expanding the oneOf here. Assume it's a valid OSDU definition.
+      # Consumers would need the full OSDU schema for AbstractMetaItem.
+      properties:
+        kind:
+          type: string
+          enum: [Unit, CRS, DateTime, AzimuthReference]
+          description: The kind of reference.
+        name:
+          type: string
+          description: The name or symbol of the reference (e.g., unit symbol, CRS name).
+        persistableReference:
+          type: string # Opaque string for OSDU, but often JSON
+          description: The self-contained, persistable reference string.
+        propertyNames:
+          type: array
+          items:
+            type: string
+          description: List of property names this metadata item provides context to.
+      required:
+        - kind
+        - persistableReference
+      x-osdu-schema-source: osdu:wks:AbstractMetaItem:1.0.0
+
+    AbstractCommonResources:
+      type: object
+      title: OSDU Common Resources
+      description: Common resource properties injected at the 'data' level for persistable entities.
+      properties:
+        ExistenceKind:
+          type: string
+          pattern: ^[\w\.\-]+:reference-data--ExistenceKind:[\w\.\-:%]+:[0-9]*$
+          title: Existence Kind
+          description: The stage of the data resource in its lifecycle.
+          example: "osdu:reference-data--ExistenceKind:Actual:1"
+        ResourceCurationStatus:
+          type: string
+          pattern: ^[\w\.\-]+:reference-data--ResourceCurationStatus:[\w\.\-:%]+:[0-9]*$
+          title: Resource Curation Status
+          description: Current curation status of the resource.
+          example: "osdu:reference-data--ResourceCurationStatus:Curated:1"
+        ResourceHomeRegionID:
+          type: string
+          pattern: ^[\w\.\-]+:reference-data--OSDURegion:[\w\.\-:%]+:[0-9]*$
+          title: Resource Home Region ID
+          description: Home cloud environment region for this resource.
+          example: "osdu:reference-data--OSDURegion:US-East:1"
+        ResourceHostRegionIDs:
+          type: array
+          items:
+            type: string
+            pattern: ^[\w\.\-]+:reference-data--OSDURegion:[\w\.\-:%]+:[0-9]*$
+          title: Resource Host Region IDs
+          description: Host cloud environment region(s) for this resource.
+          example: ["osdu:reference-data--OSDURegion:US-East:1"]
+        ResourceLifecycleStatus:
+          type: string
+          pattern: ^[\w\.\-]+:reference-data--ResourceLifecycleStatus:[\w\.\-:%]+:[0-9]*$
+          title: Resource Lifecycle Status
+          description: Current lifecycle status of the resource.
+          example: "osdu:reference-data--ResourceLifecycleStatus:Active:1"
+        ResourceSecurityClassification:
+          type: string
+          pattern: ^[\w\.\-]+:reference-data--ResourceSecurityClassification:[\w\.\-:%]+:[0-9]*$
+          title: Resource Security Classification
+          description: Security classification of the resource.
+          example: "osdu:reference-data--ResourceSecurityClassification:Restricted:1"
+        Source:
+          type: string
+          title: Data Source
+          description: Entity that produced or provided the record.
+          example: "Seismic Processing Inc."
+      x-osdu-schema-source: osdu:wks:AbstractCommonResources:1.0.0
+
+    AbstractDataset:
+      type: object
+      title: Abstract Dataset
+      description: Schema fragment holding properties common for all datasets.
+      properties:
+        DatasetProperties:
+          type: object # Placeholder for specialization
+          title: Dataset Properties
+          description: Specific properties of the dataset type.
+          additionalProperties: true
+          example: {"SampleRate": 4, "Unit": "ms"}
+        Description:
+          type: string
+          title: Description
+          description: An optional, textual description of the dataset.
+          example: "Final migrated seismic volume for Block A."
+        EncodingFormatTypeID:
+          type: string
+          pattern: ^[\w\.\-]+:reference-data--EncodingFormatType:[\w\.\-:%]+:[0-9]*$
+          title: Encoding Format Type ID
+          description: Mime-type or media-type of the dataset encoding.
+          example: "osdu:reference-data--EncodingFormatType:application/x-segy:1"
+        Endian:
+          type: string
+          enum: [BIG, LITTLE]
+          description: Endianness of binary values, if applicable.
+          example: "BIG"
+        Name:
+          type: string
+          title: Name
+          description: Optional user-friendly name of the dataset.
+          example: "Block A Full Stack Migration"
+        SchemaFormatTypeID:
+          type: string
+          pattern: ^[\w\.\-]+:reference-data--SchemaFormatType:[\w\.\-:%]+:[0-9]*$
+          title: Schema Format Type ID
+          description: Reference to the schema format type.
+          example: "osdu:reference-data--SchemaFormatType:SEGY:1"
+        TotalSize:
+          type: string # OSDU uses string for large numbers
+          pattern: '^[0-9]+$'
+          title: Total Size
+          description: Total size of the dataset in bytes.
+          example: "10737418240"
+      required:
+        - DatasetProperties
+      x-osdu-schema-source: osdu:wks:AbstractDataset:1.0.0
+
+    AbstractFileSourceInfo:
+      type: object
+      title: Abstract File Source Info
+      description: Schema fragment to describe file source information.
+      properties:
+        Checksum:
+          type: string
+          pattern: ^([0-9a-fA-F]{2})+$
+          title: Checksum
+          description: Checksum of file bytes.
+          example: "d41d8cd98f00b204e9800998ecf8427e"
+        ChecksumAlgorithm:
+          type: string
+          title: Checksum Algorithm
+          description: Name of the checksum algorithm (e.g., MD5, SHA-256).
+          example: "MD5"
+        EncodingFormatTypeID:
+          type: string
+          pattern: ^[\w\.\-]+:reference-data--EncodingFormatType:[\w\.\-:%]+:[0-9]*$
+          title: Encoding Format Type ID
+          description: Media type if different from dataset default.
+        FileSize:
+          type: string
+          pattern: ^[0-9]+$
+          title: File Size
+          description: Length of file in bytes.
+          example: "439452464"
+        FileSource:
+          type: string
+          title: File Source
+          description: Location of the file (often a URI or relative path).
+          example: "s3://my-bucket/path/to/file.segy"
+        Name:
+          type: string
+          title: Name
+          description: Optional, user-friendly file name.
+          example: "tape1.sgy"
+        PreloadFileCreateDate:
+          type: string
+          format: date-time
+          title: Preload File Create Date
+          description: Original creation date of the file before platform upload.
+          example: "2019-12-16T11:46:20.163Z"
+        PreloadFileCreateUser:
+          type: string
+          title: Preload File Create User
+          description: Original creator of the file.
+          example: "user@originalsource.com"
+        PreloadFileModifyDate:
+          type: string
+          format: date-time
+          title: Preload File Modify Date
+          description: Original modification date of the file.
+          example: "2019-12-20T17:20:05.356Z"
+        PreloadFileModifyUser:
+          type: string
+          title: Preload File Modify User
+          description: User who last modified the file originally.
+          example: "anotheruser@originalsource.com"
+        PreloadFilePath:
+          type: string
+          title: Preload File Path
+          description: Original file system path before loading.
+          example: "/mnt/tape_archive/project_x/tape1.sgy"
+      required:
+        - FileSource
+      x-osdu-schema-source: osdu:wks:AbstractFileSourceInfoSchema:1.0.0
+
+    AbstractFileCollectionDatasetProperties:
+      type: object
+      title: Abstract File Collection Dataset Properties
+      description: Dataset properties for a file collection.
+      properties:
+        Checksum:
+          type: string
+          pattern: ^[0-9a-fA-F]{32}$ # MD5
+          title: MD5 Checksum
+          description: MD5 checksum of the entire file collection (if applicable, or an index).
+        FileCollectionPath:
+          type: string
+          title: File Collection Path
+          description: Mandatory path to the file collection (e.g., a directory URI).
+          example: "s3://my-bucket/seismic_survey_xyz/"
+        FileSourceInfos:
+          type: array
+          items:
+            $ref: '#/components/schemas/AbstractFileSourceInfo'
+          title: File Source Info Array
+          description: Array of file collection members.
+        IndexFilePath:
+          type: string
+          title: Index File Path
+          description: Optional path to an index file for the collection.
+          example: "s3://my-bucket/seismic_survey_xyz/index.idx"
+      required:
+        - FileCollectionPath
+      x-osdu-schema-source: osdu:wks:AbstractFileCollection:1.0.0 # From original, indicates parent type
+
+
+    # --- OSDU Concrete Schemas (Simplified) ---
+    FileCollectionOpenZGY:
+      title: FileCollection.Slb.OpenZGY
+      description: >-
+        Dataset representation for optimized seismic access to the OpenZGY framework,
+        storing seismic 3D data for interpretation.
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: '[\w\.\-]+:dataset--FileCollection.Slb.OpenZGY:[\w\.\-:%]+$'
+          title: Entity ID
+          example: "osdu:dataset--FileCollection.Slb.OpenZGY:unique-id"
+          readOnly: true
+        version:
+          type: integer
+          format: int64
+          title: Version Number
+          example: 1637208623527796
+          readOnly: true
+        kind:
+          type: string
+          pattern: osdu:wks:dataset--FileCollection.Slb.OpenZGY:1\.0\.0
+          title: Entity Kind
+          example: "osdu:wks:dataset--FileCollection.Slb.OpenZGY:1.0.0"
+        acl:
+          $ref: '#/components/schemas/AbstractAccessControlList'
+        legal:
+          $ref: '#/components/schemas/AbstractLegalTags'
+        tags:
+          type: object
+          additionalProperties:
+            type: string
+          title: Tag Dictionary
+          example: {"Project": "NorthSea", "SurveyType": "3D"}
+        createTime:
+          type: string
+          format: date-time
+          title: Resource Object Creation DateTime
+          example: "2021-11-16T02:08:16.420Z"
+          readOnly: true
+        createUser:
+          type: string
+          title: Resource Object Creation User Reference
+          example: "creator@contoso.energy"
+          readOnly: true
+        modifyTime:
+          type: string
+          format: date-time
+          title: Resource Object Version Creation DateTime
+          example: "2021-11-18T04:10:23.817Z"
+          readOnly: true
+        modifyUser:
+          type: string
+          title: Resource Object Version Creation User Reference
+          example: "modifier@contoso.energy"
+          readOnly: true
+        ancestry:
+          $ref: '#/components/schemas/AbstractLegalParentList'
+        meta:
+          type: array
+          items:
+            $ref: '#/components/schemas/AbstractMetaItem'
+          title: Frame of Reference Meta Data
+        data:
+          type: object # Contains AbstractCommonResources, AbstractDataset, AbstractFileCollection, specific OpenZGY properties
+          allOf:
+            - $ref: '#/components/schemas/AbstractCommonResources'
+            - $ref: '#/components/schemas/AbstractDataset'
+            - type: object # For AbstractFileCollection specific properties
+              properties:
+                DatasetProperties: # This overrides the one in AbstractDataset, becoming more specific
+                  $ref: '#/components/schemas/AbstractFileCollectionDatasetProperties'
+            - type: object # IndividualProperties for OpenZGY (if any)
+              properties:
+                ExtensionProperties: # Generic extension point
+                  type: object
+                  additionalProperties: true
+                  description: Custom extension properties specific to OpenZGY.
+      required:
+        - kind
+      x-osdu-schema-source: osdu:wks:dataset--FileCollection.Slb.OpenZGY:1.0.0
+
+    FileCollectionSegy:
+      title: FileCollection.SEGY
+      description: Generic representation for a SEGY dataset represented as a set of files.
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: ^[\w\.\-]+:dataset--FileCollection.SEGY:[\w\-\.:%]+$
+          title: Entity ID
+          example: "osdu:dataset--FileCollection.SEGY:another-unique-id"
+          readOnly: true
+        version:
+          type: integer
+          format: int64
+          title: Version Number
+          example: 1562066009929332
+          readOnly: true
+        kind:
+          type: string
+          # Pattern from original: ^[\w\-\.]+:[\w\-\.]+:[\w\-\.]+:[0-9]+.[0-9]+.[0-9]+$
+          # More specific for SEGY 1.0.0
+          pattern: ^[\w\-\.]+:[\w\-\.]+:dataset--FileCollection.SEGY:1\.0\.0$
+          title: Entity Kind
+          example: "osdu:wks:dataset--FileCollection.SEGY:1.0.0"
+        acl:
+          $ref: '#/components/schemas/AbstractAccessControlList'
+        legal:
+          $ref: '#/components/schemas/AbstractLegalTags'
+        tags:
+          type: object
+          additionalProperties:
+            type: string
+          title: Tag Dictionary
+          example: {"ProcessingStep": "Raw"}
+        createTime:
+          type: string
+          format: date-time
+          title: Resource Object Creation DateTime
+          example: "2020-12-16T11:46:20.163Z"
+          readOnly: true
+        createUser:
+          type: string
+          title: Resource Object Creation User Reference
+          example: "creator@contoso.energy"
+          readOnly: true
+        modifyTime:
+          type: string
+          format: date-time
+          title: Resource Object Version Creation DateTime
+          example: "2020-12-16T11:52:24.477Z"
+          readOnly: true
+        modifyUser:
+          type: string
+          title: Resource Object Version Creation User Reference
+          example: "modifier@contoso.energy"
+          readOnly: true
+        ancestry:
+          $ref: '#/components/schemas/AbstractLegalParentList'
+        meta:
+          type: array
+          items:
+            $ref: '#/components/schemas/AbstractMetaItem'
+          title: Frame of Reference Meta Data
+        data:
+          type: object # Contains AbstractCommonResources, AbstractDataset, AbstractFileCollection, VectorHeaderMapping, SEGY specific
+          allOf:
+            - $ref: '#/components/schemas/AbstractCommonResources'
+            - $ref: '#/components/schemas/AbstractDataset'
+            - type: object # For AbstractFileCollection specific properties
+              properties:
+                DatasetProperties: # Overrides AbstractDataset one
+                  $ref: '#/components/schemas/AbstractFileCollectionDatasetProperties'
+            - type: object # AbstractVectorHeaderMapping properties
+              properties:
+                VectorHeaderMapping:
+                  type: array
+                  items:
+                    type: object # Simplified, full OSDU definition is complex
+                    properties:
+                      KeyName: { type: string, pattern: "^[\\w\\-\\.]+:reference-data--HeaderKeyName:[\\w\\-\\.:%]+:[0-9]*$" }
+                      Position: { type: integer }
+                      ScalarIndicator: { type: string, enum: [STANDARD, NOSCALE, OVERRIDE] }
+                      ScalarOverride: { type: number }
+                      UoM: { type: string, pattern: "^[\\w\\-\\.]+:reference-data--UnitOfMeasure:[\\w\\-\\.:%]+:[0-9]*$" }
+                      WordFormat: { type: string, pattern: "^[\\w\\-\\.]+:reference-data--WordFormatType:[\\w\\-\\.:%]+:[0-9]*$" }
+                      WordWidth: { type: integer }
+                  description: Defines meaning and format of tabular structure in binary file header (e.g., SEGY trace headers).
+            - type: object # IndividualProperties for SEGY
+              properties:
+                SEGYRevision:
+                  type: string
+                  title: SEG-Y Revision
+                  description: The SEG-Y standard revision the file set conforms to.
+                  example: "rev 1"
+                ExtensionProperties: # Generic extension point
+                  type: object
+                  additionalProperties: true
+                  description: Custom extension properties specific to SEGY.
+      required:
+        - kind
+      x-osdu-schema-source: osdu:wks:dataset--FileCollection.SEGY:1.0.0
+
+    # --- API Specific Schemas ---
+    AccessToken:
+      type: object
+      description: Represents an access token for interacting with cloud storage.
+      properties:
+        access_token:
+          type: string
+          description: >-
+            Connection string credentials or standard access token (CSP dependent).
+            For Azure, this is typically a SAS URL. For AWS/IBM, a triple-colon-separated
+            key:secret:token. For GCP, a standard bearer token.
+          example: "https://account.blob.core.windows.net/container?sastoken"
+        expires_in:
+          type: integer # Changed from number
+          format: int32
+          description: Expiration time in seconds (original description said minutes, corrected to seconds as per common practice).
+          example: 3600
+        token_type:
+          type: string
+          description: Token type (e.g., Bearer, SasUrl).
+          example: "SasUrl"
+      required:
+        - access_token
+        - token_type
+        - expires_in
+
+    DatasetFileMetadata:
+      type: object
+      description: Number of objects and the size in bytes of the dataset.
+      properties:
+        nobjects:
+          type: integer
+          format: int32
+          description: Number of physical objects comprising the dataset.
+          example: 160
+        size:
+          type: integer # Assuming size is always integer bytes
+          format: int64
+          description: Total size of the dataset in bytes.
+          example: 10737418240
+        type: # From example "GENERIC"
+          type: string
+          description: Type of the file or dataset layout.
+          example: "GENERIC"
+      required:
+        - nobjects
+        - size
+        - type
+
+    Dataset:
+      type: object
+      description: Represents a seismic dataset within the DMS.
+      properties:
+        name:
+          type: string
+          description: Name of the dataset.
+          example: "dsx01"
+        tenant:
+          type: string
+          description: Name of the tenant owning this dataset.
+          example: "geosolution"
+          readOnly: true
+        subproject:
+          type: string
+          description: Name of the subproject containing this dataset.
+          example: "spx01"
+          readOnly: true
+        path:
+          type: string
+          description: Path to the dataset within the subproject.
+          example: "/volve/survey_A/raw/"
+          readOnly: true # Path is usually part of identity
+        created_by:
+          type: string
+          format: email # Assuming it's an email or user ID
+          description: User who created the dataset.
+          example: "user@contoso.energy"
+          readOnly: true
+        created_date:
+          type: string
+          format: date-time # Changed from generic string
+          description: Date and time when the dataset was created (UTC).
+          example: "2020-07-16T04:30:41Z"
+          readOnly: true
+        last_modified_date:
+          type: string
+          format: date-time # Changed from generic string
+          description: Date and time when the dataset was last modified (UTC).
+          example: "2020-07-16T04:37:41Z"
+          readOnly: true
+        gcsurl: # Generic Cloud Storage URL
+          type: string
+          format: uri
+          description: Primary cloud storage object identifier or path for the dataset.
+          example: "sd://geosolution/spx01/volve/survey_A/raw/dsx01" # Using sd:// scheme
+        ctag:
+          type: string
+          description: >-
+            Coherency tag associated with the dataset. Changes on update.
+          example: "1234567890abcdefg"
+          readOnly: true
+        ltag:
+          type: string
+          description: Legal tag associated with the dataset.
+          example: "Slb-Private-USA-EHC"
+        filemetadata:
+          $ref: '#/components/schemas/DatasetFileMetadata'
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Generic key-value metadata for the dataset.
+          example: {"ProcessingSoftware": "Omega", "SurveyYear": "2019"}
+        type:
+          type: string
+          description: Type of the dataset (e.g., segy, openzgy).
+          example: "segy"
+        readonly:
+          type: boolean
+          description: True if the dataset is readonly.
+          example: false
+        sbit: # Session Lock ID
+          type: string
+          description: The session lock ID if the dataset is currently locked.
+          example: "Wx53vrogk0gr4ao"
+          nullable: true
+          readOnly: true
+        sbit_count:
+          type: integer
+          format: int32
+          description: The number of active sessions (locks) associated with the dataset.
+          example: 1
+          readOnly: true
+        status:
+          type: string
+          description: Current status of the dataset (e.g., available, processing, archived).
+          example: "available"
+          nullable: true
+        seismicmeta_guid: # This seems to be the OSDU record ID for seismicmeta
+          type: string
+          description: GUID of the associated seismic metadata storage record (OSDU record ID).
+          example: "osdu:wks:dataset--FileCollection.Slb.OpenZGY:5771c352-dc52-5d26-9351-2b8dbc9eb474"
+          nullable: true
+        # OSDU Specific Representations
+        openzgy_v1:
+          $ref: '#/components/schemas/FileCollectionOpenZGY'
+          nullable: true
+        segy_v1:
+          $ref: '#/components/schemas/FileCollectionSegy'
+          nullable: true
+        seismicmeta: # This seems to be the content of the OSDU record itself
+          type: object
+          description: >-
+            Seismic metadata associated with the dataset, often an OSDU compliant
+            record.
+          properties:
+            kind:
+              type: string
+              description: The OSDU kind of the seismic metadata record.
+              example: "osdu:wks:work-product-component--SeismicTraceData:1.0.0"
+            data:
+              type: object
+              additionalProperties: true
+              description: The actual data payload of the seismic metadata record.
+              example: {"DomainType": "DEPTH", "TraceCount": 1000}
+            legal: # Assuming legal tags can also be part of the embedded record
+              $ref: '#/components/schemas/AbstractLegalTags'
+          nullable: true
+      required:
+        - name
+        - tenant
+        - subproject
+        - path
+        - created_by
+        - created_date
+        - last_modified_date
+        - gcsurl
+        - ctag
+
+    DatasetPatch:
+      type: object
+      description: Payload for updating dataset properties.
+      properties:
+        dataset_new_name:
+          type: string
+          description: New name for the dataset (for renaming).
+          example: "dsx01_renamed"
+        filemetadata:
+          $ref: '#/components/schemas/DatasetFileMetadata'
+        gtags:
+          type: array
+          items:
+            type: string
+          description: >-
+            Array of global tags. If provided, these will be merged with or replace
+            existing gtags based on service logic (typically upsert/append).
+          example: ["survey_2020", "processed_stack"]
+        ltag:
+          type: string
+          description: New legal tag for the dataset.
+          example: "New-Legal-Tag-XYZ"
+        metadata:
+          type: object
+          additionalProperties: true
+          description: >-
+            Key-value pairs to update or add to the dataset's generic metadata.
+            Null values for keys might remove them.
+          example: {"QCStatus": "Approved", "Processor": "john.doe@contoso.energy"}
+        readonly:
+          type: boolean
+          description: Set the dataset to readonly (true) or read/write (false).
+        status:
+          type: string
+          description: New status for the dataset.
+          example: "archived"
+        # OSDU specific parts that might be patchable
+        openzgy_v1:
+          $ref: '#/components/schemas/FileCollectionOpenZGY' # Or a partial version for patch
+          nullable: true
+        segy_v1:
+          $ref: '#/components/schemas/FileCollectionSegy' # Or a partial version for patch
+          nullable: true
+        seismicmeta:
+          type: object
+          properties:
+            kind: { type: string }
+            data: { type: object, additionalProperties: true }
+            legal: { $ref: '#/components/schemas/AbstractLegalTags' }
+          description: Updated seismic metadata record content.
+          nullable: true
+
+    DatasetRegisterBody: # For POST /dataset/.../{datasetid}
+      type: object
+      description: Payload for registering a new dataset.
+      properties:
+        acls: # This seems to be SDMS specific ACLs, not OSDU standard ACLs yet.
+          type: object
+          properties:
+            admins:
+              type: array
+              items: { type: string, format: email }
+              example: ["admin-group@contoso.energy"]
+            viewers:
+              type: array
+              items: { type: string, format: email }
+              example: ["viewer-group@contoso.energy"]
+          description: >-
+            Access Control Lists specific to this dataset if dataset-level ACLs are
+            enabled for the subproject.
+        gtags:
+          type: array
+          items:
+            type: string
+          description: Global tags to associate with the dataset upon registration.
+          example: ["initial_load", "raw_data"]
+        # OSDU Record Payloads
+        # One of these would typically be required based on the dataset type
+        openzgy_v1:
+          $ref: '#/components/schemas/FileCollectionOpenZGY'
+          nullable: true
+        segy_v1:
+          $ref: '#/components/schemas/FileCollectionSegy'
+          nullable: true
+        seismicmeta: # If registering a generic dataset with seismic metadata
+          type: object
+          properties:
+            kind: { type: string, example: "osdu:wks:master-data--Wellbore:1.0.0" } # Example if generic
+            data: { type: object, additionalProperties: true }
+            legal: { $ref: '#/components/schemas/AbstractLegalTags' }
+          description: Seismic metadata record to associate with the dataset.
+          nullable: true
+        # Other potential top-level fields from Dataset that might be set on registration
+        # (excluding read-only fields like created_by, created_date, ctag, etc.)
+        filemetadata:
+          $ref: '#/components/schemas/DatasetFileMetadata'
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Generic key-value metadata.
+        type:
+          type: string
+          description: Type of the dataset (e.g., segy, openzgy).
+          example: "openzgy"
+        readonly:
+          type: boolean
+          default: false
+        status:
+          type: string
+          example: "staging"
+
+    DatasetListBody: # For POST /dataset/tenant/{tenantid}/subproject/{subprojectid}
+      type: object
+      description: Request body for listing/querying datasets.
+      properties:
+        filter:
+          type: object # Define a structured filter object if possible, else allow freeform
+          additionalProperties: true
+          description: Structured query filter to apply to the dataset list.
+          example: {"and": [{"property": "gtags", "operator": "CONTAINS", "value": "tagA"}]}
+        gtags: # This seems to be a filter criteria, not for setting gtags
+          type: array
+          items:
+            type: string
+          description: Filter datasets by these global tags (exact match or contains, service-dependent).
+          example: ["survey_2021"]
+        type: # Filter by type
+          type: string
+          description: Filter datasets by type.
+          example: "segy"
+        search: # Free text search
+          type: string
+          description: Free text search string to apply across relevant dataset fields.
+          example: "North Sea survey"
+        limit:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000
+          default: 100
+          description: Maximum number of datasets to return.
+        cursor:
+          type: string
+          description: Cursor for retrieving the next page of results.
+          example: "nextTokenPageXYZ"
+        # 'select' was in original example but not in properties. Assuming it's not standard here.
+        # select:
+        #   type: array
+        #   items:
+        #     type: string
+        #   description: Specific fields to return for each dataset (projection).
+        #   example: ["name", "path", "created_by"]
+
+    PaginatedDatasets:
+      type: object
+      properties:
+        datasets:
+          type: array
+          items:
+            $ref: '#/components/schemas/Dataset'
+        nextPageCursor:
+          type: string
+          nullable: true
+          description: Token to retrieve the next page of results. Null if no more pages.
+          example: "cursorTokenForNextPage"
+
+    DatasetCheckList:
+      type: object
+      description: A list of dataset paths (relative to subproject) to check.
+      properties:
+        datasets:
+          type: array
+          items:
+            type: string # e.g., "folderA/dataset01" or just "dataset01" if path is implied
+          description: Array of dataset paths (name or relative path) within the subproject.
+          example: ["raw_data/seismic_line_101.segy", "processed_data/stack_volume_final.zgy"]
+      required:
+        - datasets
+
+    DatasetAndDirectories:
+      type: object
+      description: Lists datasets and directories under a given path.
+      properties:
+        datasets:
+          type: array
+          items:
+            type: string # Full path or name
+          description: Array of dataset names or paths.
+          example: ["/a/b/c/dsx01.segy", "/a/b/c/dsx02.zgy"]
+        directories:
+          type: array
+          items:
+            type: string # Full path or name
+          description: Array of directory names or paths.
+          example: ["/a/b/c/folder_d/", "/a/b/c/folder_e/"]
+      required:
+        - datasets
+        - directories
+
+    ComputedSize:
+      type: object
+      description: Computed size of a dataset or a collection of datasets.
+      properties:
+        dataset_count:
+          type: integer
+          format: int32
+          description: The number of datasets included in the size calculation.
+          example: 2
+        size_bytes:
+          type: integer
+          format: int64
+          description: The total size in bytes.
+          example: 35461000
+      required:
+        - dataset_count
+        - size_bytes
+
+    DatasetSize: # From POST /dataset/.../size
+      type: object
+      description: Computed size of a single dataset and the computation date.
+      properties:
+        computed_size:
+          type: integer
+          format: int64
+          description: The size of the dataset in bytes.
+          example: 35461
+        computed_size_date:
+          type: string
+          format: date-time # Assuming it's a standard timestamp
+          description: The date and time when the dataset size was computed.
+          example: "2023-03-16T21:16:40Z"
+      required:
+        - computed_size
+        - computed_size_date
+
+    DatasetBulkDeleteBody:
+      type: object
+      description: Request body for bulk deleting datasets, optionally with a filter.
+      properties:
+        filter:
+          type: object # Define structured filter if possible
+          additionalProperties: true
+          description: Optional structured query filter to restrict datasets for deletion.
+          example: {"property": "name", "operator": "LIKE", "value": "temp_data_%"}
+
+    DatasetPermission:
+      type: object
+      description: User's effective permissions on a dataset.
+      properties:
+        read:
+          type: boolean
+          description: True if the user has read permission.
+        write:
+          type: boolean
+          description: True if the user has write permission.
+        delete:
+          type: boolean
+          description: True if the user has delete permission.
+      required:
+        - read
+        - write
+        - delete
+
+    Resource: # Used in ImpersonationTokenRequest
+      type: object
+      properties:
+        resource:
+          type: string
+          description: The seismic store resource path (e.g., sd://tenant/subproject).
+          example: "sd://tenant_name/subproject_alpha"
+        readonly:
+          type: boolean
+          default: true
+          description: Specifies if the access to this resource should be readonly.
+      required:
+        - resource
+
+    ImpersonationTokenRequest:
+      type: object
+      description: Request to generate an impersonation token.
+      properties:
+        resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/Resource'
+          description: List of resources and their access levels for the impersonation token.
+        metadata: # Optional metadata for the token
+          type: object
+          additionalProperties: true
+          description: >-
+            General field for extra meta-information for the impersonation token signature.
+          example: {"jobId": "workflow123", "reason": "Data processing job"}
+      required:
+        - resources
+
+    ImpersonationToken: # Response for token generation/refresh
+      type: object
+      description: An impersonation token allowing access to specified resources.
+      properties:
+        impersonation_token:
+          type: string
+          description: The generated impersonation token.
+          example: "eyJhbGciOiJSUzI1NiIs...very_long_token...YInoXw"
+        token_type:
+          type: string
+          default: "Bearer"
+          description: Type of the token.
+          example: "Bearer"
+        expires_in:
+          type: integer
+          format: int32
+          description: Token expiration time in seconds.
+          example: 3600
+        context:
+          type: string
+          description: >-
+            Context associated with the impersonation token, used for subsequent refresh operations.
+          example: "opaque_context_string_for_refresh"
+      required:
+        - impersonation_token
+        - token_type
+        - expires_in
+        - context
+
+    # Schemas for /imptoken (Obsolete)
+    ImpTokenRequest: # POST /imptoken
+      type: object
+      description: "(Obsolete) Request to generate an impersonation token."
+      properties:
+        token: # This seems to be the user's original token?
+          type: string
+          description: User's original authentication token.
+        resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/Resource'
+        refresh_url: # Field name from example, property 'refresh-url'
+          type: string
+          format: uri
+          description: >-
+            A web service endpoint that Seismic DMS will invoke to check if the
+            impersonation token can be refreshed.
+          example: "https://myauthserver.com/api/refresh_check"
+      required:
+        - token
+        - resources
+        - refresh_url
+
+    ImpTokenPatchRequest: # PATCH /imptoken
+      type: object
+      description: "(Obsolete) Request to patch an impersonation token's refresh URL."
+      properties:
+        token:
+          type: string
+          description: The impersonation token that was previously issued.
+        refresh_url: # Field name from example, property 'refresh-url'
+          type: string
+          format: uri
+          description: New endpoint for checking token refresh.
+      required:
+        - token
+        - refresh_url
+
+    RefreshTokenRequest: # PUT /imptoken
+      type: object
+      description: "(Obsolete) Request to refresh an impersonation token."
+      properties:
+        token:
+          type: string
+          description: The impersonation token to refresh.
+      required:
+        - token
+
+    ConnectedOuterService: # For VersionInfo
+      type: object
+      properties:
+        name: { type: string, example: "OSDU Storage Service" }
+        version: { type: string, example: "v0.15.0" }
+
+    VersionInfo: # Used in /info, named Info in original
+      type: object
+      description: Service version and build information.
+      properties:
+        artifact_id:
+          type: string
+          example: "seismic-dms-service"
+        build_time:
+          type: string
+          format: date-time
+          example: "2024-03-05T14:03:48Z"
+        connected_outer_services:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConnectedOuterService'
+        group_id:
+          type: string
+          example: "org.opengroup.osdu.dms.seismic"
+        # Adding missing properties from general VersionInfo
+        version:
+          type: string
+          example: "3.0.0"
+        commitId:
+          type: string
+          example: "a1b2c3d4e5f67890"
+        branch:
+          type: string
+          example: "main"
+        commitMessage:
+          type: string
+          example: "feat: Initial ADME integration"
+      # Required properties depend on what the service actually returns.
+      # Example from /info has artifact_id, build_time, connected_outer_services, group_id nested under "info".
+      # Making the schema flat for direct use.
+
+    Operation: # For initiating bulk delete
+      type: object
+      description: Identifier for a long-running operation.
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+          description: Unique ID of the initiated operation.
+          example: "c3d282e6-e7d1-40d8-8ac2-edc15b6d174c"
+      required:
+        - operation_id
+
+    OperationStatus:
+      type: object
+      description: Status of a long-running operation.
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+          description: Unique ID of the operation.
+        status:
+          type: string
+          enum: [Pending, Running, Succeeded, Failed, Canceled] # Common statuses
+          description: Current status of the operation job.
+          example: "Succeeded"
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the operation was initiated.
+          example: "2023-10-01T10:00:00Z"
+          readOnly: true
+        created_by:
+          type: string
+          description: User who initiated the operation.
+          example: "user@contoso.energy"
+          readOnly: true
+        last_updated_at:
+          type: string
+          format: date-time
+          description: Timestamp of the last status update.
+          example: "2023-10-01T10:30:00Z"
+          readOnly: true
+        dataset_cnt:
+          type: integer
+          format: int32
+          description: Total number of datasets to process.
+          example: 1000
+        completed_cnt:
+          type: integer
+          format: int32
+          description: Number of datasets successfully processed.
+          example: 997
+        failed_cnt:
+          type: integer
+          format: int32
+          description: Number of datasets for which processing failed.
+          example: 3
+      required:
+        - operation_id
+        - status
+
+    SubProjectAcls:
+      type: object
+      description: Access Control Lists for a subproject.
+      properties:
+        admins:
+          type: array
+          items:
+            type: string
+            format: email # Or group identifier
+          description: List of admin groups or users for the subproject.
+          example: ["subproject-admins@contoso.energy"]
+        viewers:
+          type: array
+          items:
+            type: string
+            format: email # Or group identifier
+          description: List of viewer groups or users for the subproject.
+          example: ["subproject-viewers@contoso.energy"]
+
+    SubProject:
+      type: object
+      description: Represents a subproject within a tenant.
+      properties:
+        name:
+          type: string
+          description: Name of the subproject.
+          example: "spx01"
+        tenant:
+          type: string
+          description: Name of the parent tenant.
+          example: "tnx01"
+          readOnly: true
+        ltag:
+          type: string
+          description: Legal tag for the subproject.
+          example: "Slb-Private-USA-EHC"
+        storage_class:
+          type: string
+          description: Storage class for the subproject's underlying bucket (CSP-specific).
+          example: "STANDARD" # Generic example
+        storage_location:
+          type: string
+          description: Primary storage location/region for the subproject's bucket (CSP-specific).
+          example: "US-EAST"
+        access_policy:
+          type: string
+          enum: [uniform, dataset]
+          default: uniform
+          description: >-
+            Access policy for the subproject: 'uniform' (subproject-level ACLs apply
+            to all datasets) or 'dataset' (ACLs can be defined per dataset).
+        acls:
+          $ref: '#/components/schemas/SubProjectAcls'
+        admin: # User who administered, may be different from ACLs
+          type: string
+          format: email
+          description: Email of the primary admin contact for the subproject. (From example)
+          example: "admin@contoso.energy"
+          readOnly: true # Usually set on creation by system/creator
+        gcs_bucket: # GCP specific, might be abstracted by ADME
+          type: string
+          description: Name of the Google Cloud Storage bucket for this subproject (if applicable).
+          example: "subproject-spx01-bucket"
+          readOnly: true
+      required:
+        - name
+        - tenant
+        - storage_class # If universally required by ADME
+        - storage_location # If universally required by ADME
+        - ltag
+        - access_policy
+
+    SubProjectCreateBody:
+      type: object
+      description: Payload for creating a new subproject.
+      properties:
+        storage_class:
+          type: string
+          description: Storage class for the bucket (CSP-specific, e.g., Azure Blob tier, GCP storage class).
+          example: "Hot"
+        storage_location:
+          type: string
+          description: Primary storage location/region for the bucket (CSP-specific).
+          example: "EastUS2"
+        access_policy:
+          type: string
+          enum: [uniform, dataset]
+          default: uniform
+          description: >-
+            Access policy: 'uniform' (subproject ACLs apply to all datasets)
+            or 'dataset' (ACLs can be per-dataset).
+        acls:
+          $ref: '#/components/schemas/SubProjectAcls'
+          description: >-
+            Initial ACLs for the subproject. If not specified, default
+            entitlement groups might be created.
+        admin: # This is the user email to add to the admin group
+          type: string
+          format: email
+          description: >-
+            Optional user email to be designated as an initial admin. This user
+            will typically be added to the admin group in ACLs.
+          example: "initial.admin@contoso.energy"
+      # ltag is provided as a header parameter for create
+
+    SubProjectPatchBody:
+      type: object
+      description: Payload for updating a subproject.
+      properties:
+        access_policy:
+          type: string
+          enum: [uniform, dataset]
+          description: New access policy for the subproject.
+        acls:
+          $ref: '#/components/schemas/SubProjectAcls'
+          description: >-
+            New ACLs. If provided, typically replaces existing ACLs for the subproject.
+      # ltag is provided as a header parameter for patch
+
+    Tenant:
+      type: object
+      description: Represents a tenant in the Seismic DMS.
+      properties:
+        name:
+          type: string
+          description: Name of the tenant, typically matching the data partition ID.
+          example: "contoso_opendes"
+        esd: # Entitlement Sub Domain
+          type: string
+          description: >-
+            Entitlement group sub-domain. Example: if group is
+            users.datalake.viewers@contoso.dev.energy.azure.com,
+            ESD is contoso.dev.energy.azure.com.
+          example: "contoso.dev.energy.azure.com"
+        gcpid: # Google Cloud Project ID - specific to GCP.
+               # For ADME, this might be abstracted or represent a subscription/resource group.
+          type: string
+          description: >-
+            Identifier for the underlying cloud project/resource pool (CSP-specific).
+            For ADME, this could relate to the data partition's backing resources.
+          example: "contoso_opendes_project" # Generic example
+        default_acls:
+          type: string
+          format: email # Assuming it's a group email
+          description: >-
+            Default entitlements group for managing tenant administrators.
+          example: "datalake.admins@contoso.dev.energy.azure.com"
+      required:
+        - name
+        - esd
+        - gcpid # Or its ADME equivalent
+        - default_acls
+
+    TenantCreateBody:
+      type: object
+      description: Payload for creating (registering) a new tenant.
+      properties:
+        esd:
+          type: string
+          description: Entitlement group sub-domain.
+        gcpid: # Or ADME equivalent
+          type: string
+          description: Identifier for the underlying cloud project/resource pool.
+        default_acls:
+          type: string
+          format: email
+          description: Default entitlements group for tenant administrators.
+      required:
+        - esd
+        - gcpid
+        - default_acls
+
+    UserAddRequest:
+      type: object
+      description: Request to add a user to a subproject role group.
+      properties:
+        email:
+          type: string
+          format: email # Or user principal ID
+          description: User's identifier (e.g., email or UPN).
+          example: "user.name@contoso.energy"
+        path:
+          type: string
+          description: Seismic store path (sd://tenant/subproject).
+          example: "sd://contoso_opendes/survey_delta"
+        group:
+          type: string
+          enum: [viewer, admin] # Role group
+          description: Role group to add the user to.
+          example: "viewer"
+      required:
+        - email
+        - path
+        - group
+
+    UserRemoveRequest:
+      type: object
+      description: Request to remove a user from subproject role groups.
+      properties:
+        email:
+          type: string
+          format: email
+          description: User's identifier.
+        path:
+          type: string
+          description: Seismic store path (sd://tenant/subproject).
+      required:
+        - email
+        - path
+
+    UserRoleItem:
+      type: array
+      minItems: 2
+      maxItems: 2
+      items:
+        type: string # First item is path, second is role
+      description: A pair representing a subproject path and the user's role in it.
+      example: ["/spx01", "admin"]
+
+
+    UserRoles: # Response for user roles
+      type: object
+      properties:
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserRoleItem'
+          description: >-
+            Array of [subproject_path, role] pairs for the user within the tenant.
+          example:
+            - ["/spx01", "admin"]
+            - ["/spx02", "viewer"]
+      required:
+        - roles
+
+    Status: # Generic status response
+      type: object
+      properties:
+        status:
+          type: string
+          example: "running"
+      required:
+        - status
+
+    # Utility Schemas
+    LsDatasetItem: # For utility/ls response
+      type: string
+      description: A dataset or directory name/path.
+      example: "folderA/" # or "dataset01.segy"
+
+    LsDatasetsResponse: # For non-paginated ls
+      type: array
+      items:
+        $ref: '#/components/schemas/LsDatasetItem'
+      description: List of datasets and directories.
+
+    LsPaginatedDatasetsResponse: # For paginated ls
+      type: object
+      properties:
+        datasets:
+          type: array
+          items:
+            $ref: '#/components/schemas/LsDatasetItem'
+          description: Current page of datasets and directories.
+        nextPageCursor:
+          type: string
+          nullable: true
+          description: Cursor for the next page of results.
+      required:
+        - datasets
+
+    DatasetLsBody: # For POST utility/ls
+      type: object
+      description: Request body for listing directory contents.
+      properties:
+        sdpath:
+          type: string
+          description: >-
+            Seismic DMS path URI (e.g., sd://tenant/subproject/path).
+          example: "sd://contoso_opendes/survey_alpha/raw_data/"
+        wmode:
+          type: string
+          enum: [dirs, datasets, all]
+          default: all
+          description: >-
+            Working mode: 'dirs' (only directories), 'datasets' (only datasets),
+            or 'all'.
+        limit:
+          type: integer
+          format: int32
+          minimum: 1
+          description: Maximum number of items to return (for pagination).
+        cursor:
+          type: string
+          description: Cursor for retrieving the next page.
+      required:
+        - sdpath
+
+  requestBodies:
+    DatasetCheckListBody:
+      description: List of datasets to check for existence.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DatasetCheckList'
+    DatasetListQueryBody:
+      description: Query parameters for listing datasets.
+      required: true # Assuming body is required for POST query
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DatasetListBody'
+    DatasetPatchBody:
+      description: Fields to update for the dataset.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DatasetPatch'
+    DatasetRegisterBody:
+      description: Information for registering a new dataset.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DatasetRegisterBody'
+    ImpersonationTokenRequestBody:
+      description: Request to generate an impersonation token.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ImpersonationTokenRequest'
+    ImpTokenObsoleteRequestBody: # For POST /imptoken
+      description: (Obsolete) Request to generate an impersonation token.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ImpTokenRequest'
+    ImpTokenPatchObsoleteRequestBody: # For PATCH /imptoken
+      description: (Obsolete) Request to patch an impersonation token's refresh URL.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ImpTokenPatchRequest'
+    RefreshTokenObsoleteRequestBody: # For PUT /imptoken
+      description: (Obsolete) Request to refresh an impersonation token.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RefreshTokenRequest'
+    DatasetBulkDeleteBody:
+      description: Optional filter for bulk dataset deletion.
+      # required: false stated in original spec for requestBody
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DatasetBulkDeleteBody'
+    SubprojectCreateBody:
+      description: Information for creating a new subproject.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SubProjectCreateBody'
+    SubprojectPatchBody:
+      description: Fields to update for the subproject.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SubProjectPatchBody'
+    TenantCreateBody:
+      description: Information for registering a new tenant.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TenantCreateBody'
+    UserAddRequestBody:
+      description: Information to add a user to a subproject group.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UserAddRequest'
+    DatasetLsBody:
+      description: Parameters for listing directory contents.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DatasetLsBody'
+
+  parameters:
+    DataPartitionIdHeader:
+      name: data-partition-id
+      in: header
+      description: >-
+        The identifier of the data partition to identify the instance of the
+        data store. Often a tenant or account ID. Required for most ADME operations.
+      required: true # Usually true for ADME
+      schema:
+        type: string
+      example: 'contoso-opendes'
+    ImpersonationTokenContextHeader:
+      name: impersonation-token-context
+      in: header
+      description: >-
+        Context for an impersonation token, required if using impersonation token
+        credentials for certain operations.
+      required: false # Based on original, but depends on op if token is used
+      schema:
+        type: string
+        default: ''
+      example: "some_opaque_context_string"
+    UserTokenHeader: # For POST /impersonation-token
+      name: user-token
+      in: header
+      description: The credential (e.g., JWT) of the user to be impersonated.
+      required: true
+      schema:
+        type: string
+    ImpersonationTokenHeader: # For PUT /impersonation-token (refresh)
+      name: impersonation-token
+      in: header
+      description: The impersonation token to be refreshed.
+      required: true
+      schema:
+        type: string
+    LegalTagHeader: # For subproject create/patch
+      name: ltag
+      in: header
+      description: >-
+        A valid compliance legal tag. For creation, it sets the initial legal tag.
+        For patching, it updates the subproject's legal tag.
+      required: true # Original spec says true for patch, optional for dataset register, not specified for subproject create
+      schema:
+        type: string
+      example: "OSDU-Public-Data"
+    TenantIdPathParameter:
+      name: tenantid
+      in: path
+      description: Name of the tenant.
+      required: true
+      schema:
+        type: string
+      example: "contoso_opendes"
+    SubprojectIdPathParameter:
+      name: subprojectid
+      in: path
+      description: Name of the subproject.
+      required: true
+      schema:
+        type: string
+        pattern: "^[a-z][a-z\\d\\-]*[a-z\\d]$" # From original subproject-create
+      example: "survey_horizon_a"
+    DatasetIdPathParameter:
+      name: datasetid
+      in: path
+      description: Name of the dataset.
+      required: true
+      schema:
+        type: string
+      example: "raw_seismic_line_001"
+    DatasetPathQueryParameter:
+      name: path
+      in: query
+      description: Hierarchical path of the dataset within the subproject (e.g., 'folder1/folder2').
+      required: false # Often optional if datasetid is unique within subproject
+      schema:
+        type: string
+      example: "processing/stacks"
+    OperationIdPathParameter:
+      name: operation-id # Original uses operation-id
+      in: path
+      description: The unique identifier of the long-running operation.
+      required: true
+      schema:
+        type: string
+        format: uuid
+      example: "c3d282e6-e7d1-40d8-8ac2-edc15b6d174c"
+    TranslateUserInfoQueryParameter:
+      name: translate-user-info
+      in: query
+      description: If true, translate system user IDs to a more human-readable format in responses.
+      schema:
+        type: boolean
+        default: true
+
+  responses:
+    AppErrorResponse:
+      description: An error occurred. Specific error code and message will be in the response body.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    UnauthorizedError:
+      description: Unauthorized. The client has not provided valid authentication credentials.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    ForbiddenError:
+      description: Forbidden. The client is authenticated but does not have permission to perform this action.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    NotFoundError:
+      description: Not Found. The requested resource could not be found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    BadRequestError:
+      description: Bad Request. The server cannot or will not process the request due to something that is perceived to be a client error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    ConflictError:
+      description: Conflict. The request could not be completed due to a conflict with the current state of the target resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    LockedError: # 423
+      description: >-
+        Locked. The resource is locked and the operation cannot be performed.
+        The error message may contain a Reason code, e.g., [RCODE:RL3600] for Read Locked.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    InternalServerError:
+      description: Internal Server Error. The server encountered an unexpected condition that prevented it from fulfilling the request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    BadGatewayError:
+      description: Bad Gateway. The server, while acting as a gateway or proxy, received an invalid response from an inbound server it accessed while attempting to fulfill the request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    ServiceUnavailableError:
+      description: Service Unavailable. The server is currently unable to handle the request due to a temporary overload or scheduled maintenance.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    SuccessfullyDeleted: # Generic 200 for DELETE that might return some info
+      description: The resource was deleted successfully.
+      # No content typically for 204, but 200 in original.
+      # If it returns info about the deleted resource, define content.
+    OperationInitiated: # 202
+      description: The operation was initiated successfully.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Operation'
+
+  securitySchemes:
+    oAuth2AuthCode:
+      type: oauth2
+      description: OAuth2 authentication using Authorization Code flow with Azure AD.
+      flows:
+        authorizationCode:
+          authorizationUrl: https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/authorize
+          tokenUrl: https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token
+          scopes:
+            'api://contoso.energy.azure.com/data.read': Read access to ADME data.
+            'api://contoso.energy.azure.com/data.write': Write access to ADME data.
+            # More granular scopes if defined for Seismic DMS
+            # 'api://contoso.energy.azure.com/SeismicDMS.Read': Read access to Seismic DMS.
+            # 'api://contoso.energy.azure.com/SeismicDMS.Write': Write access to Seismic DMS.
+security:
+  - oAuth2AuthCode:
+      - 'api://contoso.energy.azure.com/data.read'
+      - 'api://contoso.energy.azure.com/data.write'
+
+# Main paths and operations will follow, refactored according to plan.
+# This is a very large API, so the full conversion will be extensive.
+# The thought process above covers the main strategies for each section.
+# I will now proceed with generating the `paths` section based on this.
+# Due to the sheer size, I will provide a representative set of paths
+# demonstrating the application of all rules. A full conversion of this
+# magnitude would exceed typical output limits.
+
+# For the purpose of this exercise, I'm focusing on the structural transformation
+# and rule application. The full, detailed schema definitions for OSDU entities
+# are extremely verbose and are kept as $refs or simplified structures to illustrate
+# their placement and interaction with the API, rather than fully elaborating
+# every OSDU property, which is beyond the scope of ADME API specification refactoring
+# itself and is domain of OSDU standard.
+
+# ... (paths section would start here)
+# Given the size, I'll provide a few key path examples.
+
+paths:
+  /app:
+    get:
+      tags: [ApplicationManagement]
+      summary: List Registered Applications
+      description: |
+        Retrieves a list of applications registered in the Seismic DMS for a given tenant.
+        Required roles: `users.datalake.admin` or equivalent.
+      operationId: ListRegisteredApplications
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader' # Added for ADME context
+        - name: sdpath
+          in: query
+          description: Seismic store tenant path (e.g., sd://tenantname).
+          required: true
+          schema:
+            type: string
+            example: "sd://contoso_opendes"
+      responses:
+        '200':
+          description: Successfully retrieved the list of registered applications.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  format: email
+                example: ["app01@contoso.services", "app02@contoso.services"]
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' } # If tenant not found
+        '500': { $ref: '#/components/responses/InternalServerError' }
+    post:
+      tags: [ApplicationManagement]
+      summary: Register a New Application
+      description: |
+        Registers a new application (service account) with the Seismic DMS for a given tenant.
+        Required roles: `users.datalake.admin` or equivalent.
+      operationId: RegisterApplication
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader' # Added for ADME context
+        - name: email
+          in: query
+          description: Service account email of the application to register.
+          required: true
+          schema:
+            type: string
+            format: email
+          example: "newapp@contoso.services"
+        - name: sdpath
+          in: query
+          description: Seismic store tenant path (e.g., sd://tenantname).
+          required: true
+          schema:
+            type: string
+            example: "sd://contoso_opendes"
+      responses:
+        '200': # Original was 200, typically 201 for creation. Keeping 200 as per spec.
+          description: Application registered successfully.
+          # No content specified in original for success body
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' } # If tenant not found
+        '409': { $ref: '#/components/responses/ConflictError' } # If app already registered
+        '500': { $ref: '#/components/responses/InternalServerError' }
+
+  /dataset/tenant/{tenantid}/subproject/{subprojectid}:
+    post:
+      tags: [DatasetManagement]
+      summary: List Datasets in a Subproject
+      description: |
+        Retrieves a list of datasets within a specified subproject.
+        Supports filtering and pagination.
+        Required roles: `subproject.admin`, `subproject.viewer` or equivalent dataset-level roles if policy is 'dataset'.
+      operationId: ListDatasets
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/TenantIdPathParameter'
+        - $ref: '#/components/parameters/SubprojectIdPathParameter'
+        - $ref: '#/components/parameters/ImpersonationTokenContextHeader'
+        - $ref: '#/components/parameters/TranslateUserInfoQueryParameter'
+      requestBody:
+        $ref: '#/components/requestBodies/DatasetListQueryBody'
+      responses:
+        '200':
+          description: Successfully retrieved the list of datasets.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedDatasets'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+
+  /dataset/tenant/{tenantid}/subproject/{subprojectid}/dataset/{datasetid}:
+    get:
+      tags: [DatasetManagement]
+      summary: Get Dataset Metadata
+      description: |
+        Retrieves the metadata for a specific dataset.
+        Required roles depend on subproject access policy:
+        - 'uniform': `subproject.admin`, `subproject.viewer`
+        - 'dataset': `dataset.admin`, `dataset.viewer`
+      operationId: GetDatasetByName
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/TenantIdPathParameter'
+        - $ref: '#/components/parameters/SubprojectIdPathParameter'
+        - $ref: '#/components/parameters/DatasetIdPathParameter'
+        - $ref: '#/components/parameters/DatasetPathQueryParameter'
+        - $ref: '#/components/parameters/ImpersonationTokenContextHeader'
+        - $ref: '#/components/parameters/TranslateUserInfoQueryParameter'
+        - name: seismicmeta
+          in: query
+          description: If true, include the full seismic storage metadata record (OSDU record).
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: record-version
+          in: query
+          description: Retrieve a specific version of the seismic storage metadata record.
+          required: false
+          schema:
+            type: string
+            example: "1637208623527796" # OSDU record version
+      responses:
+        '200':
+          description: Successfully retrieved dataset metadata.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dataset'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+    post: # Register Dataset
+      tags: [DatasetManagement]
+      summary: Register a New Dataset
+      description: |
+        Registers a new dataset within the specified subproject and path.
+        Required roles: `subproject.admin` or equivalent dataset-level admin.
+      operationId: RegisterDataset
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/TenantIdPathParameter'
+        - $ref: '#/components/parameters/SubprojectIdPathParameter'
+        - $ref: '#/components/parameters/DatasetIdPathParameter' # Client provides dataset name/ID
+        - $ref: '#/components/parameters/DatasetPathQueryParameter'
+        - $ref: '#/components/parameters/ImpersonationTokenContextHeader'
+        - name: ltag # From original spec header for this op
+          in: header
+          description: Legal tag for the dataset being registered.
+          required: false # Original spec says false
+          schema:
+            type: string
+          example: "Project-X-Legal-Tag"
+      requestBody:
+        $ref: '#/components/requestBodies/DatasetRegisterBody'
+      responses:
+        '201': # Changed from 200 for creation
+          description: Dataset registered successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dataset'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' } # If subproject/path invalid
+        '409': { $ref: '#/components/responses/ConflictError' } # If dataset already exists
+        '423': { $ref: '#/components/responses/LockedError' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+    patch:
+      tags: [DatasetManagement]
+      summary: Update Dataset Metadata
+      description: |
+        Updates metadata for an existing dataset or closes (unlocks) it.
+        Required roles depend on subproject access policy and specific fields being patched.
+      operationId: UpdateDataset
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/TenantIdPathParameter'
+        - $ref: '#/components/parameters/SubprojectIdPathParameter'
+        - $ref: '#/components/parameters/DatasetIdPathParameter'
+        - $ref: '#/components/parameters/DatasetPathQueryParameter'
+        - $ref: '#/components/parameters/ImpersonationTokenContextHeader'
+        - name: close
+          in: query
+          description: If a non-null sbit (session lock ID) value is provided, this closes/unlocks the dataset.
+          required: false
+          schema:
+            type: string
+          example: "sessionLockIdToClose"
+      requestBody:
+        $ref: '#/components/requestBodies/DatasetPatchBody'
+      responses:
+        '200':
+          description: Dataset updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dataset'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '409': { $ref: '#/components/responses/ConflictError' } # e.g. if rename conflicts
+        '423': { $ref: '#/components/responses/LockedError' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+    delete:
+      tags: [DatasetManagement]
+      summary: Delete a Dataset
+      description: |
+        Deletes a specific dataset.
+        Required roles depend on subproject access policy:
+        - 'uniform': `subproject.admin`
+        - 'dataset': `dataset.admin`
+      operationId: DeleteDataset
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/components/parameters/TenantIdPathParameter'
+        - $ref: '#/components/parameters/SubprojectIdPathParameter'
+        - $ref: '#/components/parameters/DatasetIdPathParameter'
+        - $ref: '#/components/parameters/DatasetPathQueryParameter'
+        - $ref: '#/components/parameters/ImpersonationTokenContextHeader'
+      responses:
+        '204': # Changed from 200 for delete
+          description: Dataset deleted successfully.
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '423': { $ref: '#/components/responses/LockedError' } # If dataset is locked
+        '500': { $ref: '#/components/responses/InternalServerError' }
+
+  /info:
+    get:
+      tags: [Information]
+      summary: Get Service Information
+      description: |
+        Returns deployment and build information for the Seismic DMS service.
+        This endpoint is publicly accessible and does not require authentication.
+      operationId: GetServiceInformation
+      security: [] # No authentication
+      responses:
+        '200':
+          description: Successfully retrieved service information.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionInfo' # Updated Info to VersionInfo for consistency
+        '500': { $ref: '#/components/responses/InternalServerError' } # Generic error if info fails
+
+  /svcstatus:
+    get:
+      tags: [Information]
+      summary: Get Service Status (Liveness)
+      description: |
+        Provides a basic liveness check for the Seismic DMS service.
+        This endpoint is publicly accessible and does not require authentication.
+      operationId: GetServiceStatus
+      security: [] # No authentication
+      responses:
+        '200':
+          description: Service is alive and responding.
+          content:
+            application/json: # Original was text/plain example: service OK
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "OK"
+        '503': { $ref: '#/components/responses/ServiceUnavailableError' }

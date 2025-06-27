@@ -1,0 +1,982 @@
+openapi: 3.0.3
+info:
+  title: Azure Data Manager for Energy - CRS Conversion Service
+  version: 3.0.0
+  description: Provides conversion/transformation services from a source to a target CRS. A coordinate operation is a conversion if the source and target CRS share the same datum; the operation is called transformation if datum transformations are involved, i.e. source and target CRS do not share the same datum.
+  contact:
+    name: Microsoft Support
+    email: support@microsoft.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: /api/crs/converter
+tags:
+  - name: health-check-api
+    description: Health related endpoints
+  - name: info-api
+    description: Version info endpoint
+  - name: crs-converter-api-v3
+    description: Converter related endpoints for points, GeoJSON, and BinGrids
+  - name: convert-trajectory-api-v3
+    description: Endpoints for converting trajectory stations
+security:
+  - Authorization: []
+paths:
+  /v3/_ah/liveness_check:
+    get:
+      tags:
+        - health-check-api
+      summary: Liveness Check endpoint
+      description: For deployment available public `/liveness_check` endpoint, which provides `CRS Conversion Service is alive` message.
+      operationId: GetLivenessCheck
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      responses:
+        '200':
+          description: CRS Conversion service is alive
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: CRS Conversion Service is alive
+      security: []
+  /v3/_ah/readiness_check:
+    get:
+      tags:
+        - health-check-api
+      summary: Readiness Check endpoint
+      description: For deployment available public `/readiness_check` endpoint, which provides `CRS Conversion Service is ready` message.
+      operationId: GetReadinessCheck
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      responses:
+        '200':
+          description: CRS Conversion service is ready
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: CRS Conversion Service is ready
+      security: []
+  /v3/convert:
+    post:
+      tags:
+        - crs-converter-api-v3
+      summary: Convert a list of points between CRSs
+      description: Converts a list of points from a source Coordinate Reference System (CRS) to a target CRS.
+      operationId: ConvertPoints
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      requestBody:
+        description: Request containing the points to convert, along with source and target CRS definitions.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConvertPointsRequest'
+      responses:
+        '200':
+          description: Points conversion performed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConvertPointsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /v3/convertBinGrid:
+    post:
+      tags:
+        - crs-converter-api-v3
+      summary: QC and convert Bin Grids
+      description: "Performs Quality Control (QC) and conversion of Bin Grids. This includes checking the 'squareness' of a Bin Grid, converting it to a new CRS, calculating derived P6 parameters, and determining WGS 84 coordinates at corners."
+      operationId: ConvertBinGrid
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      requestBody:
+        description: Request containing the BinGrid to process and the target CRS.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConvertBinGridRequest'
+      responses:
+        '200':
+          description: BinGrid processing completed. The response includes a measure of non-squareness, the output BinGrid with derived P6 parameters, and optionally, converted global coordinates squared up in the new geometry.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConvertBinGridResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /v3/convertGeoJson:
+    post:
+      tags:
+        - crs-converter-api-v3
+      summary: Convert a GeoJSON or AnyCrsGeoJson structure
+      description: Converts a GeoJSON FeatureCollection (assumed WGS 84) or an AnyCrsFeatureCollection (using its embedded `persistableReferenceCrs`) to a specified target CRS.
+      operationId: ConvertGeoJson
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      requestBody:
+        description: Request containing the GeoJSON structure to convert and the target CRS.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConvertGeoJsonRequest'
+      responses:
+        '200':
+          description: GeoJSON conversion performed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConvertGeoJsonResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /v3/convertTrajectory:
+    post:
+      tags:
+        - convert-trajectory-api-v3
+      summary: Convert trajectory stations
+      description: "Converts a list of trajectory stations, given their unit and spatial context, and a reference point in 3D where Measured Depth (MD) is zero. Note: To get WGS 84 output, the trajectoryCRS needs to be a BoundCRS unless it is already WGS 84 based."
+      operationId: ConvertTrajectory
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      requestBody:
+        description: Request containing trajectory data, including stations, CRS, units, azimuth reference, and computation method.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConvertTrajectoryRequest'
+      responses:
+        '200':
+          description: Trajectory conversion performed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConvertTrajectoryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /v3/info:
+    get:
+      tags:
+        - info-api
+      summary: Get service build and version information
+      description: For deployment available public `/info` endpoint, which provides build and git related information for the CRS Conversion Service.
+      operationId: GetInfo
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      responses:
+        '200':
+          description: Successfully retrieved service version information.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionInfo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+      security: []
+components:
+  schemas:
+    AbstractAnyCrsFeatureCollection:
+      type: object
+      properties:
+        type:
+          type: string
+          example: "AnyCrsFeatureCollection"
+        features:
+          type: array
+          items:
+            $ref: '#/components/schemas/AbstractFeature'
+          nullable: true
+        persistableReferenceCrs:
+          type: string
+          description: Persistable reference string for the Coordinate Reference System of the collection.
+          example: "{\"wkt\":\"GEOGCS[\\\"GCS_WGS_1984\\\",DATUM[\\\"D_WGS_1984\\\", ...],AUTHORITY[\\\"EPSG\\\",4326]]\"}"
+          nullable: true
+        CoordinateReferenceSystemID:
+          type: string
+          description: OSDU Well-known name or ID for the CRS.
+          example: "osdu:reference-data--CoordinateReferenceSystem:LBC:EPSG::4326"
+          nullable: true
+    AbstractBinGrid:
+      type: object
+      properties:
+        BinGridName:
+          type: string
+          example: "Seismic Survey Main Grid"
+          nullable: true
+        BinGridTypeID:
+          type: string
+          example: "osdu:reference-data--BinGridType:SURVEY_ACQUISITION_GRID:"
+          nullable: true
+        BinGridDefinitionMethodTypeID:
+          type: string
+          example: "osdu:reference-data--BinGridDefinitionMethodType:SEISMIC_BIN_GRID_DEFINITION_BY_CORNERS:"
+          nullable: true
+        P6BinGridOriginEasting:
+          type: number
+          format: double
+          example: 450000.0
+          nullable: true
+        P6BinGridOriginNorthing:
+          type: number
+          format: double
+          example: 6100000.0
+          nullable: true
+        P6BinGridOriginI:
+          type: number
+          format: double
+          example: 1001.0
+          nullable: true
+        P6BinGridOriginJ:
+          type: number
+          format: double
+          example: 2001.0
+          nullable: true
+        P6MapGridBearingOfBinGridJaxis:
+          type: number
+          format: double
+          example: 15.5
+          nullable: true
+        P6ScaleFactorOfBinGrid:
+          type: number
+          format: double
+          example: 0.9996
+          nullable: true
+        P6BinWidthOnIaxis:
+          type: number
+          format: double
+          example: 25.0
+          nullable: true
+        P6BinWidthOnJaxis:
+          type: number
+          format: double
+          example: 25.0
+          nullable: true
+        P6BinNodeIncrementOnIaxis:
+          type: integer
+          format: int32
+          example: 1
+          nullable: true
+        P6BinNodeIncrementOnJaxis:
+          type: integer
+          format: int32
+          example: 1
+          nullable: true
+        P6TransformationMethod:
+          type: integer
+          format: int32
+          example: 7
+          nullable: true
+        CoveragePercent:
+          type: number
+          format: double
+          example: 95.5
+          nullable: true
+        SourceBinGridID:
+          type: integer
+          format: int32
+          example: 12345
+          nullable: true
+        SourceBinGridAppID:
+          type: string
+          example: "PetrelProjectXYZ"
+          nullable: true
+        ABCDBinGridSpatialLocation:
+          $ref: '#/components/schemas/AbstractSpatialLocation'
+          nullable: true
+    AbstractFeature:
+      type: object
+      properties:
+        type:
+          type: string
+          example: "Feature"
+        geometry:
+          $ref: '#/components/schemas/Geometry'
+          nullable: true
+        properties:
+          $ref: '#/components/schemas/PropertiesBinGridCorners'
+          nullable: true
+    AbstractFeatureCollection:
+      type: object
+      properties:
+        type:
+          type: string
+          example: "FeatureCollection"
+        features:
+          type: array
+          items:
+            $ref: '#/components/schemas/AbstractFeature'
+          nullable: true
+    AbstractSpatialLocation:
+      type: object
+      description: Describes the spatial location information, including its coordinate systems and quality.
+      properties:
+        AsIngestedCoordinates:
+          $ref: '#/components/schemas/AbstractAnyCrsFeatureCollection'
+          description: Coordinates as they were originally ingested, in their native CRS.
+          nullable: true
+        Wgs84Coordinates:
+          $ref: '#/components/schemas/AbstractFeatureCollection'
+          description: Coordinates transformed to WGS 84.
+          nullable: true
+        SpatialParameterTypeID:
+          type: string
+          example: "osdu:reference-data--SpatialParameterType:SHOTPOINT_LOCATION:"
+          nullable: true
+        SpatialGeometryTypeID:
+          type: string
+          example: "osdu:reference-data--SpatialGeometryType:POINT:"
+          nullable: true
+        AppliedOperations:
+          type: array
+          items:
+            type: string
+            example: "EPSG::1600 (AGD66 to GDA94 (1))"
+          description: List of coordinate operations applied to transform from AsIngestedCoordinates to Wgs84Coordinates.
+          nullable: true
+        QualitativeSpatialAccuracyTypeID:
+          type: string
+          example: "osdu:reference-data--QualitativeSpatialAccuracyType:HIGH:"
+          nullable: true
+        QuantitativeAccuracyBandID:
+          type: string
+          example: "osdu:reference-data--QuantitativeAccuracyBand:A_1M:"
+          nullable: true
+        CoordinateQualityCheckPerformedBy:
+          type: string
+          example: "John Doe"
+          nullable: true
+        CoordinateQualityCheckDateTime:
+          type: string
+          format: date-time
+          example: "2023-01-15T10:00:00Z"
+          nullable: true
+        CoordinateQualityCheckRemarks:
+          type: array
+          items:
+            type: string
+            example: "Verified against survey report."
+          nullable: true
+        SpatialLocationCoordinatesDate:
+          type: string
+          format: date # Or date-time, depending on precision
+          example: "2022-12-01"
+          nullable: true
+    AppError:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+          example: 400
+        message:
+          type: string
+          example: "Invalid input parameters."
+        reason:
+          type: string
+          example: "Missing required 'fromCRS' field."
+    ConnectedOuterService:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "CRS Catalog Service"
+        version:
+          type: string
+          example: "v3.0.0"
+    ConvertBinGridRequest:
+      type: object
+      required:
+        - inBinGrid
+        - toCRS
+      properties:
+        inBinGrid:
+          $ref: '#/components/schemas/AbstractBinGrid'
+        toCRS:
+          type: string
+          description: Target CRS as a persistable reference string.
+          example: "{\"wkt\":\"GEOGCS[\\\"GCS_WGS_1984\\\",DATUM[\\\"D_WGS_1984\\\", ...],AUTHORITY[\\\"EPSG\\\",4326]]\"}"
+    ConvertBinGridResponse:
+      type: object
+      properties:
+        outBinGrid:
+          $ref: '#/components/schemas/AbstractBinGrid'
+          nullable: true
+        AppliedOperations:
+          type: array
+          items:
+            type: string
+            example: "EPSG::1600 (AGD66 to GDA94 (1))"
+          description: List of coordinate operations applied.
+          nullable: true
+        maxMisLocation:
+          $ref: '#/components/schemas/MaxMisLocation'
+          nullable: true
+    ConvertGeoJsonRequest:
+      type: object
+      description: Request to convert a GeoJSON FeatureCollection or AnyCrsFeatureCollection from WGS 84 or its native CRS to a target CRS.
+      required:
+        - featureCollection
+        - toCRS
+      properties:
+        featureCollection:
+          $ref: '#/components/schemas/GeoJsonFeatureCollection'
+        toCRS:
+          type: string
+          description: Target CRS as a persistable reference string.
+          example: '"{"authCode":{"auth":"EPSG","code":"4326"},"name":"GCS_WGS_1984","type":"LBC","ver":"PE_10_3_1","wkt":"GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137.0,298.257223563]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433],AUTHORITY[\"EPSG\",4326]]"}"'
+        toUnitZ:
+          type: string
+          description: 'Optional: The target Z-unit for z-axis scaling, as a persistable unit reference string.'
+          example: '"{"baseMeasurement":{"ancestry":"Length","type":"UM"},"scaleOffset":{"offset":0.0,"scale":1.0},"symbol":"m","type":"USO"}"'
+          nullable: true
+    ConvertGeoJsonResponse:
+      type: object
+      description: Response of a CRS conversion/transformation operation involving GeoJSON FeatureCollection or AnyCrsFeatureCollection.
+      properties:
+        featureCollection:
+          $ref: '#/components/schemas/GeoJsonFeatureCollection'
+          nullable: true
+        operationsApplied:
+          type: array
+          description: The list of operations performed on the points as a list of strings.
+          items:
+            type: string
+            example: "EPSG::15851 (NAD83 to WGS 84 (1))"
+          nullable: true
+        totalCount:
+          type: integer
+          format: int32
+          description: The total number of coordinates in the input GeoJSON structure.
+          example: 150
+          nullable: true
+        successCount:
+          type: integer
+          format: int32
+          description: The number of coordinates successfully converted/transformed. If less than totalCount, errors occurred.
+          example: 148
+          nullable: true
+    ConvertPointsRequest:
+      type: object
+      description: Request to convert a set of points from a source CRS to a target CRS.
+      required:
+        - fromCRS
+        - points
+        - toCRS
+      properties:
+        fromCRS:
+          type: string
+          description: Source CRS as a persistable reference string.
+          example: '"{"lateBoundCRS":{"wkt":"GEOGCS[...]", ... "type":"EBC"}"' # Shortened for brevity
+        points:
+          type: array
+          description: List of points to be converted.
+          items:
+            $ref: '#/components/schemas/Point'
+          example:
+            - x: -61.04340628871454
+              y: 10.673103179456877
+              z: 0
+            - x: -61.05
+              y: 10.68
+              z: 10
+        toCRS:
+          type: string
+          description: Target CRS as a persistable reference string.
+          example: '"{"lateBoundCRS":{"wkt":"PROJCS[...]", ... "type":"EBC"}"' # Shortened for brevity
+    ConvertPointsResponse:
+      type: object
+      description: Response of a CRS conversion/transformation operation for a list of points.
+      properties:
+        points:
+          type: array
+          description: Converted points. Length and order match the request. Points that failed conversion are returned as NaN.
+          items:
+            $ref: '#/components/schemas/Point'
+          nullable: true
+        operationsApplied:
+          type: array
+          description: The list of operations performed on the points.
+          items:
+            type: string
+            example: "EPSG::1209 (PSAD_1956_To_WGS_1984_9)"
+          nullable: true
+        successCount:
+          type: integer
+          format: int32
+          description: Number of points successfully converted.
+          example: 2
+          nullable: true
+    ConvertTrajectoryRequest:
+      type: object
+      description: Input trajectory data structure, including context (CRS, units, azimuth reference, method).
+      required:
+        - azimuthReference
+        - inputStations # String containing JSON array of stations
+        - method
+        - trajectoryCRS
+        - unitZ
+      properties:
+        trajectoryCRS:
+          type: string
+          description: Coordinate reference system for the reference point. Typically a projected CRS. If geographic, unitXY must be defined and azimuthReference must be TRUE_NORTH. Persistable reference string.
+          example: '"{"wkt":"PROJCS[...]", "type":"LBC"}"' # Shortened
+        referencePoint:
+          $ref: '#/components/schemas/Point'
+          description: The 3D reference point where MD (Measured Depth) is zero.
+          nullable: true # Though often required logically
+        inputStations:
+          type: string # This is a JSON string in the example
+          description: The array of input trajectory stations, as a JSON string.
+          example: '[{"md":0,"inclination":0,"azimuth":0},{"md":1000,"inclination":0,"azimuth":0}]'
+        inputKind:
+          type: string
+          description: The kind of input; MD_Inclination_Azimuth (default), MD_X_Y_Z, MD_dX_dY_dZ, X_Y_Z, dX_dY_dZ.
+          example: MD_Inclination_Azimuth
+          default: MD_Inclination_Azimuth
+          nullable: true
+        method:
+          type: string
+          description: The computation method - 'AzimuthalEquidistant' (default) or 'LMP' (Lee's modified proposal SPE96813).
+          example: AzimuthalEquidistant
+          default: AzimuthalEquidistant
+        azimuthReference:
+          type: string
+          description: Azimuth reference for input trajectory station azimuth values (TRUE_NORTH or GridNorth).
+          example: TRUE_NORTH
+          enum: ["TRUE_NORTH", "GridNorth"]
+        unitXY:
+          type: string
+          description: Horizontal unit for dx, dy in input stations. Persistable unit model string.
+          example: '"{"scaleOffset":{"scale":1.0,"offset":0.0},"symbol":"m", ... "type":"USO"}"' # Shortened
+          nullable: true
+        unitZ:
+          type: string
+          description: Vertical unit for dz and md in input stations. Persistable unit model string.
+          example: '"{"scaleOffset":{"scale":1.0,"offset":0.0},"symbol":"m", ... "type":"USO"}"' # Shortened
+        interpolate:
+          type: boolean
+          description: Perform trajectory interpolation on demand. Default is true.
+          example: true
+          default: true
+          nullable: true
+    ConvertTrajectoryResponse:
+      type: object
+      description: Trajectory response data structure, including context (CRS, units).
+      required:
+        - localCRS
+        - method
+        - stations
+        - trajectoryCRS
+        - unitDls
+        - unitXY
+        - unitZ
+      properties:
+        stations:
+          type: array
+          description: Computed trajectory stations.
+          items:
+            $ref: '#/components/schemas/TrajectoryStationOut'
+          nullable: true
+        operationsApplied:
+          type: array
+          description: The list of operations performed on the points.
+          items:
+            type: string
+            example: "Local Azimuthal Equidistant Projection"
+          nullable: true
+        trajectoryCRS:
+          type: string
+          description: Coordinate reference system used for the trajectory calculation. Persistable reference string.
+          example: '{"authCode":{"auth":"EPSG","code":"32631"}, ... "type":"LBC"}' # Shortened
+        localCRS:
+          type: string
+          description: Local, True North oriented, true distance, engineering CRS with origin at the well's surface location. Persistable reference string.
+          example: '{"authCode":{"auth":"SLB","code":"XYZLOCAL"}, ... "type":"EBC"}' # Shortened
+        inputKind:
+          type: string
+          description: The kind of input used for calculation.
+          example: MD_Inclination_Azimuth
+          nullable: true
+        method:
+          type: string
+          description: The computation method used.
+          example: AzimuthalEquidistant
+        unitXY:
+          type: string
+          description: Horizontal unit of dx, dy in output trajectory stations. Persistable unit model string.
+          example: '{"scaleOffset":{"scale":1.0,"offset":0.0},"symbol":"m", ... "type":"USO"}' # Shortened
+        unitZ:
+          type: string
+          description: Vertical unit of dz, md in output trajectory stations. Persistable unit model string.
+          example: '{"scaleOffset":{"scale":1.0,"offset":0.0},"symbol":"m", ... "type":"USO"}' # Shortened
+        unitDls:
+          type: string
+          description: Unit of Dog Leg Severity (DLS) in output trajectory stations. Persistable unit model string.
+          example: '%7B%22ScaleOffset%22%3A%7B%22Scale%22%3A5.72614583987641E-4%2C%22Offset%22%3A0.0%7D%2C%22Symbol%22%3A%22deg%2F100ft%22%2C%22BaseMeasurement%22%3A%22%257B%2522Ancestry%2522%253A%2522Rotation_Per_Length%2522%257D%22%7D' # URL encoded example
+    GeoJsonBase: # Abstract base type, usually not directly used in request/response
+      type: object
+      discriminator:
+        propertyName: type
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          description: Specifies the GeoJSON object type.
+        bbox:
+          type: array
+          items:
+            type: number
+            format: double
+          description: Bounding box of the GeoJSON object.
+          example: [-10.0, -10.0, 10.0, 10.0]
+          nullable: true
+        geoJsonVariantInternal: # Internal field, likely not for external users
+          type: string
+          enum:
+            - GEO_JSON
+            - ANY_CRS_GEO_JSON
+          writeOnly: true
+          nullable: true
+    GeoJsonFeature:
+      type: object
+      # allOf: # If it's meant to extend GeoJsonBase, use allOf
+      #   - $ref: '#/components/schemas/GeoJsonBase'
+      required:
+        - type # type is part of GeoJson standard for Feature
+        - geometry
+      properties:
+        type: # Explicitly define type for Feature
+          type: string
+          enum: ["Feature"] # GeoJSON Feature type
+          example: "Feature"
+        geometry:
+          $ref: '#/components/schemas/GeoJsonBase' # This should be a specific GeoJSON geometry type or a polymorphic one
+          description: The geometry of the feature.
+          nullable: true # GeoJSON allows null geometry
+        properties:
+          type: object
+          description: Properties associated with the feature.
+          example: {"name": "My Point", "id": 123}
+          nullable: true
+        bbox: # Duplicates GeoJsonBase.bbox if using allOf. If not, it's fine here.
+          type: array
+          items:
+            type: number
+            format: double
+          description: Bounding box of the GeoJSON feature.
+          example: [-10.0, -10.0, 10.0, 10.0]
+          nullable: true
+        geoJsonVariantInternal:
+          type: string
+          enum:
+            - GEO_JSON
+            - ANY_CRS_GEO_JSON
+          writeOnly: true
+          nullable: true
+    GeoJsonFeatureCollection:
+      type: object
+      # allOf: # If it's meant to extend GeoJsonBase, use allOf
+      #   - $ref: '#/components/schemas/GeoJsonBase'
+      description: A GeoJSON FeatureCollection, possibly with CRS context.
+      required:
+        - type # type is part of GeoJson standard for FeatureCollection
+        - features
+      properties:
+        type: # Explicitly define type for FeatureCollection
+          type: string
+          enum: ["FeatureCollection"] # GeoJSON FeatureCollection type
+          example: "FeatureCollection"
+        features:
+          type: array
+          items:
+            $ref: '#/components/schemas/GeoJsonFeature'
+        properties:
+          type: object
+          description: Properties associated with the feature collection.
+          example: {"name": "Collection of interesting features"}
+          nullable: true
+        persistableReferenceCrs:
+          type: string
+          description: Persistable reference string for the Coordinate Reference System, if not WGS 84.
+          example: "{\"wkt\":\"PROJCS[...]}"
+          nullable: true
+        persistableReferenceUnitZ:
+          type: string
+          description: Persistable reference string for the Z-axis unit, if applicable.
+          example: "{\"symbol\":\"m\", ...}"
+          nullable: true
+        CoordinateReferenceSystemID: # OSDU specific extension
+          type: string
+          description: OSDU Well-known name or ID for the CRS.
+          example: "osdu:reference-data--CoordinateReferenceSystem:LBC:EPSG::26910"
+          nullable: true
+        VerticalUnitID: # OSDU specific extension
+          type: string
+          description: OSDU Well-known name or ID for the vertical unit.
+          example: "osdu:reference-data--UnitOfMeasure:m:"
+          nullable: true
+        bbox: # Duplicates GeoJsonBase.bbox if using allOf. If not, it's fine here.
+          type: array
+          items:
+            type: number
+            format: double
+          description: Bounding box of the GeoJSON feature collection.
+          example: [-180.0, -90.0, 180.0, 90.0]
+          nullable: true
+        geoJsonVariantInternal:
+          type: string
+          enum:
+            - GEO_JSON
+            - ANY_CRS_GEO_JSON
+          writeOnly: true
+          nullable: true
+    Geometry: # Generic Geometry, actual GeoJSON would use specific types like Point, Polygon etc.
+      type: object
+      required:
+        - type
+        - coordinates
+      properties:
+        type:
+          type: string
+          description: The type of geometry (e.g., Point, LineString, Polygon).
+          example: "Point"
+        coordinates: # Structure varies based on 'type'
+          type: array # For Point: [lon, lat], for LineString: [[lon,lat],[lon,lat],...]
+          items:
+            type: number # Or array of numbers for complex geometries
+            format: double
+          example: [-73.985130, 40.758896] # Example for a Point
+    MaxMisLocation:
+      type: object
+      description: Represents the maximum mislocation found during BinGrid squaring.
+      properties:
+        dI:
+          type: number
+          format: double
+          description: Mislocation in the I-axis direction.
+          example: 0.5
+          nullable: true
+        dJ:
+          type: number
+          format: double
+          description: Mislocation in the J-axis direction.
+          example: -0.25
+          nullable: true
+    Point:
+      type: object
+      description: Point representation for CRS operations, with x, y, z coordinates.
+      required:
+        - x
+        - y
+      properties: # z is often optional
+        x:
+          type: number
+          format: double
+          description: X coordinate or longitude.
+          example: -61.04340628871454
+        y:
+          type: number
+          format: double
+          description: Y coordinate or latitude.
+          example: 10.673103179456877
+        z:
+          type: number
+          format: double
+          description: Z coordinate or elevation/depth.
+          example: 0.0
+          nullable: true # Making Z optional as it's common
+    PointProperties: # Properties for a point within a BinGrid feature
+      type: object
+      properties:
+        Label:
+          type: string
+          example: "Corner1"
+          nullable: true
+        Inline:
+          type: integer
+          format: int32
+          example: 1001
+          nullable: true
+        Crossline:
+          type: integer
+          format: int32
+          example: 2001
+          nullable: true
+    PropertiesBinGridCorners: # Properties specific to BinGrid corner features
+      type: object
+      properties:
+        Kind:
+          type: string
+          example: "BinGridCornerPoints"
+          nullable: true
+        PointProperties:
+          type: array
+          items:
+            $ref: '#/components/schemas/PointProperties'
+          nullable: true
+    TrajectoryStationOut:
+      type: object
+      description: Output trajectory station record; context is provided by the container.
+      properties:
+        md:
+          type: number
+          format: double
+          description: Measured Depth (MD) from vertical reference point in 'unitZ'.
+          example: 2563.56
+          nullable: true
+        inclination:
+          type: number
+          format: double
+          description: Inclination angle in degrees of arc (0.0 vertical, 90.0 horizontal).
+          example: 15.0
+          nullable: true
+        azimuthTN:
+          type: number
+          format: double
+          description: True North azimuth angle in degrees of arc (0.0/360.0 is North).
+          example: 355.96
+          nullable: true
+        azimuthGN:
+          type: number
+          format: double
+          description: Grid North azimuth angle in degrees of arc (0.0/360.0 is North).
+          example: 355.0
+          nullable: true
+        dxTN:
+          type: number
+          format: double
+          description: True E-W deviation in local Cartesian engineering CRS from well reference point; unit is container's 'unitXY'.
+          example: 55.9
+          nullable: true
+        dyTN:
+          type: number
+          format: double
+          description: True N-S deviation in local Cartesian engineering CRS from well reference point (Y aligned with TRUE_NORTH); unit is container's 'unitXY'.
+          example: -145.3
+          nullable: true
+        dz:
+          type: number
+          format: double
+          description: Vertical deviation from well reference point; unit is container's 'unitZ'.
+          example: 2500.75
+          nullable: true
+        dls:
+          type: number
+          format: double
+          description: Curvature, Dog Leg Severity, measured in 'unitDls'.
+          example: 1.5
+          nullable: true
+        wgs84Latitude:
+          type: number
+          format: double
+          description: WGS 84 latitude in decimal degrees.
+          example: 10.6730
+          nullable: true
+        wgs84Longitude:
+          type: number
+          format: double
+          description: WGS 84 longitude in decimal degrees.
+          example: -61.0433
+          nullable: true
+        point:
+          $ref: '#/components/schemas/Point'
+          description: Calculated X, Y, Z coordinates of the station in the `trajectoryCRS`.
+          nullable: true
+        original:
+          type: boolean
+          description: True if this was an original input station, false if interpolated.
+          example: true
+          nullable: true
+    VersionInfo:
+      type: object
+      properties:
+        groupId:
+          type: string
+          example: "org.osdu"
+        artifactId:
+          type: string
+          example: "crs-conversion-service"
+        version:
+          type: string
+          example: "3.0.0"
+        buildTime:
+          type: string
+          format: date-time
+          example: "2023-10-27T10:30:00Z"
+        branch:
+          type: string
+          example: "main"
+          nullable: true
+        commitId:
+          type: string
+          example: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+          nullable: true
+        commitMessage:
+          type: string
+          example: "feat: Initial release of v3 conversion endpoints"
+          nullable: true
+        connectedOuterServices:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConnectedOuterService'
+          nullable: true
+  securitySchemes:
+    Authorization:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Bearer token for authorization. Example: \"Bearer {token}\""
+  parameters:
+    DataPartitionIdHeader:
+      name: data-partition-id
+      in: header
+      description: Tenant Identifier (Data Partition ID) for data isolation and access control.
+      required: true
+      schema:
+        type: string
+        example: "osdu-tenant1"
+  responses:
+    BadRequest:
+      description: Bad Request. The request was invalid, malformed, or missing required parameters. Check the response body for details.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    InternalServerError:
+      description: Internal Server Error. An unexpected condition was encountered on the server.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    ServiceUnavailable:
+      description: Service Unavailable. The CRS converter service is currently overloaded or temporarily unavailable. Please try again later.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'

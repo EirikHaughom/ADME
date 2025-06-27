@@ -1,0 +1,1208 @@
+openapi: 3.0.3
+info:
+  title: Azure Data Manager for Energy - Register Service API
+  version: '1.0'
+  description: APIs to manage registrations for Actions, Domain Data Management Services (DDMS), and Notification Subscriptions within the Azure Data Manager for Energy platform.
+  contact:
+    name: Microsoft Support
+    email: support@microsoft.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: /api/register/v1
+tags:
+  - name: Actions
+    description: Operations for managing Action registrations.
+  - name: DDMS
+    description: Operations for managing Domain Data Management Service (DDMS) registrations.
+  - name: Subscriptions
+    description: Operations for managing event Subscriptions.
+  - name: Topics
+    description: Operations for listing available notification Topics.
+  - name: Health
+    description: Service health and readiness checks.
+  - name: Info
+    description: Service version and build information.
+security:
+  - Authorization: [] # Global security requirement, can be overridden per operation
+paths:
+  /action:
+    post:
+      tags:
+        - Actions
+      summary: Create an action registration
+      description: 'Create an action registration. Required role: `users.datalake.ops` or `users.datalake.admins`.'
+      operationId: CreateActionRegistration
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      requestBody:
+        description: Details of the action registration to create.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateActionDto'
+      responses:
+        '201':
+          description: Action registration created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Action'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /action/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ActionIdPathParam'
+      - $ref: '#/components/parameters/DataPartitionIdHeader'
+    get:
+      tags:
+        - Actions
+      summary: Get an action registration by ID
+      description: 'Get an action registration with the given id. Required roles: `users.datalake.ops` or `users.datalake.admins` or `users.datalake.editors` or `users.datalake.viewers`.'
+      operationId: GetActionRegistration
+      responses:
+        '200':
+          description: Successfully retrieved action registration.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Action'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+    delete:
+      tags:
+        - Actions
+      summary: Delete an action registration by ID
+      description: 'Delete an action registration with the given id. Required role: `users.datalake.ops` or `users.datalake.admins`.'
+      operationId: DeleteActionRegistration
+      responses:
+        '204':
+          description: Action registration deleted successfully.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /action:retrieve:
+    post:
+      tags:
+        - Actions
+      summary: Retrieve and substitute action registrations based on payload
+      description: 'Query for action registrations matching the provided payload (e.g., a record kind) and substitute parameters in the action URL. Required roles: `users.datalake.ops` or `users.datalake.admins` or `users.datalake.editors` or `users.datalake.viewers`.'
+      operationId: RetrieveAndSubstituteActions
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      requestBody:
+        description: The payload (e.g., OSDU record snippet) to match against action filters and use for URL parameter substitution.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JsonNode' # Generic JSON node
+      responses:
+        '200':
+          description: Successfully retrieved and processed matching actions.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Action' # Or ParsedAction if URL is substituted
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound' # No matching actions
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /action:test:
+    post:
+      tags:
+        - Actions
+      summary: Test an action registration with a sample payload
+      description: 'Test an action registration by providing the action definition and a sample payload to see the resulting substituted URL. Required roles: `users.datalake.ops` or `users.datalake.admins` or `users.datalake.editors` or `users.datalake.viewers`.'
+      operationId: TestActionRegistration
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      requestBody:
+        description: The action definition to test and a sample payload for parameter substitution.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestActionRequest'
+      responses:
+        '200':
+          description: Successfully tested the action registration.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParsedAction'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /ah/liveness_check: # Path kept as original
+    get:
+      tags:
+        - Health
+      summary: Liveness Check endpoint
+      description: For deployment, a publicly available `/liveness_check` endpoint to verify the service is running.
+      operationId: GetLivenessCheck
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      responses:
+        '200':
+          description: Service is alive.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Register Service is alive"
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+      security: []
+  /ah/readiness_check: # Path kept as original
+    get:
+      tags:
+        - Health
+      summary: Readiness Check endpoint
+      description: For deployment, a publicly available `/readiness_check` endpoint to verify the service is ready to handle requests.
+      operationId: GetReadinessCheck
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      responses:
+        '200':
+          description: Service is ready.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Register Service is ready"
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+      security: []
+  /ddms:
+    get:
+      tags:
+        - DDMS
+      summary: Query for DDMS registrations by type
+      description: 'Query for DDMS registrations allowing retrievals by entity type (e.g., wellbores). Required roles: `users.datalake.ops` or `users.datalake.admins` or `users.datalake.editors` or `users.datalake.viewers`.'
+      operationId: QueryDdmsRegistrationsByType
+      parameters:
+        - $ref: '#/components/parameters/TypeQueryParam'
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      responses:
+        '200':
+          description: Successfully retrieved DDMS registrations.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ddms'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+    post:
+      tags:
+        - DDMS
+      summary: Create a DDMS registration
+      description: 'Create a DDMS registration, typically using an OpenAPI spec V3 document or similar definition. Required roles: `users.datalake.editors` or `users.datalake.admins` or `users.datalake.ops`.'
+      operationId: CreateDdmsRegistration
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      requestBody:
+        description: Details of the DDMS registration to create.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Ddms'
+      responses:
+        '201':
+          description: DDMS registration created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ddms'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /ddms/{id}:
+    parameters:
+      - $ref: '#/components/parameters/DdmsIdPathParam'
+      - $ref: '#/components/parameters/DataPartitionIdHeader'
+    get:
+      tags:
+        - DDMS
+      summary: Get a DDMS registration by ID
+      description: 'Get a DDMS registration with the given id. Required roles: `users.datalake.ops` or `users.datalake.admins` or `users.datalake.editors` or `users.datalake.viewers`.'
+      operationId: GetDdmsRegistration
+      responses:
+        '200':
+          description: Successfully retrieved DDMS registration.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ddms'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+    delete:
+      tags:
+        - DDMS
+      summary: Delete a DDMS registration by ID
+      description: 'Delete a DDMS registration with the given id. Required roles: `users.datalake.ops` or `users.datalake.admins`.'
+      operationId: DeleteDdmsRegistration
+      responses:
+        '204':
+          description: DDMS registration deleted successfully.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /ddms/{id}/{type}/{localid}:
+    parameters:
+      - $ref: '#/components/parameters/DdmsIdPathParam'
+      - $ref: '#/components/parameters/DdmsTypePathParam'
+      - $ref: '#/components/parameters/DdmsLocalIdPathParam'
+      - $ref: '#/components/parameters/DataPartitionIdHeader'
+    get:
+      tags:
+        - DDMS
+      summary: Redirect to retrieve a single DDMS record
+      description: 'Retrieves a single entity record from a DDMS by redirecting the client to the DDMS-specific URL. Required roles: `users.datalake.ops` or `users.datalake.admins` or `users.datalake.editors` or `users.datalake.viewers`.'
+      operationId: GetDdmsRecordById # Operation goal, redirect is implementation detail
+      responses:
+        '307':
+          description: Temporary Redirect to the DDMS endpoint for the specific record.
+          headers:
+            Location:
+              description: The URL to redirect to for retrieving the DDMS entity.
+              schema:
+                type: string
+                format: url
+              style: simple
+          content:
+            text/plain: # Or application/json with a message
+              schema:
+                type: string
+                example: "Redirecting to DDMS for record retrieval."
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound' # DDMS registration, type, or localid not found
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /info:
+    get:
+      tags:
+        - Info
+      summary: Get service build and version information
+      description: For deployment, a publicly available `/info` endpoint that provides build and git related information for the Register Service.
+      operationId: GetInfo
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      responses:
+        '200':
+          description: Successfully retrieved service version information.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionInfo'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+      security: []
+  /subscription:
+    get:
+      tags:
+        - Subscriptions
+      summary: Query subscriptions by notification ID
+      description: 'Query for subscriptions associated with a specific notification ID. Required roles: `users.datalake.ops` or `users.datalake.admins` or `users.datalake.editors`.'
+      operationId: QuerySubscriptionsByNotificationId
+      parameters:
+        - $ref: '#/components/parameters/NotificationIdQueryParam'
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      responses:
+        '200':
+          description: Successfully retrieved subscriptions.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Subscription' # Returns full subscription details
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404': # If notification ID itself is not found or has no subscriptions
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+    post:
+      tags:
+        - Subscriptions
+      summary: Create a new subscription
+      description: 'Create a subscription to a notification topic. Required roles: `users.datalake.ops` or `users.datalake.admins` or `users.datalake.editors`.'
+      operationId: CreateSubscription
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      requestBody:
+        description: Details of the subscription to be created.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Subscription'
+      responses:
+        '201':
+          description: Subscription created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription' # Returns the created subscription
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict' # e.g., if subscription with same name/topic/endpoint exists
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /subscription/{id}:
+    parameters:
+      - $ref: '#/components/parameters/SubscriptionIdPathParam'
+      - $ref: '#/components/parameters/DataPartitionIdHeader'
+    get:
+      tags:
+        - Subscriptions
+      summary: Get a subscription by ID
+      description: 'Get a subscription with its Id. Required roles: `users.datalake.ops` or `users.datalake.admins` or `users.datalake.editors`.'
+      operationId: GetSubscriptionById
+      responses:
+        '200':
+          description: Successfully retrieved subscription details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionInfo' # Uses SubscriptionInfo for GET
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+    delete:
+      tags:
+        - Subscriptions
+      summary: Delete a subscription by ID
+      description: 'Delete a subscription with its Id. Required roles: `users.datalake.ops` or `users.datalake.admins`.'
+      operationId: DeleteSubscriptionById
+      responses:
+        '204':
+          description: Subscription deleted successfully.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /subscription/{id}/secret:
+    parameters:
+      - $ref: '#/components/parameters/SubscriptionIdPathParam'
+      - $ref: '#/components/parameters/DataPartitionIdHeader'
+    put:
+      tags:
+        - Subscriptions
+      summary: Update the secret for a subscription
+      description: 'Update the secret (e.g., HMAC key, GSA details) for an existing subscription. Required roles: `users.datalake.ops` or `users.datalake.admins` or `users.datalake.editors`.'
+      operationId: UpdateSubscriptionSecret
+      requestBody:
+        description: The new secret configuration for the subscription.
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/GsaSecret'
+                - $ref: '#/components/schemas/HmacSecret'
+      responses:
+        '204':
+          description: Subscription secret updated successfully.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /topics:
+    get:
+      tags:
+        - Topics
+      summary: List all available notification topics
+      description: 'List all topics that clients can create a subscription for, along with corresponding sample messages or schema information. Required roles: `users.datalake.ops` or `users.datalake.admins` or `users.datalake.editors`.'
+      operationId: ListAvailableTopics
+      parameters:
+        - $ref: '#/components/parameters/DataPartitionIdHeader'
+      responses:
+        '200':
+          description: Successfully retrieved available topics.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Topic'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+components:
+  schemas:
+    Action:
+      type: object
+      description: Represents a registered action that can be triggered based on data context.
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the action registration.
+          example: "petrel-launch-project"
+          nullable: true
+        name:
+          type: string
+          description: User-friendly name of the action.
+          example: "Launch Petrel Project"
+          nullable: true
+        description:
+          type: string
+          description: Textual description of what the action does.
+          example: "This action launches the Petrel projects landing page that holds the selected data."
+          nullable: true
+        url:
+          type: string
+          format: url # Assuming it's a URL
+          description: Parameterized URL for the action. Placeholders like {type} or {id} will be substituted.
+          example: "https://petrel.example.com/launch?projectType={data.type}&projectId={id}"
+          nullable: true
+        img:
+          type: string
+          format: url
+          description: URL to an image/icon representing the action.
+          example: "https://cdn.example.com/icons/petrel.png"
+          nullable: true
+        filter:
+          $ref: '#/components/schemas/Filter'
+          description: Filter criteria to determine when this action is applicable.
+          nullable: true
+        contactEmail:
+          type: string
+          format: email
+          description: Contact email for support related to this action.
+          example: "support@example.com"
+          nullable: true
+        createdOnEpoch: # Assuming this is read-only, set by system
+          type: string # Could be integer format: int64 if it's purely epoch seconds/millis
+          format: date-time # If it's an ISO 8601 string representation of the epoch time
+          description: Epoch timestamp (or ISO 8601 string) when the action was created.
+          example: "2023-03-15T10:00:00Z" # Or 1678886400000
+          readOnly: true
+          nullable: true
+    AppError:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+          example: 400
+        message:
+          type: string
+          example: "Invalid action ID provided."
+        reason:
+          type: string
+          example: "Action ID cannot contain special characters."
+    ConnectedOuterService:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Notification Service"
+          nullable: true
+        version:
+          type: string
+          example: "v1"
+          nullable: true
+    CreateActionDto:
+      type: object
+      description: Request model for creating an action registration.
+      required:
+        - id # ID is user-provided on creation
+        - name
+        - url # URL is fundamental to an action
+      properties:
+        id:
+          type: string
+          pattern: ^[A-Za-z0-9-]{2,50}$
+          description: User-defined unique identifier for the action.
+          example: "view-well-log-in-viewer"
+        name:
+          type: string
+          pattern: ^[A-Za-z0-9- ]{2,50}$
+          description: User-friendly name for the action.
+          example: "View Well Log"
+        description:
+          type: string
+          pattern: ^[A-Za-z0-9. ]{0,255}$ # Allows more characters for description
+          description: Textual description of the action.
+          example: "Opens the selected well log in the OSDU standard log viewer."
+          nullable: true
+        url:
+          type: string
+          format: url
+          description: Parameterized URL template for the action.
+          example: "https://logviewer.example.com/view?logId={id}&source={data.source}"
+        img:
+          type: string
+          format: url
+          description: URL to an image/icon for the action.
+          example: "https://cdn.example.com/icons/logviewer.png"
+          nullable: true
+        filter:
+          $ref: '#/components/schemas/Filter'
+          description: Filter criteria for when this action should be available.
+          nullable: true
+        contactEmail:
+          type: string
+          format: email
+          description: Contact email for support.
+          example: "logviewer-support@example.com"
+          nullable: true
+    Ddms:
+      type: object
+      description: Represents a registered Domain Data Management Service (DDMS).
+      required:
+        - id
+        - name
+        - interfaces # A DDMS should define interfaces
+      properties:
+        id:
+          type: string
+          pattern: ^[A-Za-z0-9-]{2,50}$
+          description: Unique identifier for the DDMS registration.
+          example: "petrel-dms-v1"
+        name:
+          type: string
+          pattern: ^[A-Za-z0-9- ]{2,50}$
+          description: User-friendly name of the DDMS.
+          example: "Petrel Data Management Service"
+        description:
+          type: string
+          pattern: ^[A-Za-z0-9. ]{0,255}$
+          description: Textual description of the DDMS.
+          example: "Service for accessing Petrel project data."
+          nullable: true
+        contactEmail:
+          type: string
+          format: email
+          description: Contact email for the DDMS.
+          example: "petrel-dms-admin@example.com"
+          nullable: true
+        interfaces:
+          type: array
+          items:
+            $ref: '#/components/schemas/RegisteredInterface'
+          uniqueItems: true
+          description: List of interfaces (entity types and schemas) supported by this DDMS.
+          minItems: 1
+        createdDateTimeEpoch: # Assuming read-only
+          type: string
+          format: date-time # Or integer format:int64
+          description: Epoch timestamp (or ISO 8601 string) when the DDMS registration was created.
+          example: "2023-02-01T12:00:00Z"
+          readOnly: true
+          nullable: true
+    Filter:
+      type: object
+      description: Criteria to filter when an action or other registration is applicable.
+      properties:
+        entityType:
+          type: array
+          items:
+            type: string
+            example: "wellbore"
+          description: List of entity types (e.g., from OSDU kinds) this action applies to.
+          example: ["master-data--Wellbore", "work-product-component--WellLog"]
+          nullable: true
+        source:
+          type: array
+          items:
+            type: string
+            example: "petrel"
+          description: List of data sources this action is relevant for.
+          example: ["vendorA-datastore", "osdu-platform-storage"]
+          nullable: true
+        version:
+          type: array
+          items:
+            type: string
+            example: "*" # Wildcard for any version
+          description: List of schema versions this action applies to. '*' can mean any version.
+          example: ["1.0.0", "1.1.*"]
+          nullable: true
+    GsaSecret:
+      description: Represents a Google Service Account (GSA) secret configuration.
+      allOf:
+        - $ref: '#/components/schemas/Secret'
+        - type: object
+          properties:
+            value:
+              $ref: '#/components/schemas/GsaSecretValue'
+              description: Contains the GSA specific secret values.
+    GsaSecretValue:
+      type: object
+      description: Values specific to a Google Service Account secret.
+      properties:
+        key:
+          type: string
+          description: The GSA key (e.g., base64 encoded JSON key file content).
+          example: "ewogICJ0eXBlIjogInNlcnZpY2VfYWNjb3VudCIsCiAgInByb2plY3RfaWQiOiAi..."
+          nullable: true
+        audience:
+          type: string
+          description: The audience claim for GSA token generation, if applicable.
+          example: "https://target-service.example.com"
+          nullable: true
+    HmacSecret:
+      description: Represents an HMAC (Hash-based Message Authentication Code) secret configuration.
+      allOf:
+        - $ref: '#/components/schemas/Secret'
+        - type: object
+          properties:
+            value:
+              type: string
+              description: The HMAC secret key.
+              example: "mySuperSecretKeyForHmacVerification"
+    JsonNode: # Generic JSON payload, used for testing actions
+      type: object
+      description: A generic JSON object, typically representing an OSDU record snippet or relevant data for action parameter substitution.
+      additionalProperties: true # Allows any valid JSON structure
+      example:
+        id: "opendes:master-data--Wellbore:WB001"
+        kind: "opendes:wks:master-data--Wellbore:1.2.0"
+        data:
+          FacilityName: "Alpha Well"
+          WellboreName: "Alpha-WB1"
+          DataSource: "DrillingSystemX"
+    ParsedAction:
+      type: object
+      description: Result of testing an action, showing the substituted URL or any errors.
+      properties:
+        url:
+          type: string
+          format: url
+          description: The action URL after substituting parameters from the test payload.
+          example: "https://logviewer.example.com/view?logId=opendes:master-data--Wellbore:WB001&source=DrillingSystemX"
+          nullable: true
+        errors: # If there were issues with substitution or filter matching
+          type: string
+          description: Error message if the action URL could not be parsed or parameters substituted.
+          example: "Parameter {data.nonExistentField} not found in test payload."
+          nullable: true
+    RegisteredInterface:
+      type: object
+      description: Defines an interface supported by a DDMS, specifying an entity type and its schema.
+      required:
+        - entityType
+        - schema # A schema definition should be provided
+      properties:
+        entityType:
+          type: string
+          pattern: ^[\w\.-]{2,50}$
+          description: The type of entity this interface handles (e.g., "wellbore", "seismictrace").
+          example: "master-data--Well"
+        schema: # This should ideally be a proper JSON Schema object
+          type: object
+          additionalProperties:
+            type: object # Or any valid JSON Schema type
+          description: A JSON Schema definition for the entity type.
+          example:
+            type: "object"
+            properties:
+              FacilityID: {type: "string"}
+              FacilityName: {type: "string"}
+            required: ["FacilityID", "FacilityName"]
+    Secret: # Base for polymorphic secrets
+      type: object
+      description: Base model for different types of secrets used for subscription authentication.
+      required:
+        - secretType
+      properties:
+        secretType:
+          type: string
+          description: Discriminator field indicating the type of secret (e.g., "HMAC", "GSA").
+          example: "HMAC"
+      discriminator:
+        propertyName: secretType
+        mapping: # Example mapping
+          HMAC: '#/components/schemas/HmacSecret'
+          GSA: '#/components/schemas/GsaSecret'
+    Subscription:
+      type: object
+      description: Represents a subscription to a notification topic.
+      required:
+        - name
+        - topic
+        - pushEndpoint
+      properties:
+        id: # System-generated
+          type: string
+          description: Unique identifier for the subscription (system-generated).
+          example: "sub_a1b2c3d4e5f6"
+          readOnly: true
+          nullable: true
+        name:
+          type: string
+          pattern: ^[A-Za-z0-9- ]{2,50}$
+          description: User-defined name for the subscription.
+          example: "WellDataChangesSubscription"
+        description:
+          type: string
+          pattern: ^[A-Za-z0-9. ]{0,255}$
+          description: Optional textual description of the subscription.
+          example: "Subscribes to all changes related to well data."
+          nullable: true
+        topic:
+          type: string
+          description: The notification topic to subscribe to.
+          example: "record-changed" # Or more specific like "osdu-record-changed-well"
+        pushEndpoint:
+          type: string
+          format: url
+          description: The HTTPS endpoint URL where notifications should be pushed.
+          example: "https://my-listener-service.example.com/webhook"
+        notificationId: # This seems like a filter criteria within the subscription for a specific entity or set of entities.
+          type: string
+          description: Optional. Specific notification ID or filter criteria for the subscription (e.g., a specific record ID or kind pattern).
+          example: "opendes:master-data--Well:*" # Subscribe to all well changes
+          nullable: true
+        secret:
+          oneOf:
+            - $ref: '#/components/schemas/GsaSecret'
+            - $ref: '#/components/schemas/HmacSecret'
+          description: Secret configuration for authenticating push notifications to the endpoint.
+          nullable: true
+        createdBy: # System-set
+          type: string
+          format: email
+          description: User who created the subscription.
+          example: "user.creator@example.com"
+          readOnly: true
+          nullable: true
+    SubscriptionInfo: # Likely a read-only summary view of a subscription
+      type: object
+      description: Summary information about a registered subscription.
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the subscription.
+          example: "sub_a1b2c3d4e5f6"
+          nullable: true
+        name:
+          type: string
+          description: Name of the subscription.
+          example: "WellDataChangesSubscription"
+          nullable: true
+        description:
+          type: string
+          description: Description of the subscription.
+          example: "Subscribes to all changes related to well data."
+          nullable: true
+        topic:
+          type: string
+          description: The notification topic subscribed to.
+          example: "record-changed"
+          nullable: true
+        pushEndpoint:
+          type: string
+          format: url
+          description: The HTTPS endpoint URL for notifications.
+          example: "https://my-listener-service.example.com/webhook"
+          nullable: true
+        notificationId:
+          type: string
+          description: Specific notification ID or filter criteria of the subscription.
+          example: "opendes:master-data--Well:*"
+          nullable: true
+        createdBy:
+          type: string
+          format: email
+          description: User who created the subscription.
+          example: "user.creator@example.com"
+          nullable: true
+    TestActionRequest:
+      type: object
+      description: Request model for testing an action registration.
+      required:
+        - action # The action definition itself
+        - testPayload
+      properties:
+        action:
+          $ref: '#/components/schemas/CreateActionDto' # Using CreateActionDto as it contains all necessary fields
+          description: The action registration definition to test.
+        testPayload:
+          $ref: '#/components/schemas/JsonNode'
+          description: A sample JSON payload to use for substituting parameters in the action's URL.
+    Topic: # Information about an available notification topic
+      type: object
+      description: Describes an available notification topic.
+      properties:
+        name:
+          type: string
+          description: The name of the notification topic.
+          example: "record-changed"
+          nullable: true
+        description:
+          type: string
+          description: A brief description of the topic and the events it signifies.
+          example: "Notifications for OSDU record create, update, and delete events."
+          nullable: true
+        state: # E.g., ACTIVE, DEPRECATED
+          type: string
+          description: Current state of the topic.
+          example: "ACTIVE"
+          nullable: true
+        example: # Example message payload for this topic
+          type: object
+          additionalProperties: true
+          description: An example message payload that would be sent for this topic.
+          example:
+            messageId: "sample-msg-id"
+            publishTime: "2023-11-15T12:00:00Z"
+            data:
+              id: "opendes:master-data--Wellbore:WB007"
+              version: 1678890000123
+              kind: "opendes:wks:master-data--Wellbore:1.2.0"
+              op: "create"
+          nullable: true
+    VersionInfo:
+      type: object
+      properties:
+        groupId:
+          type: string
+          example: "org.osdu"
+          nullable: true
+        artifactId:
+          type: string
+          example: "register-service"
+          nullable: true
+        version:
+          type: string
+          example: "1.0.0"
+          nullable: true
+        buildTime:
+          type: string
+          format: date-time
+          example: "2023-11-01T10:00:00Z"
+          nullable: true
+        branch:
+          type: string
+          example: "main"
+          nullable: true
+        commitId:
+          type: string
+          example: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+          nullable: true
+        commitMessage:
+          type: string
+          example: "Initial release of Register Service v1"
+          nullable: true
+        connectedOuterServices:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConnectedOuterService'
+          nullable: true
+  securitySchemes:
+    Authorization: # Assuming this is the primary JWT Bearer auth
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Standard JWT Bearer token for OSDU service authorization.
+  parameters:
+    DataPartitionIdHeader:
+      name: data-partition-id # Standardized case
+      in: header
+      description: Identifier of the data partition to operate on.
+      required: true
+      schema:
+        type: string
+        example: "opendes-tenant1"
+    ActionIdPathParam:
+      name: id
+      in: path
+      description: The unique identifier of the Action registration.
+      required: true
+      schema:
+        type: string
+        pattern: ^[A-Za-z0-9-]{2,50}$
+        example: "view-in-petrel"
+    DdmsIdPathParam:
+      name: id
+      in: path
+      description: The unique identifier of the DDMS registration.
+      required: true
+      schema:
+        type: string
+        pattern: ^[A-Za-z0-9-]{2,50}$
+        example: "seismic-store-dms"
+    DdmsTypePathParam:
+      name: type
+      in: path
+      description: The entity type within the DDMS (e.g., well, wellbore, seismic).
+      required: true
+      schema:
+        type: string
+        pattern: ^[\w\.-]{2,50}$
+        example: "wellbore"
+    DdmsLocalIdPathParam:
+      name: localid
+      in: path
+      description: "The local identifier of the entity within the DDMS, optionally including version. Format: `partition-id:group-type--IndividualType:UniqueRecordID[:OptionalVersionNumber]`."
+      required: true
+      schema:
+        type: string
+        pattern: ^[\w\-\.]+:[\w-\.]+:[\w\-\.\:\%]+$
+        example: "opendes:master-data--Wellbore:WB001:1678890000123"
+    SubscriptionIdPathParam:
+      name: id
+      in: path
+      description: The unique identifier of the Subscription.
+      required: true
+      schema:
+        type: string
+        example: "sub_a1b2c3d4e5f6"
+    NotificationIdQueryParam:
+      name: notificationId
+      in: query
+      description: The notification ID to filter subscriptions by (can be a specific record ID or a pattern).
+      required: true
+      schema:
+        type: string
+        example: "opendes:master-data--Well:*"
+    TypeQueryParam: # For GET /ddms
+      name: type
+      in: query
+      description: Specifies the entity type to filter DDMS registrations (e.g., wellbores, seismic).
+      required: true
+      schema:
+        type: string
+        pattern: ^[A-Za-z0-9]{1,50}$ # From original spec
+        example: "wellbore"
+  responses:
+    BadRequest:
+      description: Bad Request. The request was invalid, malformed, or missing required parameters.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    Unauthorized:
+      description: Unauthorized. Authentication is required and has failed or has not yet been provided.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    Forbidden:
+      description: Forbidden. The authenticated user does not have the necessary permissions for this operation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    NotFound:
+      description: Not Found. The requested resource (e.g., action, DDMS, subscription) could not be found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    Conflict:
+      description: Conflict. The request could not be completed due to a conflict with the current state of the resource (e.g., resource with the same ID already exists).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    TooManyRequests:
+      description: Too Many Requests. The client has sent too many requests in a given amount of time.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    InternalServerError:
+      description: Internal Server Error. An unexpected condition was encountered on the server.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    BadGateway:
+      description: Bad Gateway. The server, while acting as a gateway or proxy, received an invalid response from an upstream server.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
+    ServiceUnavailable:
+      description: Service Unavailable. The server is currently unable to handle the request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AppError'
