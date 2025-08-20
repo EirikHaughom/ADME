@@ -1,17 +1,24 @@
 openapi: 3.0.3
 info:
-  title: Azure Data Manager for Energy - Search Service API
+  title: OSDU Search Service
   version: v2.0 # From original spec's version and server path
   description: >-
     Search service that provides a set of APIs to search records against an
     underlying search engine (e.g., Elasticsearch) within the Azure Data Manager
     for Energy platform.
   contact:
-    name: Microsoft Support
-    email: support@microsoft.com
+    name: OSDU Forum
+    email: membership@opengroup.org
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
+x-ms-connector-metadata:
+  - propertyName: Website
+    propertyValue: https://osduforum.org
+  - propertyName: Privacy policy
+    propertyValue: https://www.opengroup.org/privacy
+  - propertyName: Categories
+    propertyValue: Data
 servers:
   - url: https://contoso.energy.azure.com/api/search/v2
     description: Azure Data Manager for Energy - Contoso Environment (Search Service v2)
@@ -403,6 +410,7 @@ components:
       description: >-
         The identifier of the data partition to identify the instance of the
         data store. Often a tenant or account ID.
+      x-ms-summary: Data Partition ID
       required: true
       schema:
         type: string

@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: Azure Data Manager for Energy - Seismic DMS API
+  title: OSDU Seismic DMS
   version: v3.0.0
   description: >-
     Seismic Data Management Service (DMS) API for Azure Data Manager for Energy.
@@ -8,11 +8,18 @@ info:
     associated metadata, including support for tenant and subproject
     management, access control, and utility operations.
   contact:
-    name: Microsoft Support
-    email: support@microsoft.com
+    name: OSDU Forum
+    email: membership@opengroup.org
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
+x-ms-connector-metadata:
+  - propertyName: Website
+    propertyValue: https://osduforum.org
+  - propertyName: Privacy policy
+    propertyValue: https://www.opengroup.org/privacy
+  - propertyName: Categories
+    propertyValue: Data
 servers:
   - url: https://contoso.energy.azure.com/seistore-svc/api/v3
     description: Azure Data Manager for Energy - Contoso Environment (Seismic DMS v3)

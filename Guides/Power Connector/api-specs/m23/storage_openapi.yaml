@@ -1,17 +1,24 @@
 openapi: 3.0.3
 info:
-  title: Azure Data Manager for Energy - Storage Service API
+  title: OSDU Storage Service
   version: 2.0.0
   description: >-
     Storage service API for Azure Data Manager for Energy. It handles the
     ingestion, querying, and management of metadata records in the OSDU data
     platform.
   contact:
-    name: Microsoft Support
-    email: support@microsoft.com
+    name: OSDU Forum
+    email: membership@opengroup.org
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
+x-ms-connector-metadata:
+  - propertyName: Website
+    propertyValue: https://osduforum.org
+  - propertyName: Privacy policy
+    propertyValue: https://www.opengroup.org/privacy
+  - propertyName: Categories
+    propertyValue: Data
 servers:
   - url: https://contoso.energy.azure.com/api/storage/v2
     description: Azure Data Manager for Energy - Contoso Environment (Storage Service v2)
@@ -545,6 +552,7 @@ components:
       in: header
       description: >-
         Specifies the data partition ID for the request. This is typically the tenant or account ID.
+      x-ms-summary: Data Partition ID
       required: true
       schema:
         type: string
@@ -555,6 +563,7 @@ components:
       description: >-
         Identifier for cross-collaboration scenarios, if applicable.
         Specifies the target data partition for collaboration.
+      x-ms-summary: Collaboration ID
       required: false
       schema:
         type: string
@@ -566,6 +575,7 @@ components:
         Specifies the desired frame of reference for data normalization in the response.
         Format: `units={UoM};crs={CRS};elevation={ElevationRef};azimuth={AzimuthRef};dates={DateRef};`
         Use 'none' for no normalization.
+      x-ms-summary: Frame of Reference
       required: true
       schema:
         type: string
@@ -574,6 +584,7 @@ components:
       name: id
       in: path
       description: The unique identifier of the record.
+      x-ms-summary: Record ID
       required: true
       schema:
         type: string
@@ -583,6 +594,7 @@ components:
       name: version
       in: path
       description: The specific version (timestamp) of the record.
+      x-ms-summary: Record Version
       required: true
       schema:
         type: integer
@@ -595,6 +607,7 @@ components:
         Filter attributes to restrict the returned fields of the record(s).
         Use dot notation for nested fields, e.g., `data.WellName`.
         Multiple attributes can be specified.
+      x-ms-summary: Attribute Filter
       required: false
       schema:
         type: array

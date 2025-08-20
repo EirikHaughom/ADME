@@ -1,14 +1,21 @@
 openapi: 3.0.3
 info:
-  title: Azure Data Manager for Energy - CRS Conversion Service
+  title: OSDU CRS Conversion Service
   version: 3.0.0
   description: Provides conversion/transformation services from a source to a target CRS. A coordinate operation is a conversion if the source and target CRS share the same datum; the operation is called transformation if datum transformations are involved, i.e. source and target CRS do not share the same datum.
   contact:
-    name: Microsoft Support
-    email: support@microsoft.com
+    name: OSDU Forum
+    email: membership@opengroup.org
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
+x-ms-connector-metadata:
+  - propertyName: Website
+    propertyValue: https://osduforum.org
+  - propertyName: Privacy policy
+    propertyValue: https://www.opengroup.org/privacy
+  - propertyName: Categories
+    propertyValue: Data
 servers:
   - url: /api/crs/converter
 tags:
@@ -957,6 +964,7 @@ components:
       name: data-partition-id
       in: header
       description: Tenant Identifier (Data Partition ID) for data isolation and access control.
+      x-ms-summary: Data Partition ID
       required: true
       schema:
         type: string

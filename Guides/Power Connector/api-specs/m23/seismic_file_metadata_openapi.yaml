@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: Azure Data Manager for Energy - Seismic File Metadata Service API
+  title: OSDU Seismic File Metadata Service
   version: v1.0.0 # Updated from 0.0.1 and aligned with ADME practice
   description: >-
     Provides API endpoints to retrieve detailed metadata from seismic files,
@@ -8,8 +8,18 @@ info:
     Energy. This includes headers, bingrids, and other format-specific
     information.
   contact:
-    name: Microsoft Support
-    email: support@microsoft.com
+    name: OSDU Forum
+    email: membership@opengroup.org
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+x-ms-connector-metadata:
+  - propertyName: Website
+    propertyValue: https://osduforum.org
+  - propertyName: Privacy policy
+    propertyValue: https://www.opengroup.org/privacy
+  - propertyName: Categories
+    propertyValue: Data
 servers:
   - url: https://contoso.energy.azure.com/seismic-file-metadata/api
     description: Azure Data Manager for Energy - Contoso Environment

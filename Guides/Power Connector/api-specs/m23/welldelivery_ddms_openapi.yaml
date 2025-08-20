@@ -1,17 +1,24 @@
 openapi: 3.0.3
 info:
-  title: Azure Data Manager for Energy - Well Delivery Service API
+  title: OSDU Well Delivery Service
   version: v1.0.0 # Using version from input
   description: >-
     API for managing well delivery domain objects within Azure Data Manager for
     Energy. This includes entities such as Activity Plans, BHA Runs, Fluids Programs,
     Fluids Reports, Hole Sections, Operations Reports, Wells, Wellbores, and Wellbore Trajectories.
   contact:
-    name: Microsoft Support
-    email: support@microsoft.com
+    name: OSDU Forum
+    email: membership@opengroup.org
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
+x-ms-connector-metadata:
+  - propertyName: Website
+    propertyValue: https://osduforum.org
+  - propertyName: Privacy policy
+    propertyValue: https://www.opengroup.org/privacy
+  - propertyName: Categories
+    propertyValue: Data
 servers:
   - url: https://contoso.energy.azure.com/api/well-delivery # Updated server URL structure
     description: Azure Data Manager for Energy - Contoso Environment

@@ -1,14 +1,21 @@
 openapi: 3.0.3
 info:
-  title: Azure Data Manager for Energy - File Service API
+  title: OSDU File Service
   version: 2.0.0
   description: This service allows users to manage files on the Azure Data Manager for Energy platform. File Management includes uploads, downloads, and creation of metadata records for files.
   contact:
-    name: Microsoft Support
-    email: support@microsoft.com
+    name: OSDU Forum
+    email: membership@opengroup.org
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
+x-ms-connector-metadata:
+  - propertyName: Website
+    propertyValue: https://osduforum.org
+  - propertyName: Privacy policy
+    propertyValue: https://www.opengroup.org/privacy
+  - propertyName: Categories
+    propertyValue: Data
 servers:
   - url: /api/file
 tags:
@@ -131,6 +138,8 @@ paths:
       summary: Get a file metadata record by ID
       description: 'Gets the latest version of the file metadata record identified by the given `id`. **Required roles**: `service.file.viewers` (Note: original spec said `service.file.editors`, but GETs are usually viewer roles).'
       operationId: GetFileMetadata
+      parameters:
+        - $ref: '#/parameters/RecordIdPathParam'
       responses:
         '200':
           description: Successfully retrieved the file metadata record.
@@ -158,6 +167,8 @@ paths:
       summary: Delete a file and its metadata record
       description: 'Deletes the file metadata record identified by the given `id` AND the associated file from storage. **Required roles**: `users.datalake.editors` or `users.datalake.admins`.'
       operationId: DeleteFileAndMetadata
+      parameters:
+        - $ref: '#/parameters/RecordIdPathParam'
       responses:
         '204':
           description: File and metadata record deleted successfully.
@@ -682,6 +693,7 @@ components:
       name: data-partition-id
       in: header
       description: Tenant Identifier (Data Partition ID) for data isolation and access control.
+      x-ms-summary: Data Partition ID
       required: true
       schema:
         type: string
@@ -690,6 +702,7 @@ components:
       name: id
       in: path
       description: The unique identifier of the file metadata record.
+      x-ms-summary: Record ID
       required: true
       schema:
         type: string
@@ -698,6 +711,7 @@ components:
       name: expiryTime
       in: query
       description: The duration for which the generated Signed URL should be valid. Accepted patterns are `^[0-9]+[Mm]$` (minutes), `^[0-9]+[Hh]$` (hours), `^[0-9]+[Dd]$` (days). Defaults to 1 hour if not provided.
+      x-ms-summary: Expiry Time
       required: false
       schema:
         type: string

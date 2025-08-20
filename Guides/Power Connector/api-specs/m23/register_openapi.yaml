@@ -1,14 +1,21 @@
 openapi: 3.0.3
 info:
-  title: Azure Data Manager for Energy - Register Service API
+  title: OSDU Register Service
   version: '1.0'
   description: APIs to manage registrations for Actions, Domain Data Management Services (DDMS), and Notification Subscriptions within the Azure Data Manager for Energy platform.
   contact:
-    name: Microsoft Support
-    email: support@microsoft.com
+    name: OSDU Forum
+    email: membership@opengroup.org
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
+x-ms-connector-metadata:
+  - propertyName: Website
+    propertyValue: https://osduforum.org
+  - propertyName: Privacy policy
+    propertyValue: https://www.opengroup.org/privacy
+  - propertyName: Categories
+    propertyValue: Data
 servers:
   - url: /api/register/v1
 tags:
@@ -74,6 +81,8 @@ paths:
       summary: Get an action registration by ID
       description: 'Get an action registration with the given id. Required roles: `users.datalake.ops` or `users.datalake.admins` or `users.datalake.editors` or `users.datalake.viewers`.'
       operationId: GetActionRegistration
+      parameters:
+        - $ref: '#/components/parameters/ActionIdPathParam'
       responses:
         '200':
           description: Successfully retrieved action registration.
@@ -103,6 +112,8 @@ paths:
       summary: Delete an action registration by ID
       description: 'Delete an action registration with the given id. Required role: `users.datalake.ops` or `users.datalake.admins`.'
       operationId: DeleteActionRegistration
+      parameters:
+        - $ref: '#/components/parameters/ActionIdPathParam'
       responses:
         '204':
           description: Action registration deleted successfully.
@@ -317,6 +328,8 @@ paths:
       summary: Get a DDMS registration by ID
       description: 'Get a DDMS registration with the given id. Required roles: `users.datalake.ops` or `users.datalake.admins` or `users.datalake.editors` or `users.datalake.viewers`.'
       operationId: GetDdmsRegistration
+      parameters:
+        - $ref: '#/components/parameters/DdmsIdPathParam'
       responses:
         '200':
           description: Successfully retrieved DDMS registration.
@@ -344,6 +357,8 @@ paths:
       summary: Delete a DDMS registration by ID
       description: 'Delete a DDMS registration with the given id. Required roles: `users.datalake.ops` or `users.datalake.admins`.'
       operationId: DeleteDdmsRegistration
+      parameters:
+        - $ref: '#/components/parameters/DdmsIdPathParam'
       responses:
         '204':
           description: DDMS registration deleted successfully.
@@ -373,6 +388,10 @@ paths:
       summary: Redirect to retrieve a single DDMS record
       description: 'Retrieves a single entity record from a DDMS by redirecting the client to the DDMS-specific URL. Required roles: `users.datalake.ops` or `users.datalake.admins` or `users.datalake.editors` or `users.datalake.viewers`.'
       operationId: GetDdmsRecordById # Operation goal, redirect is implementation detail
+      parameters:
+        - $ref: '#/components/parameters/DdmsIdPathParam'
+        - $ref: '#/components/parameters/DdmsTypePathParam'
+        - $ref: '#/components/parameters/DdmsLocalIdPathParam'
       responses:
         '307':
           description: Temporary Redirect to the DDMS endpoint for the specific record.
@@ -382,7 +401,6 @@ paths:
               schema:
                 type: string
                 format: url
-              style: simple
           content:
             text/plain: # Or application/json with a message
               schema:
@@ -502,6 +520,8 @@ paths:
       summary: Get a subscription by ID
       description: 'Get a subscription with its Id. Required roles: `users.datalake.ops` or `users.datalake.admins` or `users.datalake.editors`.'
       operationId: GetSubscriptionById
+      parameters:
+        - $ref: '#/components/parameters/SubscriptionIdPathParam'
       responses:
         '200':
           description: Successfully retrieved subscription details.
@@ -529,6 +549,8 @@ paths:
       summary: Delete a subscription by ID
       description: 'Delete a subscription with its Id. Required roles: `users.datalake.ops` or `users.datalake.admins`.'
       operationId: DeleteSubscriptionById
+      parameters:
+        - $ref: '#/components/parameters/SubscriptionIdPathParam'
       responses:
         '204':
           description: Subscription deleted successfully.
@@ -556,15 +578,15 @@ paths:
       summary: Update the secret for a subscription
       description: 'Update the secret (e.g., HMAC key, GSA details) for an existing subscription. Required roles: `users.datalake.ops` or `users.datalake.admins` or `users.datalake.editors`.'
       operationId: UpdateSubscriptionSecret
+      parameters:
+        - $ref: '#/components/parameters/SubscriptionIdPathParam'
       requestBody:
         description: The new secret configuration for the subscription.
         required: true
         content:
           application/json:
             schema:
-              oneOf:
-                - $ref: '#/components/schemas/GsaSecret'
-                - $ref: '#/components/schemas/HmacSecret'
+              $ref: '#/components/schemas/Secret'
       responses:
         '204':
           description: Subscription secret updated successfully.
@@ -635,13 +657,13 @@ components:
           nullable: true
         url:
           type: string
-          format: url # Assuming it's a URL
+          format: uri # Assuming it's a URL
           description: Parameterized URL for the action. Placeholders like {type} or {id} will be substituted.
           example: "https://petrel.example.com/launch?projectType={data.type}&projectId={id}"
           nullable: true
         img:
           type: string
-          format: url
+          format: uri
           description: URL to an image/icon representing the action.
           example: "https://cdn.example.com/icons/petrel.png"
           nullable: true
@@ -712,12 +734,12 @@ components:
           nullable: true
         url:
           type: string
-          format: url
+          format: uri
           description: Parameterized URL template for the action.
           example: "https://logviewer.example.com/view?logId={id}&source={data.source}"
         img:
           type: string
-          format: url
+          format: uri
           description: URL to an image/icon for the action.
           example: "https://cdn.example.com/icons/logviewer.png"
           nullable: true
@@ -804,14 +826,19 @@ components:
           example: ["1.0.0", "1.1.*"]
           nullable: true
     GsaSecret:
+      type: object
       description: Represents a Google Service Account (GSA) secret configuration.
-      allOf:
-        - $ref: '#/components/schemas/Secret'
-        - type: object
-          properties:
-            value:
-              $ref: '#/components/schemas/GsaSecretValue'
-              description: Contains the GSA specific secret values.
+      required:
+        - secretType
+      properties:
+        secretType:
+          type: string
+          enum: ["GSA"]
+          description: Type of secret
+          example: "GSA"
+        value:
+          $ref: "#/components/schemas/GsaSecretValue"
+          description: Contains the GSA specific secret values.
     GsaSecretValue:
       type: object
       description: Values specific to a Google Service Account secret.
@@ -827,15 +854,20 @@ components:
           example: "https://target-service.example.com"
           nullable: true
     HmacSecret:
-      description: Represents an HMAC (Hash-based Message Authentication Code) secret configuration.
-      allOf:
-        - $ref: '#/components/schemas/Secret'
-        - type: object
-          properties:
-            value:
-              type: string
-              description: The HMAC secret key.
-              example: "mySuperSecretKeyForHmacVerification"
+      type: object
+      description: Represents an HMAC secret configuration.
+      required:
+        - secretType
+      properties:
+        secretType:
+          type: string
+          enum: ["HMAC"]
+          description: Type of secret
+          example: "HMAC"
+        value:
+          type: string
+          description: The HMAC secret key.
+          example: "mySuperSecretKeyForHmacVerification"
     JsonNode: # Generic JSON payload, used for testing actions
       type: object
       description: A generic JSON object, typically representing an OSDU record snippet or relevant data for action parameter substitution.
@@ -853,7 +885,7 @@ components:
       properties:
         url:
           type: string
-          format: url
+          format: uri
           description: The action URL after substituting parameters from the test payload.
           example: "https://logviewer.example.com/view?logId=opendes:master-data--Wellbore:WB001&source=DrillingSystemX"
           nullable: true
@@ -895,11 +927,12 @@ components:
           type: string
           description: Discriminator field indicating the type of secret (e.g., "HMAC", "GSA").
           example: "HMAC"
+          enum: ["HMAC", "GSA"]
       discriminator:
         propertyName: secretType
-        mapping: # Example mapping
-          HMAC: '#/components/schemas/HmacSecret'
-          GSA: '#/components/schemas/GsaSecret'
+        mapping:
+          HMAC: "#/components/schemas/HmacSecret"
+          GSA: "#/components/schemas/GsaSecret"
     Subscription:
       type: object
       description: Represents a subscription to a notification topic.
@@ -908,50 +941,44 @@ components:
         - topic
         - pushEndpoint
       properties:
-        id: # System-generated
+        id:
           type: string
           description: Unique identifier for the subscription (system-generated).
           example: "sub_a1b2c3d4e5f6"
           readOnly: true
-          nullable: true
         name:
           type: string
-          pattern: ^[A-Za-z0-9- ]{2,50}$
+          pattern: "^[A-Za-z0-9- ]{2,50}$"
           description: User-defined name for the subscription.
           example: "WellDataChangesSubscription"
         description:
           type: string
-          pattern: ^[A-Za-z0-9. ]{0,255}$
+          pattern: "^[A-Za-z0-9. ]{0,255}$"
           description: Optional textual description of the subscription.
           example: "Subscribes to all changes related to well data."
           nullable: true
         topic:
           type: string
           description: The notification topic to subscribe to.
-          example: "record-changed" # Or more specific like "osdu-record-changed-well"
+          example: "record-changed"
         pushEndpoint:
           type: string
-          format: url
+          format: uri
           description: The HTTPS endpoint URL where notifications should be pushed.
           example: "https://my-listener-service.example.com/webhook"
-        notificationId: # This seems like a filter criteria within the subscription for a specific entity or set of entities.
+        notificationId:
           type: string
-          description: Optional. Specific notification ID or filter criteria for the subscription (e.g., a specific record ID or kind pattern).
-          example: "opendes:master-data--Well:*" # Subscribe to all well changes
-          nullable: true
+          description: Optional. Specific notification ID or filter criteria for the subscription.
+          example: "opendes:master-data--Well:*"
         secret:
-          oneOf:
-            - $ref: '#/components/schemas/GsaSecret'
-            - $ref: '#/components/schemas/HmacSecret'
+          $ref: "#/components/schemas/Secret"
           description: Secret configuration for authenticating push notifications to the endpoint.
-          nullable: true
-        createdBy: # System-set
+        createdBy:
           type: string
           format: email
           description: User who created the subscription.
           example: "user.creator@example.com"
           readOnly: true
-          nullable: true
     SubscriptionInfo: # Likely a read-only summary view of a subscription
       type: object
       description: Summary information about a registered subscription.
@@ -978,7 +1005,7 @@ components:
           nullable: true
         pushEndpoint:
           type: string
-          format: url
+          format: uri
           description: The HTTPS endpoint URL for notifications.
           example: "https://my-listener-service.example.com/webhook"
           nullable: true
@@ -1086,6 +1113,7 @@ components:
       name: data-partition-id # Standardized case
       in: header
       description: Identifier of the data partition to operate on.
+      x-ms-summary: Data Partition ID
       required: true
       schema:
         type: string
@@ -1094,6 +1122,7 @@ components:
       name: id
       in: path
       description: The unique identifier of the Action registration.
+      x-ms-summary: Action ID
       required: true
       schema:
         type: string
@@ -1103,6 +1132,7 @@ components:
       name: id
       in: path
       description: The unique identifier of the DDMS registration.
+      x-ms-summary: DDMS ID
       required: true
       schema:
         type: string
@@ -1112,6 +1142,7 @@ components:
       name: type
       in: path
       description: The entity type within the DDMS (e.g., well, wellbore, seismic).
+      x-ms-summary: DDMS Type
       required: true
       schema:
         type: string
@@ -1121,6 +1152,7 @@ components:
       name: localid
       in: path
       description: "The local identifier of the entity within the DDMS, optionally including version. Format: `partition-id:group-type--IndividualType:UniqueRecordID[:OptionalVersionNumber]`."
+      x-ms-summary: DDMS Local ID
       required: true
       schema:
         type: string
@@ -1130,6 +1162,7 @@ components:
       name: id
       in: path
       description: The unique identifier of the Subscription.
+      x-ms-summary: Subscription ID
       required: true
       schema:
         type: string
@@ -1138,6 +1171,7 @@ components:
       name: notificationId
       in: query
       description: The notification ID to filter subscriptions by (can be a specific record ID or a pattern).
+      x-ms-summary: Notification ID
       required: true
       schema:
         type: string
@@ -1146,6 +1180,7 @@ components:
       name: type
       in: query
       description: Specifies the entity type to filter DDMS registrations (e.g., wellbores, seismic).
+      x-ms-summary: Type
       required: true
       schema:
         type: string

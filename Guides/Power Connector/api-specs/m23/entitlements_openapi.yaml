@@ -1,17 +1,24 @@
 swagger: '2.0'
 info:
-  title: Azure Data Manager for Energy - Entitlements Service API
+  title: OSDU Entitlements Service
+  version: 1.0.0
   description: >-
     Entitlements Service is used to enable authorization in the Azure Data
     Manager for Energy. It manages groups and memberships for controlling access
     to data partitions and services.
   contact:
-    name: Microsoft Support
-    email: support@microsoft.com
+    name: OSDU Forum
+    email: membership@opengroup.org
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
-  version: 2.0.0
+x-ms-connector-metadata:
+  - propertyName: Website
+    propertyValue: https://osduforum.org
+  - propertyName: Privacy policy
+    propertyValue: https://www.opengroup.org/privacy
+  - propertyName: Categories
+    propertyValue: Data
 host: contoso.energy.azure.com
 basePath: /api/entitlements/v2
 schemes:
@@ -842,6 +849,7 @@ parameters:
     description: >-
       Tenant Identifier (Data Partition ID) for data isolation and access
       control.
+    x-ms-summary: Data Partition ID
     required: true
     type: string
   OnBehalfOfHeader:
@@ -850,12 +858,14 @@ parameters:
     description: >-
       Optional. User email to perform the operation on behalf of. Requires
       appropriate service-to-service permissions.
+    x-ms-summary: On Behalf Of
     type: string
     format: email
   GroupEmailPathParam:
     in: path
     name: groupEmail
     description: Email identifier of the group.
+    x-ms-summary: Group Email
     required: true
     type: string
     format: email
@@ -863,6 +873,7 @@ parameters:
     in: path
     name: memberEmail
     description: Email identifier of the member.
+    x-ms-summary: Member Email
     required: true
     type: string
     format: email
@@ -870,6 +881,7 @@ parameters:
     in: query
     name: role
     description: Filter by member role (MEMBER or OWNER).
+    x-ms-summary: Role
     type: string
     enum:
       - MEMBER
@@ -878,6 +890,7 @@ parameters:
     in: query
     name: includeType
     description: If true, includes the member type (USER or GROUP) in the response.
+    x-ms-summary: Include Type
     type: boolean
     default: false
   RoleRequiredQueryParam:
@@ -886,12 +899,14 @@ parameters:
     description: >-
       If true, only groups where the user has a specific role (MEMBER or OWNER)
       are returned. Default is false.
+    x-ms-summary: Role Required
     type: boolean
     default: false
   GroupTypeQueryParam:
     in: query
     name: type
     description: Filter by the type of the group.
+    x-ms-summary: Group Type
     required: true
     type: string
     enum:
@@ -903,11 +918,13 @@ parameters:
     in: query
     name: cursor
     description: Opaque cursor for pagination, used to retrieve the next set of results.
+    x-ms-summary: Cursor
     type: string
   LimitQueryParam:
     in: query
     name: limit
     description: Maximum number of results to return per page.
+    x-ms-summary: Limit
     type: integer
     format: int32
     default: 100
@@ -918,6 +935,7 @@ parameters:
     description: >-
       Optional application ID to filter groups by, if applicable for the 'on
       behalf of' scenario.
+    x-ms-summary: App ID
     type: string
 responses:
   BadRequest:

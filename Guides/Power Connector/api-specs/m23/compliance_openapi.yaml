@@ -1,14 +1,21 @@
 openapi: 3.0.3
 info:
-  title: Azure Data Manager for Energy - Legal Service
+  title: OSDU Legal Service
   version: 1.0.0
   description: Legal Service provides APIs to help with legal data governance in the Data Lake. See [Legal Service Documentation](https://osdu.pages.opengroup.org/platform/security-and-compliance/legal).
   contact:
-    name: Microsoft Support
-    email: support@microsoft.com
+    name: OSDU Forum
+    email: membership@opengroup.org
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
+x-ms-connector-metadata:
+  - propertyName: Website
+    propertyValue: https://osduforum.org
+  - propertyName: Privacy policy
+    propertyValue: https://www.opengroup.org/privacy
+  - propertyName: Categories
+    propertyValue: Data
 servers:
   - url: /api/legal/v1
 tags:
@@ -188,6 +195,7 @@ paths:
         - name: valid
           in: query
           description: If true returns only valid LegalTags, if false returns only invalid LegalTags. Default value is true.
+          x-ms-summary: Valid
           required: false
           schema:
             type: boolean
@@ -309,6 +317,7 @@ paths:
       - name: name
         in: path
         description: Name of the LegalTag
+        x-ms-summary: LegalTag Name
         required: true
         schema:
           type: string
@@ -349,6 +358,7 @@ paths:
       - name: name
         in: path
         description: Name of the LegalTag
+        x-ms-summary: LegalTag Name
         required: true
         schema:
           type: string
@@ -455,6 +465,7 @@ paths:
         - name: valid
           in: query
           description: If true returns only valid LegalTags, if false returns only invalid LegalTags. Default value is true.
+          x-ms-summary: Valid
           required: false
           schema:
             type: boolean
@@ -819,6 +830,7 @@ components:
       name: data-partition-id
       in: header
       description: Tenant Id (Data Partition ID)
+      x-ms-summary: Data Partition ID
       required: true
       schema:
         type: string

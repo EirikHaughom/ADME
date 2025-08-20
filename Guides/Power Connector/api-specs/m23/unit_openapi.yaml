@@ -1,17 +1,24 @@
 openapi: 3.0.3
 info:
-  title: Azure Data Manager for Energy - Unit Service API
+  title: OSDU Unit Service
   version: v3.0.0 # From original info and server path convention
   description: >-
     Unit Service API for Azure Data Manager for Energy. It provides
     functionalities for managing and converting units of measure, measurements,
     and unit systems, adhering to Energistics standards.
   contact:
-    name: Microsoft Support
-    email: support@microsoft.com
+    name: OSDU Forum
+    email: membership@opengroup.org
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
+x-ms-connector-metadata:
+  - propertyName: Website
+    propertyValue: https://osduforum.org
+  - propertyName: Privacy policy
+    propertyValue: https://www.opengroup.org/privacy
+  - propertyName: Categories
+    propertyValue: Data
 servers:
   - url: https://contoso.energy.azure.com/api/unit # Base URL
     description: Azure Data Manager for Energy - Contoso Environment

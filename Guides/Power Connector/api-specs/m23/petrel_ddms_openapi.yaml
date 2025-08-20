@@ -1,20 +1,26 @@
 openapi: 3.0.3
 info:
-  title: Azure Data Manager for Energy - Petrel DMS API
+  title: OSDU Petrel DMS
   version: '1.0'
   description: API for managing Petrel projects within the Azure Data Manager for Energy, including retrieval, update, and versioning.
-  # Contact and license kept from original
   contact:
-    name: Microsoft Support
-    email: support@microsoft.com
+    name: OSDU Forum
+    email: membership@opengroup.org
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
+x-ms-connector-metadata:
+  - propertyName: Website
+    propertyValue: https://osduforum.org
+  - propertyName: Privacy policy
+    propertyValue: https://www.opengroup.org/privacy
+  - propertyName: Categories
+    propertyValue: Data
 servers:
-  - url: / # Assuming API base path is root, if it's /api/petreldms/v1, it should be defined here.
-    description: Main API server
+  - url: /api/petreldms/v1
 paths:
-  /api/petreldms/v1/projects/{projectId}:
+  
+  /projects/{projectId}:
     parameters:
       - $ref: '#/components/parameters/DataPartitionIdHeader'
       - $ref: '#/components/parameters/AuthorizationHeader'
@@ -27,6 +33,7 @@ paths:
       operationId: GetProjectById
       parameters:
         - $ref: '#/components/parameters/AttributeQueryParam'
+        - $ref: '#/components/parameters/ProjectIdPathParam'
       responses:
         '200':
           description: The project metadata was successfully retrieved.
@@ -46,6 +53,8 @@ paths:
       summary: Update specific properties of a project
       description: Partially updates a project's properties using a set of field operations (e.g., replace).
       operationId: PatchProjectById
+      parameters:
+        - $ref: '#/components/parameters/ProjectIdPathParam'
       requestBody:
         description: The patch operations to apply to the project.
         required: true
@@ -73,6 +82,8 @@ paths:
       summary: Delete specific records within a project (or the project itself)
       description: "Deletes specified records within a project, or potentially the entire project if the interpretation of the request body implies that. (Note: Using POST for deletion is non-standard; DELETE verb is preferred)."
       operationId: DeleteProjectOrRecordsById # Renamed to reflect ambiguity/function
+      parameters:
+        - $ref: '#/components/parameters/ProjectIdPathParam'
       requestBody:
         description: An array of record identifiers to be deleted from the project. If this implies deleting the project record itself, the behavior should be clearly documented.
         required: true
@@ -99,7 +110,8 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound' # Project or some specified records not found
-  /api/petreldms/v1/projects/{projectId}/download:
+  
+  /projects/{projectId}/download:
     parameters:
       - $ref: '#/components/parameters/DataPartitionIdHeader'
       - $ref: '#/components/parameters/AuthorizationHeader'
@@ -110,6 +122,8 @@ paths:
       summary: Get a download URL for a specific project
       description: Generates a time-limited signed URL that can be used to download the project's data.
       operationId: GetProjectDownloadUrl
+      parameters:
+        - $ref: '#/components/parameters/ProjectIdPathParam'
       responses:
         '200':
           description: The project download URL was successfully generated.
@@ -123,7 +137,8 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-  /api/petreldms/v1/projects/{projectId}/update: # This path implies a full update via PUT
+  
+  /projects/{projectId}/update: # This path implies a full update via PUT
     parameters:
       - $ref: '#/components/parameters/DataPartitionIdHeader'
       - $ref: '#/components/parameters/AuthorizationHeader'
@@ -134,6 +149,8 @@ paths:
       summary: Update an entire project (full replacement or significant update)
       description: Updates an existing project. This typically involves replacing the project's data or metadata entities.
       operationId: UpdateProjectById
+      parameters:
+        - $ref: '#/components/parameters/ProjectIdPathParam'
       requestBody:
         description: The project update request, which may include new records or a signed URL for data replacement.
         required: true
@@ -157,7 +174,8 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-  /api/petreldms/v1/projects/{projectId}/upload:
+  
+  /projects/{projectId}/upload:
     parameters:
       - $ref: '#/components/parameters/DataPartitionIdHeader'
       - $ref: '#/components/parameters/AuthorizationHeader'
@@ -168,6 +186,8 @@ paths:
       summary: Get upload and download URLs for a project
       description: Generates time-limited signed URLs for both uploading data to and downloading data from a specific project. This is often an initial step before a PUT update or for direct data manipulation.
       operationId: GetProjectUploadAndDownloadUrls # Renamed to reflect response
+      parameters:
+        - $ref: '#/components/parameters/ProjectIdPathParam'
       responses:
         '200':
           description: The project upload/download URLs were successfully generated.
@@ -181,7 +201,8 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound' # Project not found
-  /api/petreldms/v1/projects/{projectId}/versions/{versionId}:
+  
+  /projects/{projectId}/versions/{versionId}:
     parameters:
       - $ref: '#/components/parameters/DataPartitionIdHeader'
       - $ref: '#/components/parameters/AuthorizationHeader'
@@ -194,7 +215,9 @@ paths:
       description: Retrieves a specific version of a project's metadata record.
       operationId: GetProjectVersionById
       parameters:
+        - $ref: '#/components/parameters/ProjectIdPathParam'
         - $ref: '#/components/parameters/AttributeQueryParam'
+        - $ref: '#/components/parameters/VersionIdPathParam'
       responses:
         '200':
           description: The project version metadata was successfully retrieved.

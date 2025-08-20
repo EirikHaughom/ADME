@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: Azure Data Manager for Energy - Schema Service API
+  title: OSDU Schema Service
   version: v1.0.0
   description: >-
     Schema Service enables a centralized governance and management of schema in
@@ -10,11 +10,18 @@ info:
     Schema Service provides all necessary APIs to Fetch, create, update and mark
     a schema obsolete.
   contact:
-    name: Microsoft Support
-    email: support@microsoft.com
+    name: OSDU Forum
+    email: membership@opengroup.org
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
+x-ms-connector-metadata:
+  - propertyName: Website
+    propertyValue: https://osduforum.org
+  - propertyName: Privacy policy
+    propertyValue: https://www.opengroup.org/privacy
+  - propertyName: Categories
+    propertyValue: Data
 servers:
   - url: https://contoso.energy.azure.com/api/schema-service/v1
     description: Azure Data Manager for Energy - Contoso Environment (Schema Service v1)
@@ -241,6 +248,7 @@ components:
       description: >-
         The identifier of the data partition to identify the instance of the
         data store. Often a tenant or account ID.
+      x-ms-summary: Data Partition ID
       required: true
       schema:
         type: string
@@ -378,6 +386,7 @@ paths:
         - name: authority
           in: query
           description: Filter by a specific authority.
+          x-ms-summary: Authority
           required: false
           schema:
             type: string
@@ -386,6 +395,7 @@ paths:
         - name: source
           in: query
           description: Filter by a specific source.
+          x-ms-summary: Source
           required: false
           schema:
             type: string
@@ -394,6 +404,7 @@ paths:
         - name: entityType
           in: query
           description: Filter by a specific entityType.
+          x-ms-summary: Entity Type
           required: false
           schema:
             type: string
@@ -402,6 +413,7 @@ paths:
         - name: schemaVersionMajor
           in: query
           description: Filter by a specific schemaVersionMajor.
+          x-ms-summary: Schema Version Major
           required: false
           schema:
             type: string # Kept as string to allow '*' default, service must parse
@@ -410,6 +422,7 @@ paths:
         - name: schemaVersionMinor
           in: query
           description: Filter by a specific schemaVersionMinor.
+          x-ms-summary: Schema Version Minor
           required: false
           schema:
             type: string # Kept as string to allow '*' default, service must parse
@@ -418,6 +431,7 @@ paths:
         - name: schemaVersionPatch
           in: query
           description: Filter by a specific schemaVersionPatch.
+          x-ms-summary: Schema Version Patch
           required: false
           schema:
             type: string # Kept as string to allow '*' default, service must parse
@@ -426,6 +440,7 @@ paths:
         - name: status
           in: query
           description: Filter by schema status.
+          x-ms-summary: Status
           required: false
           schema:
             type: string
@@ -435,6 +450,7 @@ paths:
         - name: scope
           in: query
           description: Filter by schema scope or visibility.
+          x-ms-summary: Scope
           required: false
           schema:
             type: string
@@ -444,6 +460,7 @@ paths:
         - name: latestVersion
           in: query
           description: If true, only return the latest version of each schema kind.
+          x-ms-summary: Latest Version
           required: false
           schema:
             type: boolean
@@ -452,6 +469,7 @@ paths:
         - name: limit
           in: query
           description: Maximum number of schema records to return.
+          x-ms-summary: Limit
           required: false
           schema:
             type: integer
@@ -463,6 +481,7 @@ paths:
         - name: offset
           in: query
           description: Number of records to skip for pagination.
+          x-ms-summary: Offset
           required: false
           schema:
             type: integer
@@ -626,6 +645,7 @@ paths:
         - name: id
           in: path
           description: The system-generated unique ID of the schema (e.g., osdu:wks:wellbore:1.0.0).
+          x-ms-summary: Schema ID
           required: true
           schema:
             type: string

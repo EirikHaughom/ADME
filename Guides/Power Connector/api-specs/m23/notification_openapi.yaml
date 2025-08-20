@@ -1,14 +1,21 @@
 openapi: 3.0.3
 info:
-  title: Azure Data Manager for Energy - Notification Service API
+  title: OSDU Notification Service
   version: 1.0.0
   description: The Notification service, in conjunction with a registration service, allows interested consumers to subscribe to data and metadata changes using a publisher/subscriber pattern. This API primarily exposes endpoints for receiving notifications.
   contact:
-    name: Microsoft Support
-    email: support@microsoft.com
+    name: OSDU Forum
+    email: membership@opengroup.org
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
+x-ms-connector-metadata:
+  - propertyName: Website
+    propertyValue: https://osduforum.org
+  - propertyName: Privacy policy
+    propertyValue: https://www.opengroup.org/privacy
+  - propertyName: Categories
+    propertyValue: Data
 servers:
   - url: /api/notification/v1
 tags:
@@ -25,7 +32,7 @@ paths:
     get:
       tags:
         - HealthChecks
-      summary: Service Warmup/Liveness Check
+      summary: Service Warmup Liveness Check
       description: For deployment, a publicly available `/_ah/warmup` endpoint to verify the service is operational. This often serves as a liveness or startup check.
       operationId: GetWarmupCheck
       parameters:
@@ -250,6 +257,7 @@ components:
       name: data-partition-id
       in: header
       description: Tenant Identifier (Data Partition ID) for data isolation and context. This header is expected on all API calls.
+      x-ms-summary: Data Partition ID
       required: true # As per general instruction
       schema:
         type: string

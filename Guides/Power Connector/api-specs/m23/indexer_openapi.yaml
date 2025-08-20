@@ -1,470 +1,856 @@
-openapi: 3.0.3
+swagger: '2.0'
 info:
-  title: Azure Data Manager for Energy - Indexer Service API
-  version: 2.0.0 # Standardized version
-  description: Indexer service creates and manages search indexes for records, enabling users to locate information quickly within the Azure Data Manager for Energy platform.
+  title: OSDU Workflow Service
+  description: >-
+    Workflow Service API is a wrapper API on existing orchestrator services
+    (e.g., Airflow) tailored for domain-specific workflow needs within the Azure
+    Data Manager for Energy. It handles operational tasks like starting,
+    stopping, and pausing workflows, as well as their creation and maintenance.
+     ## Key Points:
+     **Workflow** - A collection of steps executed in a specific order to perform meaningful tasks, such as ingesting a CSV file. Each workflow is uniquely identified by a `workflowId` and represented as a Directed Acyclic Graph (DAG).
+     
+     **Workflow Run** - A single execution instance of a workflow. Each workflow run has a unique `runId`.
   contact:
-    name: Microsoft Support
-    email: support@microsoft.com
+    name: OSDU Forum
+    email: membership@opengroup.org
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
-servers:
-  - url: /api/indexer/v2
-tags:
-  - name: Health
-    description: Service health and readiness checks.
-  - name: Info
-    description: Service version and build information.
-  - name: IndexManagement
-    description: Operations for managing and re-indexing search indexes.
-  - name: PartitionManagement
-    description: Operations for provisioning and managing indexes at the data partition level.
-security:
-  - Authorization: []
+  version: 2.0.5
+host: contoso.energy.azure.com
+basePath: /api/workflow
+schemes:
+  - https
+consumes: []
+produces: []
 paths:
-  /index:
-    delete:
-      tags:
-        - IndexManagement
-      summary: Delete the search index for a given kind
-      description: 'Deletes the search index associated with the specified kind. Required roles: `users.datalake.ops`.'
-      operationId: DeleteIndexByKind
-      parameters:
-        - $ref: '#/components/parameters/KindQueryParam'
-        - $ref: '#/components/parameters/DataPartitionIdHeader'
-      responses:
-        '200':
-          description: Successfully initiated index deletion for the kind.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DeleteIndexResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound' # Kind or index not found
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-        '502':
-          $ref: '#/components/responses/BadGateway'
-        '503':
-          $ref: '#/components/responses/ServiceUnavailable'
-  /info:
-    get:
-      tags:
-        - Info
-      summary: Get service build and version information
-      description: For deployment, a publicly available `/info` endpoint that provides build and git related information for the Indexer Service.
-      operationId: GetInfo
-      parameters:
-        - $ref: '#/components/parameters/DataPartitionIdHeader'
-      responses:
-        '200':
-          description: Successfully retrieved service version information.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/VersionInfo'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-        '503':
-          $ref: '#/components/responses/ServiceUnavailable'
-      security: []
   /liveness_check:
     get:
       tags:
         - Health
       summary: Liveness Check endpoint
-      description: For deployment, a publicly available `/liveness_check` endpoint to verify the service is running.
+      description: >-
+        For deployment, a publicly available `/liveness_check` endpoint that
+        provides a `Workflow service is alive` message.
       operationId: GetLivenessCheck
+      produces:
+        - text/plain
+        - application/json
       parameters:
-        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/parameters/DataPartitionIdHeader'
       responses:
         '200':
-          description: Indexer Service is alive.
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: "Indexer Service is alive"
+          description: Workflow service is alive.
+          schema:
+            type: string
+            example: Workflow service is alive
         '503':
-          $ref: '#/components/responses/ServiceUnavailable'
-      security: []
-  /partitions/provision:
-    put:
-      tags:
-        - PartitionManagement
-      summary: Provision indexing for a data partition
-      description: 'Provisions or re-provisions the indexing capabilities for the specified data partition. Required roles: `users.datalake.ops`.'
-      operationId: ProvisionPartitionIndex
-      parameters:
-        - $ref: '#/components/parameters/DataPartitionIdHeader'
-      responses:
-        '200': # Or 201 if it's consistently a creation/initialization
-          description: Partition provisioning request processed successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PartitionProvisionResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '409': # If partition is already provisioned and this is not an update op
-          $ref: '#/components/responses/Conflict'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-        '502':
-          $ref: '#/components/responses/BadGateway'
-        '503':
-          $ref: '#/components/responses/ServiceUnavailable'
+          $ref: '#/responses/ServiceUnavailable'
   /readiness_check:
     get:
       tags:
         - Health
       summary: Readiness Check endpoint
-      description: For deployment, a publicly available `/readiness_check` endpoint to verify the service is ready to handle requests.
+      description: >-
+        For deployment, a publicly available `/readiness_check` endpoint that
+        provides a `Workflow service is ready` message.
       operationId: GetReadinessCheck
+      produces:
+        - text/plain
+        - application/json
       parameters:
-        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/parameters/DataPartitionIdHeader'
       responses:
         '200':
-          description: Indexer Service is ready.
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: "Indexer Service is ready"
+          description: Workflow service is ready.
+          schema:
+            type: string
+            example: Workflow service is ready
         '503':
-          $ref: '#/components/responses/ServiceUnavailable'
-      security: []
-  /reindex:
-    post: # Was POST in original for kind re-index
+          $ref: '#/responses/ServiceUnavailable'
+  /v1/info:
+    get:
       tags:
-        - IndexManagement
-      summary: Re-index all records of a specific kind
-      description: 'This API allows users to re-index all records of a specified kind without re-ingesting them via the storage API. Required roles: `service.search.admin`.'
-      operationId: ReindexKind
+        - Info
+      summary: Get service build and version information
+      description: >-
+        For deployment, a publicly available `/info` endpoint that provides
+        build and git related information for the Workflow Service.
+      operationId: GetInfo
+      produces:
+        - application/json
       parameters:
-        - $ref: '#/components/parameters/ForceCleanQueryParam'
-        - $ref: '#/components/parameters/DataPartitionIdHeader'
-      requestBody:
-        description: Specifies the kind to be re-indexed and an optional cursor for continuation.
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RecordReindexRequest'
+        - $ref: '#/parameters/DataPartitionIdHeader'
       responses:
-        '200': # Assuming 200 for successful initiation, or 202 if it's a long-running async process
-          description: Re-indexing for the specified kind has been initiated.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ReindexStatusResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound' # Kind not found
+        '200':
+          description: Successfully retrieved service version information.
+          schema:
+            $ref: '#/definitions/VersionInfo'
         '500':
-          $ref: '#/components/responses/InternalServerError'
-        '502':
-          $ref: '#/components/responses/BadGateway'
+          $ref: '#/responses/InternalServerError'
         '503':
-          $ref: '#/components/responses/ServiceUnavailable'
-    patch: # Was PATCH in original for full partition re-index
+          $ref: '#/responses/ServiceUnavailable'
+  /v1/workflow:
+    get:
       tags:
-        - IndexManagement
-      summary: Re-index all records in a data partition
-      description: 'This API allows users to re-index an entire data partition without re-ingesting records. Required roles: `users.datalake.ops`.'
-      operationId: ReindexPartition
+        - WorkflowManagement
+      summary: List all workflows for the current tenant
+      description: >-
+        Retrieves a list of all workflow definitions applicable to the current
+        tenant, optionally filtered by a name prefix. **Required roles**:
+        `service.workflow.viewer`.
+      operationId: ListWorkflows
+      produces:
+        - application/json
       parameters:
-        - $ref: '#/components/parameters/ForceCleanQueryParam'
-        - $ref: '#/components/parameters/DataPartitionIdHeader'
+        - $ref: '#/parameters/PrefixQueryParam'
+        - $ref: '#/parameters/DataPartitionIdHeader'
       responses:
-        '200': # Assuming 200 for successful initiation
-          description: Full partition re-indexing has been initiated.
-          content:
-            application/json: # Original was string
-              schema:
-                $ref: '#/components/schemas/ReindexStatusResponse'
+        '200':
+          description: Successfully retrieved the list of workflows.
+          schema:
+            $ref: '#/definitions/WorkflowMetadataList'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          $ref: '#/responses/BadRequest'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/responses/Unauthorized'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/responses/Forbidden'
         '500':
-          $ref: '#/components/responses/InternalServerError'
+          $ref: '#/responses/InternalServerError'
         '502':
-          $ref: '#/components/responses/BadGateway'
+          $ref: '#/responses/BadGateway'
         '503':
-          $ref: '#/components/responses/ServiceUnavailable'
-  /reindex/records:
+          $ref: '#/responses/ServiceUnavailable'
     post:
       tags:
-        - IndexManagement
-      summary: Re-index a specific list of records
-      description: 'This API allows users to re-index a specified list of records by their IDs without re-ingesting them. Required roles: `service.search.admin`.'
-      operationId: ReindexSpecificRecords
+        - WorkflowManagement
+      summary: Create or update a workflow definition
+      description: >-
+        Creates a new workflow definition or updates an existing one using
+        standard operators of the underlying orchestrator. **Required roles**:
+        `service.workflow.admin`.
+      operationId: CreateWorkflow
+      consumes:
+        - application/json
+      produces:
+        - application/json
       parameters:
-        - $ref: '#/components/parameters/DataPartitionIdHeader'
-      requestBody:
-        description: A list of record IDs to be re-indexed.
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ReindexRecordsRequest'
+        - $ref: '#/parameters/DataPartitionIdHeader'
+        - in: body
+          name: body
+          description: Details of the workflow to be created or updated.
+          required: true
+          schema:
+            $ref: '#/definitions/CreateWorkflowRequest'
       responses:
-        '202':
-          description: Re-indexing request for the specified records has been accepted for processing.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ReindexAcceptedResponse'
+        '200':
+          description: Workflow created or updated successfully.
+          schema:
+            $ref: '#/definitions/WorkflowMetadata'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          $ref: '#/responses/BadRequest'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/responses/Unauthorized'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/responses/Forbidden'
+        '409':
+          $ref: '#/responses/Conflict'
         '500':
-          $ref: '#/components/responses/InternalServerError'
+          $ref: '#/responses/InternalServerError'
         '502':
-          $ref: '#/components/responses/BadGateway'
+          $ref: '#/responses/BadGateway'
         '503':
-          $ref: '#/components/responses/ServiceUnavailable'
-components:
-  schemas:
-    AppError:
-      type: object
-      properties:
-        code:
-          type: integer
-          format: int32
-          example: 400
-        message:
-          type: string
-          example: "Invalid kind format provided."
-        reason:
-          type: string
-          example: "Kind parameter must follow the pattern {data-partition-id}:{source}:{type}:{version}"
-    ConnectedOuterService:
-      type: object
-      properties:
-        name:
-          type: string
-          example: "Search Engine Service (e.g., Elasticsearch)"
-          nullable: true
-        version:
-          type: string
-          example: "7.10.2"
-          nullable: true
-    RecordReindexRequest:
-      type: object
-      description: Request to re-index records of a specific kind, potentially using a cursor for pagination.
-      required:
-        - kind
-      properties:
-        kind:
-          type: string
-          description: The OSDU kind to be re-indexed (e.g., `opendes:wks:master-data--Well:1.0.0`).
-          example: "opendes:wks:master-data--Well:1.0.0"
-        cursor:
-          type: string
-          description: Opaque cursor for continuing a re-indexing process that was previously started or paginated.
-          example: "eyJzb3J0VmFsdWVzIjpbMTYwOTQ1OTE5OTAwMF0sInNlYXJjaEFmdGVyIjpbMTYwOTQ1OTE5OTAwMF19"
-          nullable: true
-    ReindexRecordsRequest:
-      type: object
-      description: Request to re-index a specific list of records by their IDs.
-      required:
-        - recordIds
-      properties:
-        recordIds:
-          type: array
-          items:
-            type: string
-            example: "opendes:master-data--Well:recordId123"
-          minItems: 1
-          maxItems: 1000
-          description: A list of up to 1000 record IDs to be re-indexed.
-    DeleteIndexResponse:
-      type: object
-      description: Response confirming the initiation of index deletion for a kind.
-      properties:
-        status:
-          type: string
-          example: "Index deletion initiated for kind: opendes:wks:master-data--Well:1.0.0"
-        kind:
-          type: string
-          example: "opendes:wks:master-data--Well:1.0.0"
-    PartitionProvisionResponse:
-      type: object
-      description: Response confirming the provisioning status of a data partition's index.
-      properties:
-        status:
-          type: string
-          example: "Partition opendes-tenant1 provisioning initiated/completed."
-        dataPartitionId:
-          type: string
-          example: "opendes-tenant1"
-    ReindexStatusResponse:
-      type: object
-      description: Response indicating the status of a re-indexing operation (for kind or full partition).
-      properties:
-        status:
-          type: string
-          example: "Re-indexing initiated for kind: opendes:wks:master-data--Well:1.0.0"
-        operationId: # Optional: if the reindex is async and an ID is provided to track it
-          type: string
-          example: "reindex-op-a1b2c3d4"
-          nullable: true
-        details:
-          type: string
-          example: "Processed 0 records so far. Use cursor 'xyz' to continue if applicable."
-          nullable: true
-    ReindexAcceptedResponse:
-      type: object
-      description: Response confirming that a request to re-index specific records has been accepted.
-      properties:
-        message:
-          type: string
-          example: "Re-indexing request for 25 records accepted."
-        recordCount:
-          type: integer
-          format: int32
-          example: 25
-        operationId: # Optional: if an ID is provided to track the batch
-          type: string
-          example: "reindex-batch-e5f6g7h8"
-          nullable: true
-    VersionInfo:
-      type: object
-      properties:
-        groupId:
-          type: string
-          example: "org.osdu"
-          nullable: true
-        artifactId:
-          type: string
-          example: "indexer-service"
-          nullable: true
-        version:
-          type: string
-          example: "2.0.0"
-          nullable: true
-        buildTime:
-          type: string
-          format: date-time
-          example: "2023-11-01T14:00:00Z"
-          nullable: true
-        branch:
-          type: string
-          example: "main"
-          nullable: true
-        commitId:
-          type: string
-          example: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
-          nullable: true
-        commitMessage:
-          type: string
-          example: "feat: Implemented record-level re-indexing"
-          nullable: true
-        connectedOuterServices:
-          type: array
-          items:
-            $ref: '#/components/schemas/ConnectedOuterService'
-          nullable: true
-  securitySchemes:
-    Authorization:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-      description: "Bearer token for authorization. Example: \"Bearer {token}\""
-  parameters:
-    DataPartitionIdHeader:
-      name: data-partition-id
-      in: header
-      description: Tenant Identifier (Data Partition ID) for data isolation and access control.
-      required: true
-      schema:
+          $ref: '#/responses/ServiceUnavailable'
+  /v1/workflow/system:
+    post:
+      tags:
+        - WorkflowSystemManagement
+      summary: Create or update a system workflow definition
+      description: >-
+        Creates a new system-level workflow definition or updates an existing
+        one. System workflows might have special privileges or be used for
+        platform operations. **Required roles**: `service.workflow.admin`.
+      operationId: CreateSystemWorkflow
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/DataPartitionIdHeader'
+        - in: body
+          name: body
+          description: Details of the system workflow to be created or updated.
+          required: true
+          schema:
+            $ref: '#/definitions/CreateWorkflowRequest'
+      responses:
+        '200':
+          description: System workflow created or updated successfully.
+          schema:
+            $ref: '#/definitions/WorkflowMetadata'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '409':
+          $ref: '#/responses/Conflict'
+        '500':
+          $ref: '#/responses/InternalServerError'
+        '502':
+          $ref: '#/responses/BadGateway'
+        '503':
+          $ref: '#/responses/ServiceUnavailable'
+  /v1/workflow/system/{workflowName}:
+    parameters:
+      - $ref: '#/parameters/WorkflowNamePathParam'
+      - $ref: '#/parameters/DataPartitionIdHeader'
+    delete:
+      tags:
+        - WorkflowSystemManagement
+      summary: Delete a system workflow definition by name
+      description: >-
+        Deletes a system workflow definition identified by its name. **Required
+        roles**: `service.workflow.admin`.
+      operationId: DeleteSystemWorkflowByName
+      parameters:
+        - $ref: '#/parameters/WorkflowNamePathParam'
+      produces:
+        - application/json
+      responses:
+        '204':
+          description: System workflow deleted successfully.
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '404':
+          $ref: '#/responses/NotFound'
+        '500':
+          $ref: '#/responses/InternalServerError'
+        '502':
+          $ref: '#/responses/BadGateway'
+        '503':
+          $ref: '#/responses/ServiceUnavailable'
+  /v1/workflow/{workflowName}:
+    parameters:
+      - $ref: '#/parameters/WorkflowNamePathParam'
+      - $ref: '#/parameters/DataPartitionIdHeader'
+    get:
+      tags:
+        - WorkflowManagement
+      summary: Get a workflow definition by name
+      description: >-
+        Retrieves the complete details for a specific workflow definition by its
+        name. **Required roles**: `service.workflow.viewer`.
+      operationId: GetWorkflowDefinitionByName
+      parameters:
+        - $ref: '#/parameters/WorkflowNamePathParam'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Successfully retrieved workflow details.
+          schema:
+            $ref: '#/definitions/WorkflowMetadata'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '404':
+          $ref: '#/responses/NotFound'
+        '500':
+          $ref: '#/responses/InternalServerError'
+        '502':
+          $ref: '#/responses/BadGateway'
+        '503':
+          $ref: '#/responses/ServiceUnavailable'
+    delete:
+      tags:
+        - WorkflowManagement
+      summary: Delete a workflow definition by name
+      description: >-
+        Deletes a workflow definition identified by its name. **Required
+        roles**: `service.workflow.admin`.
+      operationId: DeleteWorkflowByName
+      parameters:
+        - $ref: '#/parameters/WorkflowNamePathParam'
+      produces:
+        - application/json
+      responses:
+        '204':
+          description: Workflow deleted successfully.
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '404':
+          $ref: '#/responses/NotFound'
+        '500':
+          $ref: '#/responses/InternalServerError'
+        '502':
+          $ref: '#/responses/BadGateway'
+        '503':
+          $ref: '#/responses/ServiceUnavailable'
+  /v1/workflow/{workflowName}/workflowRun:
+    parameters:
+      - $ref: '#/parameters/WorkflowNamePathParam'
+      - $ref: '#/parameters/DataPartitionIdHeader'
+    get:
+      tags:
+        - WorkflowExecution
+      summary: List all run instances for a workflow
+      description: >-
+        Retrieves a history of all run instances for a specific workflow,
+        potentially filtered by parameters. **Required roles**:
+        `service.workflow.viewer`.
+      operationId: ListWorkflowRuns
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/WorkflowRunParamsQueryParam'
+        - $ref: '#/parameters/WorkflowNamePathParam'
+      responses:
+        '200':
+          description: Successfully retrieved the history of workflow runs.
+          schema:
+            $ref: '#/definitions/WorkflowRunList'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '404':
+          $ref: '#/responses/NotFound'
+        '500':
+          $ref: '#/responses/InternalServerError'
+        '502':
+          $ref: '#/responses/BadGateway'
+        '503':
+          $ref: '#/responses/ServiceUnavailable'
+    post:
+      tags:
+        - WorkflowExecution
+      summary: Trigger a new run for a workflow
+      description: >-
+        Initiates a new run for the specified workflow, optionally with a custom
+        run ID and execution context. **Required roles**:
+        `service.workflow.creator`.
+      operationId: TriggerWorkflowRun
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/WorkflowNamePathParam'
+        - in: body
+          name: body
+          description: >-
+            Parameters for triggering the workflow run, including execution
+            context and an optional run ID.
+          required: true
+          schema:
+            $ref: '#/definitions/TriggerWorkflowRequest'
+      responses:
+        '200':
+          description: Workflow run successfully triggered.
+          schema:
+            $ref: '#/definitions/WorkflowRunResponse'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '404':
+          $ref: '#/responses/NotFound'
+        '409':
+          $ref: '#/responses/Conflict'
+        '500':
+          $ref: '#/responses/InternalServerError'
+        '502':
+          $ref: '#/responses/BadGateway'
+        '503':
+          $ref: '#/responses/ServiceUnavailable'
+  /v1/workflow/{workflowName}/workflowRun/{runId}:
+    parameters:
+      - $ref: '#/parameters/WorkflowNamePathParam'
+      - $ref: '#/parameters/WorkflowRunIdPathParam'
+      - $ref: '#/parameters/DataPartitionIdHeader'
+    get:
+      tags:
+        - WorkflowExecution
+      summary: Get details for a specific workflow run instance
+      description: >-
+        Retrieves detailed information about a specific workflow run instance,
+        identified by its workflow name and run ID. **Required roles**:
+        `service.workflow.viewer`.
+      operationId: GetWorkflowRunDetails
+      parameters:
+        - $ref: '#/parameters/WorkflowNamePathParam'
+        - $ref: '#/parameters/WorkflowRunIdPathParam'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Successfully retrieved workflow execution details.
+          schema:
+            $ref: '#/definitions/WorkflowRunResponse'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '404':
+          $ref: '#/responses/NotFound'
+        '500':
+          $ref: '#/responses/InternalServerError'
+        '502':
+          $ref: '#/responses/BadGateway'
+        '503':
+          $ref: '#/responses/ServiceUnavailable'
+    put:
+      tags:
+        - WorkflowExecution
+      summary: Update the status of a workflow run instance
+      description: >-
+        Updates the status of an existing workflow run instance (e.g., to mark
+        it as finished, failed). This is typically used by the workflow engine
+        or an admin. **Required roles**: `service.workflow.creator` (or a more
+        privileged role like `service.workflow.admin`).
+      operationId: UpdateWorkflowRunStatus
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/WorkflowNamePathParam'
+        - $ref: '#/parameters/WorkflowRunIdPathParam'
+        - in: body
+          name: body
+          description: The new status for the workflow run.
+          required: true
+          schema:
+            $ref: '#/definitions/UpdateWorkflowRunRequest'
+      responses:
+        '200':
+          description: Workflow run status updated successfully.
+          schema:
+            $ref: '#/definitions/WorkflowRunResponse'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '404':
+          $ref: '#/responses/NotFound'
+        '409':
+          $ref: '#/responses/Conflict'
+        '500':
+          $ref: '#/responses/InternalServerError'
+        '502':
+          $ref: '#/responses/BadGateway'
+        '503':
+          $ref: '#/responses/ServiceUnavailable'
+definitions:
+  AppError:
+    type: object
+    properties:
+      code:
+        format: int32
+        type: integer
+        example: 400
+      message:
         type: string
-        example: "opendes-tenant1"
-    KindQueryParam:
-      name: kind
-      in: query
-      description: The OSDU kind string (e.g., `opendes:wks:master-data--Well:1.0.0`).
-      required: true
-      schema:
+        example: Invalid workflow name.
+      reason:
         type: string
-        example: "opendes:wks:master-data--Well:1.0.0"
-    ForceCleanQueryParam:
-      name: forceClean # Standardized to camelCase
-      in: query
-      description: If true, forces a clean re-index, potentially deleting the existing index before rebuilding. Use with caution.
-      required: false
-      schema:
-        type: boolean
+        example: Workflow name cannot contain special characters.
+  ConnectedOuterService:
+    type: object
+    properties:
+      name:
+        type: string
+        example: Apache Airflow
+      version:
+        type: string
+        example: 2.2.3
+  CreateWorkflowRequest:
+    description: Request body for creating or updating a workflow definition.
+    type: object
+    properties:
+      workflowName:
+        description: User-provided name for the workflow. Should be unique.
+        type: string
+        example: daily_ingestion_pipeline
+      description:
+        description: Description of the workflow's purpose and functionality.
+        type: string
+        example: Daily pipeline to ingest sales data from source X and transform it.
+      registrationInstructions:
+        description: >-
+          Orchestrator-specific registration instructions. This could include
+          the name of an already registered Airflow DAG, the content of a Python
+          DAG file, or other configuration details.
+        type: object
+        additionalProperties:
+          type: object
+        example:
+          airflowDagName: osdu_daily_ingestion_v1
+  TriggerWorkflowRequest:
+    description: Request body for triggering a workflow run.
+    type: object
+    properties:
+      runId:
+        description: >-
+          Optional. An explicit ID for the workflow run. If not provided, one
+          will be generated.
+        type: string
+        example: manual_run_20231115_sales_data
+      executionContext:
+        description: >-
+          A map of key-value pairs to configure workflow-specific parameters for
+          this run.
+        type: object
+        additionalProperties:
+          type: object
+        example:
+          sourceFile: /path/to/sales_20231114.csv
+          targetTable: daily_sales_transformed
+          notificationEmail: ops@example.com
+  UpdateWorkflowRunRequest:
+    description: Request body for updating the status of a workflow run.
+    type: object
+    properties:
+      status:
+        description: The new status of the workflow run.
+        enum:
+          - submitted
+          - running
+          - finished
+          - failed
+          - success
+          - queued
+        type: string
+        example: success
+  WorkflowMetadata:
+    description: Metadata describing a workflow definition.
+    type: object
+    properties:
+      workflowId:
+        description: System-generated unique ID for the workflow definition.
+        type: string
+        readOnly: true
+        example: wf_0c1a2b3d4e5f
+      workflowName:
+        description: User-provided name for the workflow.
+        type: string
+        example: daily_ingestion_pipeline
+      description:
+        description: Description of the workflow.
+        type: string
+        example: Daily pipeline to ingest sales data.
+      version:
+        format: int32
+        description: >-
+          Semantic version of the workflow definition, incremented on
+          modifications.
+        type: integer
+        readOnly: true
+        example: 3
+      creationTimestamp:
+        format: int64
+        description: Epoch timestamp of when the workflow definition was created.
+        type: integer
+        readOnly: true
+        example: 1678886400000
+      createdBy:
+        description: User or system principal that created the workflow definition.
+        type: string
+        readOnly: true
+        example: user.admin@example.com
+      registrationInstructions:
+        description: Orchestrator-specific registration instructions.
+        type: object
+        additionalProperties:
+          type: object
+        example:
+          airflowDagId: osdu_daily_ingestion_v1
+      isSystemWorkflow:
+        description: Indicates if this is a system workflow.
         default: false
-  responses:
-    BadRequest:
-      description: Bad Request. The request was invalid, malformed, or missing required parameters. Check the response body for details.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/AppError'
-    Unauthorized:
-      description: Unauthorized. Authentication is required and has failed or has not yet been provided. Ensure a valid bearer token is included in the `Authorization` header.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/AppError'
-    Forbidden:
-      description: Forbidden. The authenticated user does not have the necessary permissions to perform this action.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/AppError'
-    NotFound:
-      description: Not Found. The requested resource (e.g., kind, index, record) could not be found.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/AppError'
-    Conflict: # Added general conflict response
-      description: Conflict. The request could not be completed due to a conflict with the current state of the resource (e.g., partition already provisioned and operation is not idempotent).
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/AppError'
-    InternalServerError:
-      description: Internal Server Error. An unexpected condition was encountered on the server.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/AppError'
-    BadGateway:
-      description: Bad Gateway. The server, while acting as a gateway or proxy, received an invalid response from an upstream server (e.g., search engine service).
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/AppError'
-    ServiceUnavailable:
-      description: Service Unavailable. The server is currently unable to handle the request due to a temporary overload or scheduled maintenance.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/AppError'
+        type: boolean
+      isDeployedThroughWorkflowService:
+        description: Indicates if the workflow was deployed via this service.
+        default: true
+        type: boolean
+  WorkflowMetadataList:
+    description: A list of workflow metadata definitions.
+    type: object
+    properties:
+      workflows:
+        description: Array of workflow metadata objects.
+        type: array
+        items:
+          $ref: '#/definitions/WorkflowMetadata'
+      totalCount:
+        format: int32
+        description: Total number of workflows available.
+        type: integer
+        example: 25
+  WorkflowRun:
+    description: Represents a single execution instance of a workflow.
+    type: object
+    properties:
+      workflowId:
+        description: ID of the workflow definition being run.
+        type: string
+        example: wf_0c1a2b3d4e5f
+      workflowName:
+        description: Name of the workflow definition.
+        type: string
+        example: daily_ingestion_pipeline
+      runId:
+        description: Unique ID for this workflow run instance.
+        type: string
+        example: run_a1b2c3d4e5_20231115
+      status:
+        description: Current execution status of the workflow run.
+        enum:
+          - submitted
+          - running
+          - finished
+          - failed
+          - success
+          - queued
+        type: string
+        example: running
+      startTimeStamp:
+        format: int64
+        description: Epoch timestamp when the workflow run started.
+        type: integer
+        example: 1678890000000
+      endTimeStamp:
+        format: int64
+        description: Epoch timestamp when the workflow run ended (if completed).
+        type: integer
+        example: 1678893600000
+      submittedBy:
+        description: User or system principal that triggered this workflow run.
+        type: string
+        example: scheduler@example.com
+      workflowEngineExecutionDate:
+        format: date-time
+        description: >-
+          The logical execution date from the workflow engine (e.g., Airflow's
+          execution_date).
+        type: string
+        example: '2023-03-15T00:00:00.0000000+00:00'
+  WorkflowRunList:
+    description: A list of workflow run instances.
+    type: object
+    properties:
+      workflowRuns:
+        description: Array of workflow run objects.
+        type: array
+        items:
+          $ref: '#/definitions/WorkflowRun'
+      totalCount:
+        format: int32
+        description: Total number of workflow runs matching the criteria.
+        type: integer
+        example: 150
+  WorkflowRunResponse:
+    description: Response providing details or status of a workflow run.
+    type: object
+    properties:
+      workflowId:
+        description: ID of the workflow definition.
+        type: string
+        example: wf_0c1a2b3d4e5f
+      runId:
+        description: Unique ID of the workflow run instance.
+        type: string
+        example: run_a1b2c3d4e5_20231115
+      status:
+        description: >-
+          Current or resulting status of the workflow run. Note: Enum values
+          differ from WorkflowRun.status.
+        enum:
+          - INPROGRESS
+          - PARTIAL_SUCCESS
+          - SUCCESS
+          - FAILED
+          - SUBMITTED
+        type: string
+        example: SUBMITTED
+      startTimeStamp:
+        format: int64
+        description: Epoch timestamp when the workflow run started.
+        type: integer
+        example: 1678890000000
+      endTimeStamp:
+        format: int64
+        description: Epoch timestamp when the workflow run ended (if applicable).
+        type: integer
+        example: 1678893600000
+      submittedBy:
+        description: User or system principal that triggered this workflow run.
+        type: string
+        example: user.creator@example.com
+  VersionInfo:
+    type: object
+    properties:
+      groupId:
+        type: string
+        example: org.osdu
+      artifactId:
+        type: string
+        example: workflow-service
+      version:
+        type: string
+        example: 2.0.5
+      buildTime:
+        format: date-time
+        type: string
+        example: '2023-11-01T15:00:00.0000000+00:00'
+      branch:
+        type: string
+        example: main
+      commitId:
+        type: string
+        example: a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2
+      commitMessage:
+        type: string
+        example: 'feat: Added support for custom run IDs'
+      connectedOuterServices:
+        type: array
+        items:
+          $ref: '#/definitions/ConnectedOuterService'
+parameters:
+  DataPartitionIdHeader:
+    in: header
+    name: data-partition-id
+    description: >-
+      Tenant Identifier (Data Partition ID) for data isolation and access
+      control.
+    required: true
+    type: string
+    x-ms-summary: Data Partition ID
+  WorkflowNamePathParam:
+    in: path
+    name: workflowName
+    description: The name of the workflow.
+    required: true
+    type: string
+  WorkflowRunIdPathParam:
+    in: path
+    name: runId
+    description: The unique identifier of the workflow run instance.
+    required: true
+    type: string
+  PrefixQueryParam:
+    in: query
+    name: prefix
+    description: Optional prefix to filter workflow names.
+    type: string
+  WorkflowRunParamsQueryParam:
+    in: query
+    name: params
+    description: >-
+      Optional parameters to filter workflow runs (e.g., based on execution
+      context). The exact structure is orchestrator-dependent. Not recommended
+      for complex filtering; consider a POST-based search instead.
+    type: string
+responses:
+  BadRequest:
+    description: >-
+      Bad Request. The request was invalid, malformed, or missing required
+      parameters. Check the response body for details.
+    schema:
+      $ref: '#/definitions/AppError'
+  Unauthorized:
+    description: >-
+      Unauthorized. Authentication is required and has failed or has not yet
+      been provided. Ensure a valid bearer token is included in the
+      `Authorization` header.
+    schema:
+      $ref: '#/definitions/AppError'
+  Forbidden:
+    description: >-
+      Forbidden. The authenticated user does not have the necessary permissions
+      to perform this action.
+    schema:
+      $ref: '#/definitions/AppError'
+  NotFound:
+    description: >-
+      Not Found. The requested resource (e.g., workflow definition, workflow
+      run) could not be found.
+    schema:
+      $ref: '#/definitions/AppError'
+  Conflict:
+    description: >-
+      Conflict. The request could not be completed due to a conflict with the
+      current state of the resource (e.g., a workflow with the given name
+      already exists, or an attempt to update a completed run).
+    schema:
+      $ref: '#/definitions/AppError'
+  InternalServerError:
+    description: >-
+      Internal Server Error. An unexpected condition was encountered on the
+      server.
+    schema:
+      $ref: '#/definitions/AppError'
+  BadGateway:
+    description: >-
+      Bad Gateway. The server, while acting as a gateway or proxy, received an
+      invalid response from an upstream server (e.g., the underlying
+      orchestrator like Airflow).
+    schema:
+      $ref: '#/definitions/AppError'
+  ServiceUnavailable:
+    description: >-
+      Service Unavailable. The server is currently unable to handle the request
+      due to a temporary overload or scheduled maintenance.
+    schema:
+      $ref: '#/definitions/AppError'
+securityDefinitions:
+  oauth2-auth:
+    type: oauth2
+    flow: accessCode
+    tokenUrl: https://login.windows.net/common/oauth2/authorize
+    scopes: {}
+    authorizationUrl: https://login.microsoftonline.com/common/oauth2/authorize
+security:
+  - oauth2-auth: []
+tags:
+  - name: Health
+    description: Service health and readiness checks.
+  - name: Info
+    description: Service version and build information.
+  - name: WorkflowManagement
+    description: >-
+      Endpoints for creating, listing, retrieving, and deleting workflow
+      definitions.
+  - name: WorkflowSystemManagement
+    description: Endpoints for managing system-level workflow definitions.
+  - name: WorkflowExecution
+    description: Endpoints for triggering and managing workflow run instances.
+x-ms-connector-metadata:
+  - propertyName: Website
+    propertyValue: https://osduforum.org
+  - propertyName: Privacy policy
+    propertyValue: https://www.opengroup.org/privacy
+  - propertyName: Categories
+    propertyValue: Data

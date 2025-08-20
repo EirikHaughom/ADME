@@ -1,14 +1,21 @@
 openapi: 3.0.3
 info:
-  title: Azure Data Manager for Energy - Dataset Service API
+  title: OSDU Dataset Service
   version: 1.0.0
   description: Dataset service provides internal and external API endpoints to allow application or user fetch storage/retrieval instructions for various types of datasets.
   contact:
-    name: Microsoft Support
-    email: support@microsoft.com
+    name: OSDU Forum
+    email: membership@opengroup.org
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
+x-ms-connector-metadata:
+  - propertyName: Website
+    propertyValue: https://osduforum.org
+  - propertyName: Privacy policy
+    propertyValue: https://www.opengroup.org/privacy
+  - propertyName: Categories
+    propertyValue: Data
 servers:
   - url: /api/dataset/v1
 tags:
@@ -627,6 +634,7 @@ components:
       name: data-partition-id
       in: header
       description: Tenant Identifier (Data Partition ID) for data isolation and access control.
+      x-ms-summary: Data Partition ID
       required: true
       schema:
         type: string
@@ -635,6 +643,7 @@ components:
       name: id
       in: query
       description: The unique identifier of the Dataset Registry.
+      x-ms-summary: Dataset Registry ID
       required: true # Generally required for single GETs
       schema:
         type: string
@@ -643,6 +652,7 @@ components:
       name: expiryTime
       in: query
       description: The duration for which the generated Signed URL should be valid. Accepted patterns are `^[0-9]+[Mm]$` (minutes), `^[0-9]+[Hh]$` (hours), `^[0-9]+[Dd]$` (days). Defaults to 1 hour if not provided.
+      x-ms-summary: Expiry Time
       required: false
       schema:
         type: string
@@ -652,6 +662,7 @@ components:
       name: kindSubType
       in: query
       description: The subtype of the kind (e.g., `dataset--File.Generic`). Used to identify the type of dataset for operations like URL revocation or storage instruction generation.
+      x-ms-summary: Kind Sub Type
       required: true
       schema:
         type: string
