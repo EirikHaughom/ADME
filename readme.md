@@ -24,6 +24,7 @@ This repository contains comprehensive guides, tools, and solutions for deployin
 
 - **[Custom Domain Configuration](/Guides/Custom%20Domain/)** - Deploy Azure API Management as a gateway with custom DNS domains for ADME APIs (supports both public and private endpoint configurations)
 - **[Complete API Collections](/Guides/Postman%20Collection/)** - Comprehensive Postman and Bruno collections covering all ADME M18 core services APIs
+- **[Notification Relay](https://github.com/EirikHaughom/adme-notification-relay)** - Service to relay notifications from ADME/OSDU to Azure Services
 - **[Power Connector API Specifications](/Guides/Power%20Connector/)** - OpenAPI specifications for M23 services including compliance, dataset, entitlements, and various DDMS services
 
 ### Business Intelligence & Analytics
@@ -60,6 +61,7 @@ This repository contains comprehensive guides, tools, and solutions for deployin
 |----------|---------|---------|
 | [Custom Domain](/Guides/Custom%20Domain/) | API Management | Brand consistency and custom DNS |
 | [API Collections](/Guides/Postman%20Collection/) | Postman/Bruno | Complete API testing and documentation |
+| [Notification Relay](https://github.com/EirikHaughom/adme-notification-relay) | Message Queue | Service to relay notifications from ADME/OSDU to Azure Services |
 | [Power Connector](/Guides/Power%20Connector/) | OpenAPI Specs | M23 service specifications |
 
 ### 📊 Analytics & Visualization
