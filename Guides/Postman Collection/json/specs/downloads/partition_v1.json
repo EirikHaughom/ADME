@@ -1,0 +1,394 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Partition Service",
+    "description": "Partition service is responsible for creating and retrieving the partition specific properties (secret and non-secret) on behalf of other services.",
+    "contact": {
+      "name": "OSDU Data Platform Team",
+      "email": "dps@OSDU.org"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
+    },
+    "version": "1.0"
+  },
+  "servers": [
+    {
+      "url": "https://osdu-ship.msft-osdu-test.org/api/partition/v1",
+      "description": "Generated server url"
+    }
+  ],
+  "security": [
+    {
+      "Authorization": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "health-check-api",
+      "description": "Health Check API"
+    },
+    {
+      "name": "partition-api",
+      "description": "Partition API"
+    },
+    {
+      "name": "info",
+      "description": "Version info endpoint"
+    }
+  ],
+  "paths": {
+    "/partitions": {
+      "get": {
+        "tags": [
+          "partition-api"
+        ],
+        "summary": "List all Partitions",
+        "description": "Returns all existing data partitions",
+        "operationId": "list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User not authorized to perform the action.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Authorization": []
+          }
+        ]
+      }
+    },
+    "/partitions/{partitionId}": {
+      "get": {
+        "tags": [
+          "partition-api"
+        ],
+        "summary": "Get Partition Info",
+        "description": "Get all properties and their values for a given data partition id",
+        "operationId": "get",
+        "parameters": [
+          {
+            "name": "partitionId",
+            "in": "path",
+            "description": "Partition Id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Map"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User not authorized to perform the action.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Authorization": []
+          }
+        ]
+      }
+    },
+    "/liveness_check": {
+      "get": {
+        "tags": [
+          "health-check-api"
+        ],
+        "summary": "Liveness Check endpoint",
+        "description": "For deployment available public `/liveness_check` endpoint.",
+        "operationId": "livenessCheck",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/info": {
+      "get": {
+        "tags": [
+          "info"
+        ],
+        "summary": "Version info",
+        "description": "For deployment available public `/info` endpoint, which provides build and git related information.",
+        "operationId": "info",
+        "responses": {
+          "200": {
+            "description": "Version info.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Map": {
+        "properties": {
+          "< * >": {
+            "type": "object",
+            "$ref": "#/components/schemas/Property"
+          }
+        }
+      },
+      "AppError": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "ConnectedOuterService": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        }
+      },
+      "VersionInfo": {
+        "type": "object",
+        "properties": {
+          "groupId": {
+            "type": "string"
+          },
+          "artifactId": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "buildTime": {
+            "type": "string"
+          },
+          "branch": {
+            "type": "string"
+          },
+          "commitId": {
+            "type": "string"
+          },
+          "commitMessage": {
+            "type": "string"
+          },
+          "connectedOuterServices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConnectedOuterService"
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "Authorization": {
+        "type": "http",
+        "name": "Authorization",
+        "in": "header",
+        "scheme": "bearer",
+        "bearerFormat": "Authorization"
+      }
+    }
+  }
+}

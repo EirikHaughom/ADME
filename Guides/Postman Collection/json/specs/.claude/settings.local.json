@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/github/ADME/Guides/**)",
+      "Read(//c/github/ADME/Guides/Postman Collection/json/**)",
+      "Bash(python:*)",
+      "Bash(for file in entitlements_v2.json legal_v1.json file_v2.json)",
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(grep:*)",
+      "Bash(done)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -1,0 +1,981 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Schema Upgrade Service",
+    "description": "Schema Upgrade service provides a set of APIs to upgrade records",
+    "contact": {
+      "name": "OSDU Data Platform Team",
+      "email": "dps@OSDU.org"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
+    },
+    "version": "2.0"
+  },
+  "servers": [
+    {
+      "url": "https://osdu-glab.msft-osdu-test.org/api/schemaupgrade/v2"
+    }
+  ],
+  "security": [
+    {
+      "Authorization": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "schema-upgrade-api",
+      "description": "Schema Upgrade API"
+    },
+    {
+      "name": "status-query-api",
+      "description": "Status Query API"
+    },
+    {
+      "name": "health-check-api",
+      "description": "Health Check API"
+    },
+    {
+      "name": "info",
+      "description": "Version info endpoint"
+    }
+  ],
+  "paths": {
+    "/upgrade": {
+      "post": {
+        "tags": [
+          "schema-upgrade-api"
+        ],
+        "summary": "Schema Upgrade",
+        "description": "Creates a job that performs an upgrade of records from the current kind schema to the target schema.",
+        "operationId": "upgrade",
+        "parameters": [
+          {
+            "name": "data-partition-id",
+            "in": "header",
+            "description": "Tenant Id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpgradeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "502": {
+            "description": "Schema upgrade service scale-up is taking longer than expected. Wait 10 seconds and retry.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Created schema upgrade job",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User not authorized to perform the action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rollback": {
+      "post": {
+        "tags": [
+          "schema-upgrade-api"
+        ],
+        "summary": "Rollback upgrade job",
+        "description": "Performs a rollback of a previously created job",
+        "operationId": "rollback",
+        "parameters": [
+          {
+            "name": "data-partition-id",
+            "in": "header",
+            "description": "Tenant Id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RollbackRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "502": {
+            "description": "Schema upgrade service scale-up is taking longer than expected. Wait 10 seconds and retry.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "Started rollback"
+          },
+          "400": {
+            "description": "Invalid request body",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User not authorized to perform the action",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Job not Found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/refvalupgrade": {
+      "post": {
+        "tags": [
+          "schema-upgrade-api"
+        ],
+        "summary": "Reference value upgrade",
+        "description": "Creates a job that upgrades reference values according to the provided lookup specification.",
+        "operationId": "upgradeRefVal",
+        "parameters": [
+          {
+            "name": "data-partition-id",
+            "in": "header",
+            "description": "Tenant Id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefValUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Created reference value upgrade job",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Schema upgrade service scale-up is taking longer than expected. Wait 10 seconds and retry.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User not authorized to perform the action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/readiness_check": {
+      "get": {
+        "tags": [
+          "health-check-api"
+        ],
+        "summary": "${healthCheckApi.readinessCheck.summary}",
+        "description": "${healthCheckApi.readinessCheck.description}",
+        "operationId": "readinessCheck",
+        "parameters": [
+          {
+            "name": "data-partition-id",
+            "in": "header",
+            "description": "Tenant Id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/liveness_check": {
+      "get": {
+        "tags": [
+          "health-check-api"
+        ],
+        "summary": "${healthCheckApi.livenessCheck.summary}",
+        "description": "${healthCheckApi.livenessCheck.description}",
+        "operationId": "livenessCheck",
+        "parameters": [
+          {
+            "name": "data-partition-id",
+            "in": "header",
+            "description": "Tenant Id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/job/{jobId}": {
+      "get": {
+        "tags": [
+          "status-query-api"
+        ],
+        "summary": "Get job status",
+        "description": "Fetch batches that belong to job with provided id",
+        "operationId": "getJobStatus",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "data-partition-id",
+            "in": "header",
+            "description": "Tenant Id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "502": {
+            "description": "Schema upgrade service scale-up is taking longer than expected. Wait 10 seconds and retry.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BatchInfo"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User not authorized to perform the action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/job/{jobId}/batch/{batchId}": {
+      "get": {
+        "tags": [
+          "status-query-api"
+        ],
+        "summary": "Get batch status",
+        "description": "Fetch detailed information about batch with provided id",
+        "operationId": "getBatchStatus",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "batchId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "data-partition-id",
+            "in": "header",
+            "description": "Tenant Id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "502": {
+            "description": "Schema upgrade service scale-up is taking longer than expected. Wait 10 seconds and retry.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UpgradeInfo"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User not authorized to perform the action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/info": {
+      "get": {
+        "tags": [
+          "info"
+        ],
+        "summary": "Version info",
+        "description": "For deployment available public `/info` endpoint, which provides build and git related information.",
+        "operationId": "info",
+        "parameters": [
+          {
+            "name": "data-partition-id",
+            "in": "header",
+            "description": "Tenant Id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Version info.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "UpgradeRequest": {
+        "required": [
+          "kind",
+          "target"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "pattern": "^[\\w\\-\\.]+:[\\w\\-\\.]+:[\\w\\-\\.]+:[0-9]+.[0-9]+.[0-9]+$",
+            "type": "string",
+            "description": "Kind to be upgraded",
+            "example": "osdu:wks:work-product-component--WellLog:1.2.0"
+          },
+          "target": {
+            "pattern": "^[\\w\\-\\.]+:[\\w\\-\\.]+:[\\w\\-\\.]+:[0-9]+.[0-9]+.[0-9]+$",
+            "type": "string",
+            "description": "Target version to be upgraded to. supports only 1 step version update",
+            "example": "osdu:wks:work-product-component--WellLog:1.2.1"
+          },
+          "ids": {
+            "type": "array",
+            "description": "Array of ID's to be upgraded",
+            "items": {
+              "type": "string",
+              "description": "Array of ID's to be upgraded"
+            }
+          }
+        }
+      },
+      "AppError": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "JobResponse": {
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string",
+            "description": "Id of job that was started",
+            "example": "example-job-id"
+          },
+          "details": {
+            "type": "string",
+            "description": "Additional information",
+            "example": "1000 records will be updated in 10 batches"
+          }
+        }
+      },
+      "RollbackRequest": {
+        "required": [
+          "jobId"
+        ],
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string",
+            "description": "Id of job to rollback",
+            "example": "example-job-id"
+          }
+        }
+      },
+      "KindList": {
+        "required": [
+          "kind"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "pattern": "^[\\w\\-\\.]+:[\\w\\-\\.]+:[\\w\\-\\.]+:[0-9]+.[0-9]+.[0-9]+$",
+            "type": "string",
+            "description": "Kind to be upgraded",
+            "example": "osdu:wks:work-product-component--WellLog:1.2.0"
+          },
+          "ids": {
+            "type": "array",
+            "description": "Array of ID's to be upgraded",
+            "items": {
+              "type": "string",
+              "description": "Array of ID's to be upgraded"
+            }
+          }
+        },
+        "description": "Array of ID's and their corresponding Kind to be upgraded"
+      },
+      "RefValUpdateRequest": {
+        "required": [
+          "lookUpId"
+        ],
+        "type": "object",
+        "properties": {
+          "lookUpId": {
+            "pattern": "^[\\w\\-\\.]+:[\\w-\\.]+:[\\w\\-\\.\\:\\%]+$",
+            "type": "string",
+            "description": "Look Up record Id",
+            "example": "osdu:reference-data--ReferenceValueUpgradeLookUp:Example-1.0.0"
+          },
+          "kindList": {
+            "type": "array",
+            "description": "Array of ID's and their corresponding Kind to be upgraded",
+            "items": {
+              "$ref": "#/components/schemas/KindList"
+            }
+          }
+        }
+      },
+      "BatchInfo": {
+        "type": "object",
+        "properties": {
+          "batchId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "WAITING",
+              "PROCESSING",
+              "FAILED",
+              "SUCCESS",
+              "ROLLING_BACK",
+              "ROLLED_BACK",
+              "ROLLBACK_FAILED"
+            ]
+          },
+          "details": {
+            "type": "string"
+          }
+        }
+      },
+      "RollbackInfo": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "NOT_PERFORMED",
+              "PROCESSING",
+              "PERFORMED",
+              "FAILED",
+              "SKIPPED",
+              "RECORD_NOT_FOUND"
+            ]
+          },
+          "details": {
+            "type": "string"
+          }
+        }
+      },
+      "UpgradeInfo": {
+        "type": "object",
+        "properties": {
+          "recordId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "NOT_PERFORMED",
+              "PROCESSING",
+              "PERFORMED",
+              "FAILED",
+              "SKIPPED",
+              "RECORD_NOT_FOUND"
+            ]
+          },
+          "newVersion": {
+            "type": "string"
+          },
+          "details": {
+            "type": "string"
+          },
+          "rollback": {
+            "$ref": "#/components/schemas/RollbackInfo"
+          }
+        }
+      },
+      "ConnectedOuterService": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        }
+      },
+      "VersionInfo": {
+        "type": "object",
+        "properties": {
+          "groupId": {
+            "type": "string"
+          },
+          "artifactId": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "buildTime": {
+            "type": "string"
+          },
+          "branch": {
+            "type": "string"
+          },
+          "commitId": {
+            "type": "string"
+          },
+          "commitMessage": {
+            "type": "string"
+          },
+          "connectedOuterServices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConnectedOuterService"
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "Authorization": {
+        "type": "http",
+        "name": "Authorization",
+        "in": "header",
+        "scheme": "bearer",
+        "bearerFormat": "Authorization"
+      }
+    }
+  }
+}
