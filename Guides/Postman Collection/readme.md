@@ -2,26 +2,32 @@
 
 ## Description
 
-This postman collection includes all REST API calls available for Azure Data Manager for Energy (ADME) M18 core services. It is based on the native OSDU APIs, so it could also be used for anyone running a self-managed version of the OSDU M18 release.
+This postman collection includes all REST API calls available for Azure Data Manager for Energy (ADME) M25 core services. It is based on the native OSDU APIs, so it could also be used for anyone running a self-managed version of the OSDU M25 release.
 
 ## Services Covered
 
 The services mentioned below are covered, and the API calls are imported from the official [ADME documentation](https://microsoft.github.io/adme-samples/).
 
 - CRS Catalog
-- CRS Converter
+- CRS Conversion
 - Dataset
-- EDS DMS
+- EDS DDMS
 - Entitlements
 - File
+- Geospatial Consumption Zone
 - Indexer
 - Legal
 - Notification
+- Partition
 - Petrel DMS
 - Register
+- Reservoir DDMS
+- Rock & Fluid Sample DDMS
 - Schema
+- Schema Upgrade
 - Search
-- Seismic DMS
+- Secret
+- Seismic DDMS
 - Seismic File Metadata
 - Storage
 - Unit
@@ -120,6 +126,14 @@ That's it! You should now be able to run all the API calls included.
 ## Changelog
 
 ```text
+06/01-2025
+Updated to M25 APIs
+Unified collection with environment variables
+All APIs inherit auth from parent collection
+x-collaboration headers disabled by default
+data-partition-id pre-populated with {{dataPartitionId}}
+api_key_header parameters disabled by default
+
 13/04-2024
 Updated to M18 APIs
 Added Oath2 variables to environment for multi-CSP support

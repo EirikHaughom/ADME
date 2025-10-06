@@ -32,7 +32,8 @@ DEFAULT_URLS: dict[str, str] = {
 	"indexer_v2": "https://raw.githubusercontent.com/microsoft/adme-samples/refs/heads/main/rest-apis/M25/indexer_openapi.yaml",
 	"legal_v1": "https://raw.githubusercontent.com/microsoft/adme-samples/refs/heads/main/rest-apis/M25/compliance_openapi.yaml",
 	"notification_v1": "https://raw.githubusercontent.com/microsoft/adme-samples/refs/heads/main/rest-apis/M25/notification_openapi.yaml",
-	"partition_v1": "https://osdu-ship.msft-osdu-test.org/api/partition/v1/api-docs",
+	"partition_v1": "https://contoso.energy.azure.com/api/partition/v1/api-docs",
+	"petrel_dms": "https://contoso.energy.azure.com/api/petreldms/docs/v1/swagger.json",
 	"register_v1": "https://raw.githubusercontent.com/microsoft/adme-samples/refs/heads/main/rest-apis/M25/register_openapi.yaml",
 	"schema_service_v1": "https://raw.githubusercontent.com/microsoft/adme-samples/refs/heads/main/rest-apis/M25/schema_openapi.yaml",
 	"search_v2": "https://raw.githubusercontent.com/microsoft/adme-samples/refs/heads/main/rest-apis/M25/search_openapi.yaml",
@@ -46,7 +47,7 @@ DEFAULT_URLS: dict[str, str] = {
 	"seismic_file_metadata": "https://github.com/microsoft/adme-samples/blob/main/rest-apis/M25/seismic_file_metadata_openapi.yaml",
 	"seismic_ddms": "https://raw.githubusercontent.com/microsoft/adme-samples/main/rest-apis/M25/seismic_ddms_openapi.yaml",
 	"os_wellbore_ddms": "https://raw.githubusercontent.com/microsoft/adme-samples/main/rest-apis/M25/wellbore_ddms_openapi.yaml",
-	"rafs_ddms": "https://osdu-ship.msft-osdu-test.org/api/rafs-ddms/openapi.json",
+	"rafs_ddms": "https://contoso.energy.azure.com/api/rafs-ddms/openapi.json",
 	"well_delivery": "https://raw.githubusercontent.com/microsoft/adme-samples/main/rest-apis/M25/welldelivery_ddms_openapi.yaml",
 	"reservoir": "https://github.com/microsoft/adme-samples/blob/main/rest-apis/M25/reservoir_openapi.yaml",
 }
