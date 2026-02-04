@@ -1,0 +1,12 @@
+# OSDU Ontology Generator - Python Dependencies
+# Install with: pip install -r requirements.txt
+
+# Core dependencies for ontology generation
+regex>=2023.0.0
+numpy>=1.24.0
+nltk>=3.8.0
+networkx>=3.0
+
+# Microsoft Fabric import dependencies
+azure-identity>=1.15.0
+requests>=2.31.0
