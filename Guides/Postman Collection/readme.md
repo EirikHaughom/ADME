@@ -2,12 +2,13 @@
 
 ## Description
 
-This postman collection includes all REST API calls available for Azure Data Manager for Energy (ADME) M18 core services. It is based on the native OSDU APIs, so it could also be used for anyone running a self-managed version of the OSDU M18 release.
+This postman collection includes all REST API calls available for Azure Data Manager for Energy (ADME) M26 services represented by the source OpenAPI specs in `src`. It is based on the native OSDU APIs, so it could also be used for anyone running a self-managed version of the OSDU M26 release.
 
 ## Services Covered
 
 The services mentioned below are covered, and the API calls are imported from the official [ADME documentation](https://microsoft.github.io/adme-samples/).
 
+- ACZ
 - CRS Catalog
 - CRS Converter
 - Dataset
@@ -19,13 +20,15 @@ The services mentioned below are covered, and the API calls are imported from th
 - Notification
 - Petrel DMS
 - Register
+- Reservoir DMS
+- Rock and Fluid Sample DDMS
 - Schema
 - Search
+- Secret
 - Seismic DMS
 - Seismic File Metadata
 - Storage
 - Unit
-- Well Delivery DDMS
 - Wellbore DDMS
 - Workflow
 
@@ -73,7 +76,7 @@ Interactive login is the default authentication method. This will use open an in
 
     `https://oauth.pstmn.io/v1/callback`
 
-1. Go to the top folder of the ADME API collection you have imported
+1. Go to the imported `ADME (M26)` collection
 1. Scroll to the bottom and click `Get New Access Token`
 ![screenshot of Postman Oauth2 configuration](./img/postman-oauth2.png)
 1. A new tab will open in your browser, complete the sign-in. *Note that you may have to allow pop-ups in your browser the first time.*
@@ -88,7 +91,7 @@ Follow the procedure for [User Token](#interactive-user-token-preferred), but ch
 
 Manual authentication requires some additional manual steps to generate the authorization code.
 
-1. Go to the ADME API collection you have imported.
+1. Go to the imported `ADME (M26)` collection.
 1. Select the top folder and choose the *Authorization* tab.
 1. Change *Type* to `Bearer Token` and add {{access_token}} as the *Token* value.
 1. Generate an `authentication code` by navigating to the following URL (replace {values} with your information):
@@ -109,7 +112,7 @@ https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/authorize?client_id={c
 
 ### Manual Service Principal (App Registration)
 
-1. Go to the ADME API collection you have imported.
+1. Go to the imported `ADME (M26)` collection.
 2. In the Authenticate folder, navigate into App Registration folder and run the `getAccessToken appRegistration` call.
 3. Make sure the Access Token is returned, and that it is now populated in the access_token environment variable.
 
@@ -117,9 +120,16 @@ https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/authorize?client_id={c
 
 That's it! You should now be able to run all the API calls included.
 
+All generated API requests are grouped directly under the `ADME (M26)` collection, with one service folder per spec. The collection is configured for OAuth2 against Entra ID and the individual requests inherit that authorization configuration.
+
 ## Changelog
 
 ```text
+28/06-2026
+Updated to M26 APIs
+Regenerated Postman and Bruno collections from OpenAPI specs
+Added ACZ, Reservoir DMS, Rock and Fluid Sample DDMS, and Secret service coverage
+
 13/04-2024
 Updated to M18 APIs
 Added Oath2 variables to environment for multi-CSP support
